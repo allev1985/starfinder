@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { campaigns, characters, campaignCharacters, type NewCampaign, type Campaign, type Character } from "@/db/schema";
 
@@ -88,4 +88,34 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
     .delete(campaignCharacters)
     .where(eq(campaignCharacters.campaignId, campaignId));
   await db.delete(campaigns).where(eq(campaigns.id, campaignId));
+}
+
+export async function checkIsCampaignDm(
+  campaignId: string,
+  userId: string
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: campaigns.id })
+    .from(campaigns)
+    .where(and(eq(campaigns.id, campaignId), eq(campaigns.dmId, userId)))
+    .limit(1);
+  return !!row;
+}
+
+export async function checkHasCharacterOwnerInCampaign(
+  campaignId: string,
+  userId: string
+): Promise<boolean> {
+  const [row] = await db
+    .select({ characterId: campaignCharacters.characterId })
+    .from(campaignCharacters)
+    .innerJoin(characters, eq(characters.id, campaignCharacters.characterId))
+    .where(
+      and(
+        eq(campaignCharacters.campaignId, campaignId),
+        eq(characters.ownerId, userId)
+      )
+    )
+    .limit(1);
+  return !!row;
 }

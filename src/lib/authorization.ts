@@ -1,44 +1,44 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
-import { db } from "@/db";
-import { campaigns, campaignCharacters, characters } from "@/db/schema";
+import {
+  checkIsCampaignDm,
+  checkHasCharacterOwnerInCampaign,
+} from "@/db/queries/campaigns";
+import {
+  checkIsCharacterOwner,
+  getCharacterCampaignIds,
+} from "@/db/queries/characters";
 
 export async function isCampaignParticipant(
   campaignId: string,
   userId: string
 ): Promise<boolean> {
-  const [asDm] = await db
-    .select({ id: campaigns.id })
-    .from(campaigns)
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.dmId, userId)))
-    .limit(1);
-
-  if (asDm) return true;
-
-  const [asPlayer] = await db
-    .select({ characterId: campaignCharacters.characterId })
-    .from(campaignCharacters)
-    .innerJoin(characters, eq(characters.id, campaignCharacters.characterId))
-    .where(
-      and(
-        eq(campaignCharacters.campaignId, campaignId),
-        eq(characters.ownerId, userId)
-      )
-    )
-    .limit(1);
-
-  return !!asPlayer;
+  if (await checkIsCampaignDm(campaignId, userId)) return true;
+  return checkHasCharacterOwnerInCampaign(campaignId, userId);
 }
 
 export async function isCampaignDm(
   campaignId: string,
   userId: string
 ): Promise<boolean> {
-  const [row] = await db
-    .select({ id: campaigns.id })
-    .from(campaigns)
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.dmId, userId)))
-    .limit(1);
+  return checkIsCampaignDm(campaignId, userId);
+}
 
-  return !!row;
+export async function isCharacterOwner(
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  return checkIsCharacterOwner(characterId, userId);
+}
+
+export async function canViewCharacter(
+  characterId: string,
+  userId: string
+): Promise<boolean> {
+  if (await checkIsCharacterOwner(characterId, userId)) return true;
+
+  const campaignIds = await getCharacterCampaignIds(characterId);
+  for (const campaignId of campaignIds) {
+    if (await isCampaignParticipant(campaignId, userId)) return true;
+  }
+  return false;
 }
