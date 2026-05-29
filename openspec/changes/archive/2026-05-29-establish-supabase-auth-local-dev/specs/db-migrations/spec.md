@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Migration generation command
 The system SHALL provide a `db:generate` npm script that runs `drizzle-kit generate` to produce SQL migration files from schema changes. Generated files SHALL be written to `supabase/migrations/`.
@@ -31,3 +31,9 @@ The `supabase/migrations/` directory and all generated `.sql` files SHALL be com
 #### Scenario: Migrations are tracked
 - **WHEN** a developer generates a new migration and runs `git status`
 - **THEN** the new `.sql` file SHALL appear as an untracked file ready to be staged
+
+## REMOVED Requirements
+
+### Requirement: Studio command
+**Reason**: Drizzle Studio (`npm run db:studio`) is superseded by Supabase Studio, which is available at `http://localhost:54323` when the local stack is running and at the Supabase dashboard for the remote project.
+**Migration**: Use `supabase start` and navigate to `http://localhost:54323` for local DB inspection.
