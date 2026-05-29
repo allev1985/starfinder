@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/session";
 import { createCampaignForUser } from "@/services/campaigns";
 
 type Result =
@@ -14,12 +14,8 @@ export async function createCampaignAction(formData: FormData): Promise<Result> 
     return { success: false, error: "Campaign name is required." };
   }
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { success: false, error: "You must be signed in to create a campaign." };
-  }
+  const user = await getUser();
+  if (!user) return { success: false, error: "You must be signed in to create a campaign." };
 
   try {
     const campaign = await createCampaignForUser({ name: name.trim(), dmId: user.id });

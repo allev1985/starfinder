@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/session";
 import { isCampaignParticipant } from "@/lib/authorization";
 import { getCharacterById } from "@/db/queries/campaigns";
 
@@ -10,8 +10,7 @@ export default async function CharacterDetailPage({
   params: Promise<{ id: string; characterId: string }>;
 }) {
   const { id, characterId } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) redirect("/");
 
   const allowed = await isCampaignParticipant(id, user.id);

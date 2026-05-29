@@ -29,3 +29,16 @@ export async function isCampaignParticipant(
 
   return !!asPlayer;
 }
+
+export async function isCampaignDm(
+  campaignId: string,
+  userId: string
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: campaigns.id })
+    .from(campaigns)
+    .where(and(eq(campaigns.id, campaignId), eq(campaigns.dmId, userId)))
+    .limit(1);
+
+  return !!row;
+}

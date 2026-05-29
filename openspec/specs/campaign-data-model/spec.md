@@ -55,6 +55,45 @@ The system SHALL provide a `getCampaignsForUser(userId)` function in `src/db/que
 - **WHEN** `getCampaignsForUser` is called
 - **THEN** DM campaigns and player campaigns are returned as separate arrays, not merged
 
+### Requirement: getCampaignWithCharacters query
+The system SHALL provide a `getCampaignWithCharacters(campaignId)` function in `src/db/queries/campaigns.ts` that returns the campaign row and all characters joined to it via `campaign_characters`.
+
+#### Scenario: Returns campaign and characters
+- **WHEN** `getCampaignWithCharacters` is called with a valid campaign id
+- **THEN** the campaign row and all joined character rows are returned
+
+#### Scenario: Returns null for unknown campaign
+- **WHEN** `getCampaignWithCharacters` is called with an id that does not exist
+- **THEN** null is returned for the campaign
+
+### Requirement: getCharacterById query
+The system SHALL provide a `getCharacterById(characterId)` function in `src/db/queries/campaigns.ts` that returns the character row or null if not found.
+
+#### Scenario: Returns character
+- **WHEN** `getCharacterById` is called with a valid character id
+- **THEN** the character row is returned
+
+### Requirement: updateCampaign query
+The system SHALL provide `updateCampaign(campaignId, data: { name: string })` in `src/db/queries/campaigns.ts` that updates the campaign name and returns the updated row. The DM field SHALL NOT be updatable via this function.
+
+#### Scenario: Name is updated
+- **WHEN** `updateCampaign` is called with a valid new name
+- **THEN** the campaign row reflects the new name and the updated campaign is returned
+
+### Requirement: regenerateJoinCode query
+The system SHALL provide `regenerateJoinCode(campaignId)` in `src/db/queries/campaigns.ts` that generates a new unique join code, updates the campaign row, and returns the new code.
+
+#### Scenario: Join code is replaced
+- **WHEN** `regenerateJoinCode` is called
+- **THEN** the campaign row has a new join_code value distinct from the previous one
+
+### Requirement: deleteCampaign query
+The system SHALL provide `deleteCampaign(campaignId)` in `src/db/queries/campaigns.ts` that deletes all `campaign_characters` rows for the campaign and then deletes the campaign row.
+
+#### Scenario: Campaign and members deleted
+- **WHEN** `deleteCampaign` is called
+- **THEN** all campaign_characters rows for that campaign are removed and the campaign row is deleted
+
 ### Requirement: Campaigns service layer
 The system SHALL provide `src/services/campaigns.ts` that owns join code generation and campaign creation orchestration. Services SHALL call query functions and SHALL NOT import from `app/` or interact with HTTP.
 

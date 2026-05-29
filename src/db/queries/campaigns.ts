@@ -58,3 +58,34 @@ export async function getCharacterById(characterId: string): Promise<Character |
     .where(eq(characters.id, characterId));
   return character ?? null;
 }
+
+export async function updateCampaign(
+  campaignId: string,
+  data: { name: string }
+): Promise<Campaign> {
+  const [updated] = await db
+    .update(campaigns)
+    .set({ name: data.name })
+    .where(eq(campaigns.id, campaignId))
+    .returning();
+  return updated;
+}
+
+export async function updateCampaignJoinCode(
+  campaignId: string,
+  joinCode: string
+): Promise<Campaign> {
+  const [updated] = await db
+    .update(campaigns)
+    .set({ joinCode })
+    .where(eq(campaigns.id, campaignId))
+    .returning();
+  return updated;
+}
+
+export async function deleteCampaign(campaignId: string): Promise<void> {
+  await db
+    .delete(campaignCharacters)
+    .where(eq(campaignCharacters.campaignId, campaignId));
+  await db.delete(campaigns).where(eq(campaigns.id, campaignId));
+}
