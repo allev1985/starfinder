@@ -5,7 +5,10 @@ const schema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 });
 
-const parsed = schema.safeParse(process.env);
+const parsed = schema.safeParse({
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+});
 
 if (!parsed.success) {
   const missing = parsed.error.issues.map((i) => i.path.join(".")).join(", ");
