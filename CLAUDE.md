@@ -6,6 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Starfinder Gaming Sheet — a Next.js application for managing Starfinder RPG character/game data.
 
+## Code Standards
+
+All implementation work must follow the standards defined in [`openspec/standards.md`](openspec/standards.md). Key rules:
+
+- **No `process.env` outside `src/config.ts`** — use Zod-validated config exports everywhere else
+- **No excessive comments** — only write a comment when the why is non-obvious
+- **shadcn/ui for all UI components** — never directly edit files in `src/components/ui/`
+- **Lint + typecheck after every change** — `npm run lint` and `npx tsc --noEmit` always; `npm test` once a runner is configured
+
 ## Commands
 
 ```bash
