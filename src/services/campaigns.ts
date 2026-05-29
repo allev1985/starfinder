@@ -1,6 +1,8 @@
 import "server-only";
-import { createCampaign } from "@/db/queries/campaigns";
+import { createCampaign, getCampaignsForUser } from "@/db/queries/campaigns";
 import type { Campaign } from "@/db/schema";
+
+export type CampaignWithRole = Campaign & { role: "dm" | "player" };
 
 function generateJoinCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -29,4 +31,19 @@ export async function createCampaignForUser({
     }
   }
   throw new Error("Failed to generate unique join code");
+}
+
+export async function listCampaignsForUser(userId: string): Promise<CampaignWithRole[]> {
+  const { dmCampaigns, playerCampaigns } = await getCampaignsForUser(userId);
+
+  const map = new Map<string, CampaignWithRole>();
+
+  for (const c of playerCampaigns) {
+    map.set(c.id, { ...c, role: "player" });
+  }
+  for (const c of dmCampaigns) {
+    map.set(c.id, { ...c, role: "dm" });
+  }
+
+  return Array.from(map.values());
 }
