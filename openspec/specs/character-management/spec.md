@@ -38,15 +38,19 @@ The system SHALL display a list of characters owned by the authenticated user at
 - **THEN** an empty state message with a link to create a character is shown
 
 ### Requirement: Create character
-The system SHALL provide a form at `/dashboard/characters/new` to create a character with a name. On success the user is redirected to the new character's detail page.
+The system SHALL provide a form at `/dashboard/characters/new` to create a character with a name, race, class, and theme. On success the user is redirected to the new character's detail page.
 
 #### Scenario: Successful creation
-- **WHEN** a valid name is submitted
-- **THEN** a character is created with `owner_id = user.id` and the user is redirected to `/dashboard/characters/[id]`
+- **WHEN** a valid name, race, class, and theme are submitted
+- **THEN** a character is created with `owner_id = user.id`, `race_id`, `class_id`, and `theme_id` set, and the user is redirected to `/dashboard/characters/[id]`
 
 #### Scenario: Empty name rejected
 - **WHEN** an empty or whitespace-only name is submitted
 - **THEN** no character is created and an inline error is displayed
+
+#### Scenario: Missing race, class, or theme rejected
+- **WHEN** the form is submitted without a race, class, or theme selection
+- **THEN** no character is created and an inline error is displayed for the missing field
 
 ### Requirement: Character detail page access control
 The character detail page SHALL only be accessible to the character's owner or participants of campaigns the character has joined. Others SHALL be redirected to `/dashboard/characters`.
@@ -64,15 +68,19 @@ The character detail page SHALL only be accessible to the character's owner or p
 - **THEN** they are redirected to `/dashboard/characters`
 
 ### Requirement: Character detail page content
-The character detail page SHALL display the character's name, creation date, and the list of campaigns they have joined. Edit and Delete controls SHALL only be visible to the owner.
+The character detail page SHALL display the character's name, race, class, theme, creation date, and the list of campaigns they have joined. Edit and Delete controls SHALL only be visible to the owner.
 
-#### Scenario: Owner sees edit and delete controls
+#### Scenario: Owner sees race, class, theme, edit and delete controls
 - **WHEN** the character owner views the detail page
-- **THEN** Edit and Delete buttons are displayed
+- **THEN** race, class, and theme names are displayed alongside the character name; Edit and Delete buttons are visible
 
-#### Scenario: Non-owner does not see edit or delete controls
+#### Scenario: Non-owner sees race, class, theme but no controls
 - **WHEN** a non-owner views the detail page
-- **THEN** no Edit or Delete controls are rendered
+- **THEN** race, class, and theme names are displayed but no Edit or Delete controls are rendered
+
+#### Scenario: Pre-existing character shows placeholder for null fields
+- **WHEN** any authorized user views a character that has no race, class, or theme set
+- **THEN** the missing fields display "—"
 
 ### Requirement: Join campaign from character page
 The character detail page SHALL provide an inline form (owner only) to join a campaign by entering a join code. An error SHALL be shown if the code is invalid or the character is already in that campaign.
@@ -94,15 +102,15 @@ The character detail page SHALL provide an inline form (owner only) to join a ca
 - **THEN** the join campaign form is not rendered
 
 ### Requirement: Edit character
-The system SHALL provide a page at `/dashboard/characters/[id]/edit` accessible only to the character owner, allowing the character name to be updated.
+The system SHALL provide a page at `/dashboard/characters/[id]/edit` accessible only to the character owner, allowing the character name, race, class, and theme to be updated.
 
 #### Scenario: Non-owner redirected from edit page
 - **WHEN** a non-owner navigates to `/dashboard/characters/[id]/edit`
 - **THEN** they are redirected to `/dashboard/characters/[id]`
 
-#### Scenario: Owner updates name
-- **WHEN** the owner submits a valid new name
-- **THEN** the character name is updated and the owner is redirected to `/dashboard/characters/[id]`
+#### Scenario: Owner updates name, race, class, or theme
+- **WHEN** the owner submits valid updated values for name, race, class, or theme
+- **THEN** the character row is updated and the owner is redirected to `/dashboard/characters/[id]`
 
 ### Requirement: Delete character
 The character detail page SHALL allow the owner to delete a character via a confirmation dialog. Deletion SHALL remove all `campaign_characters` rows for the character before deleting the character row.

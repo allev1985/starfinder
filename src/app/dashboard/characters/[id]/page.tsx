@@ -30,6 +30,12 @@ export default async function CharacterDetailPage({
         {isOwner && <CharacterActions characterId={id} />}
       </div>
 
+      <div className="mb-6 flex gap-6 text-sm text-muted-foreground">
+        <span><span className="font-medium text-foreground">Race</span> {character.raceName ?? "—"}</span>
+        <span><span className="font-medium text-foreground">Class</span> {character.className ?? "—"}</span>
+        <span><span className="font-medium text-foreground">Theme</span> {character.themeName ?? "—"}</span>
+      </div>
+
       <p className="mb-8 text-sm text-muted-foreground">
         Created {new Date(character.createdAt).toLocaleDateString()}
       </p>

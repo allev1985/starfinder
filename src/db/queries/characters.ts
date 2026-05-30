@@ -5,6 +5,9 @@ import {
   characters,
   campaigns,
   campaignCharacters,
+  races,
+  classes,
+  themes,
   type NewCharacter,
   type Character,
   type Campaign,
@@ -21,11 +24,11 @@ export async function createCharacter(data: NewCharacter): Promise<Character> {
 
 export async function updateCharacter(
   id: string,
-  data: { name: string }
+  data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null }
 ): Promise<Character> {
   const [updated] = await db
     .update(characters)
-    .set({ name: data.name })
+    .set(data)
     .where(eq(characters.id, id))
     .returning();
   return updated;
@@ -36,15 +39,48 @@ export async function deleteCharacter(id: string): Promise<void> {
   await db.delete(characters).where(eq(characters.id, id));
 }
 
+export type CharacterWithMeta = Character & {
+  raceName: string | null;
+  className: string | null;
+  themeName: string | null;
+};
+
 export async function getCharacterWithCampaigns(
   characterId: string
-): Promise<{ character: Character | null; campaigns: Campaign[] }> {
-  const [character] = await db
-    .select()
+): Promise<{ character: CharacterWithMeta | null; campaigns: Campaign[] }> {
+  const [row] = await db
+    .select({
+      id: characters.id,
+      name: characters.name,
+      ownerId: characters.ownerId,
+      raceId: characters.raceId,
+      classId: characters.classId,
+      themeId: characters.themeId,
+      createdAt: characters.createdAt,
+      raceName: races.name,
+      className: classes.name,
+      themeName: themes.name,
+    })
     .from(characters)
+    .leftJoin(races, eq(characters.raceId, races.id))
+    .leftJoin(classes, eq(characters.classId, classes.id))
+    .leftJoin(themes, eq(characters.themeId, themes.id))
     .where(eq(characters.id, characterId));
 
-  if (!character) return { character: null, campaigns: [] };
+  if (!row) return { character: null, campaigns: [] };
+
+  const character: CharacterWithMeta = {
+    id: row.id,
+    name: row.name,
+    ownerId: row.ownerId,
+    raceId: row.raceId,
+    classId: row.classId,
+    themeId: row.themeId,
+    createdAt: row.createdAt,
+    raceName: row.raceName ?? null,
+    className: row.className ?? null,
+    themeName: row.themeName ?? null,
+  };
 
   const joined = await db
     .select({ campaign: campaigns })

@@ -17,17 +17,23 @@ export class AlreadyInCampaignError extends Error {}
 export async function createCharacterForUser({
   name,
   ownerId,
+  raceId,
+  classId,
+  themeId,
 }: {
   name: string;
   ownerId: string;
+  raceId: string;
+  classId: string;
+  themeId: string;
 }): Promise<Character> {
-  return createCharacter({ name, ownerId });
+  return createCharacter({ name, ownerId, raceId, classId, themeId });
 }
 
 export async function updateCharacterForOwner(
   characterId: string,
   userId: string,
-  data: { name: string }
+  data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null }
 ): Promise<Character> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   return updateCharacter(characterId, data);
