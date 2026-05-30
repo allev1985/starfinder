@@ -242,6 +242,25 @@ export async function updateInitiativeMiscMod(
     .where(eq(characterCombatStats.characterId, characterId));
 }
 
+export type HealthResolveValues = {
+  staminaPointsTotal: number;
+  staminaPointsCurrent: number;
+  hitPointsTotal: number;
+  hitPointsCurrent: number;
+  resolvePointsTotal: number;
+  resolvePointsCurrent: number;
+};
+
+export async function updateHealthResolve(
+  characterId: string,
+  values: HealthResolveValues
+): Promise<void> {
+  await db
+    .update(characterCombatStats)
+    .set(values)
+    .where(eq(characterCombatStats.characterId, characterId));
+}
+
 export async function upsertCharacterRaceAttributeValue(
   characterId: string,
   attributeId: string,

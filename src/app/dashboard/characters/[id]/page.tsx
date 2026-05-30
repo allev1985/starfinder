@@ -9,6 +9,7 @@ import JoinCampaignForm from "./_components/join-campaign-form";
 import LevelControl from "./_components/level-control";
 import DescriptionSection from "./_components/description-section";
 import CharacterStatsClient from "./_components/character-stats-client";
+import HealthResolveSection from "./_components/health-resolve-section";
 
 export default async function CharacterDetailPage({
   params,
@@ -84,6 +85,17 @@ export default async function CharacterDetailPage({
         }}
         initiativeMiscMod={combatStats?.initiativeMiscMod ?? 0}
         isOwner={isOwner}
+      />
+
+      <HealthResolveSection
+        characterId={id}
+        isOwner={isOwner}
+        staminaPointsTotal={combatStats?.staminaPointsTotal ?? 0}
+        staminaPointsCurrent={combatStats?.staminaPointsCurrent ?? 0}
+        hitPointsTotal={combatStats?.hitPointsTotal ?? 0}
+        hitPointsCurrent={combatStats?.hitPointsCurrent ?? 0}
+        resolvePointsTotal={combatStats?.resolvePointsTotal ?? 0}
+        resolvePointsCurrent={combatStats?.resolvePointsCurrent ?? 0}
       />
 
       {descriptionAttributes.length > 0 && (

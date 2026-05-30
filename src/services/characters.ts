@@ -12,7 +12,9 @@ import {
   joinCampaign,
   upsertCharacterRaceAttributeValue,
   updateInitiativeMiscMod,
+  updateHealthResolve,
   type AbilityScores,
+  type HealthResolveValues,
 } from "@/db/queries/characters";
 import { isCharacterOwner } from "@/lib/authorization";
 import type { Character } from "@/db/schema";
@@ -96,6 +98,15 @@ export async function updateInitiativeMiscModForOwner(
 ): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateInitiativeMiscMod(characterId, value);
+}
+
+export async function updateHealthResolveForOwner(
+  characterId: string,
+  userId: string,
+  values: HealthResolveValues
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateHealthResolve(characterId, values);
 }
 
 export async function joinCampaignForOwner(

@@ -8,11 +8,12 @@ import {
   updateAbilityScoresForOwner,
   upsertRaceAttributeValueForOwner,
   updateInitiativeMiscModForOwner,
+  updateHealthResolveForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
 } from "@/services/characters";
-import type { AbilityScores } from "@/db/queries/characters";
+import type { AbilityScores, HealthResolveValues } from "@/db/queries/characters";
 
 type Result = { success: true } | { success: false; error: string };
 
@@ -95,6 +96,32 @@ export async function updateInitiativeMiscModAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save initiative modifier." };
+  }
+}
+
+export async function updateHealthResolveAction(
+  characterId: string,
+  raw: HealthResolveValues
+): Promise<Result> {
+  const parse = (v: number) => (isNaN(v) ? 0 : v);
+  const values: HealthResolveValues = {
+    staminaPointsTotal: parse(raw.staminaPointsTotal),
+    staminaPointsCurrent: parse(raw.staminaPointsCurrent),
+    hitPointsTotal: parse(raw.hitPointsTotal),
+    hitPointsCurrent: parse(raw.hitPointsCurrent),
+    resolvePointsTotal: parse(raw.resolvePointsTotal),
+    resolvePointsCurrent: parse(raw.resolvePointsCurrent),
+  };
+
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  try {
+    await updateHealthResolveForOwner(characterId, user.id, values);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save health & resolve." };
   }
 }
 

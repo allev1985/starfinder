@@ -1,6 +1,6 @@
 {
-  "id": "a84f9486-08f8-4d87-9d26-bfc2bf8bd885",
-  "prevId": "da16fd10-587b-452e-b801-195fb72615ff",
+  "id": "ef0c5b64-bfcd-46ee-9ca6-444e377ff7b3",
+  "prevId": "a84f9486-08f8-4d87-9d26-bfc2bf8bd885",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -124,6 +124,173 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.character_combat_stats": {
+      "name": "character_combat_stats",
+      "schema": "",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "initiative_misc_mod": {
+          "name": "initiative_misc_mod",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "stamina_points_total": {
+          "name": "stamina_points_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0",
+          "typeSchema": null,
+          "generated": null,
+          "identity": null
+        },
+        "stamina_points_current": {
+          "name": "stamina_points_current",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0",
+          "typeSchema": null,
+          "generated": null,
+          "identity": null
+        },
+        "hit_points_total": {
+          "name": "hit_points_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0",
+          "typeSchema": null,
+          "generated": null,
+          "identity": null
+        },
+        "hit_points_current": {
+          "name": "hit_points_current",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0",
+          "typeSchema": null,
+          "generated": null,
+          "identity": null
+        },
+        "resolve_points_total": {
+          "name": "resolve_points_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0",
+          "typeSchema": null,
+          "generated": null,
+          "identity": null
+        },
+        "resolve_points_current": {
+          "name": "resolve_points_current",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "0",
+          "typeSchema": null,
+          "generated": null,
+          "identity": null
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "character_combat_stats_character_id_characters_id_fk": {
+          "name": "character_combat_stats_character_id_characters_id_fk",
+          "tableFrom": "character_combat_stats",
+          "tableTo": "characters",
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.character_race_attribute_values": {
+      "name": "character_race_attribute_values",
+      "schema": "",
+      "columns": {
+        "character_id": {
+          "name": "character_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attribute_id": {
+          "name": "attribute_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "character_race_attribute_values_character_id_characters_id_fk": {
+          "name": "character_race_attribute_values_character_id_characters_id_fk",
+          "tableFrom": "character_race_attribute_values",
+          "tableTo": "characters",
+          "columnsFrom": [
+            "character_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "character_race_attribute_values_attribute_id_race_attributes_id_fk": {
+          "name": "character_race_attribute_values_attribute_id_race_attributes_id_fk",
+          "tableFrom": "character_race_attribute_values",
+          "tableTo": "race_attributes",
+          "columnsFrom": [
+            "attribute_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "character_race_attribute_values_character_id_attribute_id_pk": {
+          "name": "character_race_attribute_values_character_id_attribute_id_pk",
+          "columns": [
+            "character_id",
+            "attribute_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.characters": {
       "name": "characters",
       "schema": "",
@@ -171,6 +338,48 @@
           "primaryKey": false,
           "notNull": true,
           "default": 1
+        },
+        "str_score": {
+          "name": "str_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "dex_score": {
+          "name": "dex_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "con_score": {
+          "name": "con_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "int_score": {
+          "name": "int_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "wis_score": {
+          "name": "wis_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
+        },
+        "cha_score": {
+          "name": "cha_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 10
         },
         "created_at": {
           "name": "created_at",
