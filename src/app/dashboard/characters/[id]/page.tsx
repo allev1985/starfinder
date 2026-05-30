@@ -2,12 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterRaceAttributeValues } from "@/db/queries/characters";
+import { getCharacterWithCampaigns, getCharacterRaceAttributeValues, getCharacterCombatStats } from "@/db/queries/characters";
 import { getRaceAttributes } from "@/db/queries/reference";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import LevelControl from "./_components/level-control";
 import DescriptionSection from "./_components/description-section";
+import CharacterStatsClient from "./_components/character-stats-client";
 
 export default async function CharacterDetailPage({
   params,
@@ -26,14 +27,19 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptionAttributes, savedAttributeValues] = character.raceId
+  const [descriptionAttributes, savedAttributeValues, combatStats] = character.raceId
     ? await Promise.all([
         getRaceAttributes(character.raceId).then((attrs) =>
           attrs.filter((a) => a.type === "description")
         ),
         getCharacterRaceAttributeValues(id),
+        getCharacterCombatStats(id),
       ])
-    : [[], []];
+    : await Promise.all([
+        Promise.resolve([] as Awaited<ReturnType<typeof getRaceAttributes>>),
+        Promise.resolve([] as Awaited<ReturnType<typeof getCharacterRaceAttributeValues>>),
+        getCharacterCombatStats(id),
+      ]);
 
   const savedValuesMap = Object.fromEntries(
     savedAttributeValues.map((v) => [v.attributeId, v.value])
@@ -65,6 +71,20 @@ export default async function CharacterDetailPage({
       <p className="mb-8 text-sm text-muted-foreground">
         Created {new Date(character.createdAt).toLocaleDateString()}
       </p>
+
+      <CharacterStatsClient
+        characterId={id}
+        scores={{
+          strScore: character.strScore,
+          dexScore: character.dexScore,
+          conScore: character.conScore,
+          intScore: character.intScore,
+          wisScore: character.wisScore,
+          chaScore: character.chaScore,
+        }}
+        initiativeMiscMod={combatStats?.initiativeMiscMod ?? 0}
+        isOwner={isOwner}
+      />
 
       {descriptionAttributes.length > 0 && (
         <DescriptionSection

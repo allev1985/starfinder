@@ -5,11 +5,14 @@ import {
   deleteCharacterForOwner,
   joinCampaignForOwner,
   updateCharacterLevelForOwner,
+  updateAbilityScoresForOwner,
   upsertRaceAttributeValueForOwner,
+  updateInitiativeMiscModForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
 } from "@/services/characters";
+import type { AbilityScores } from "@/db/queries/characters";
 
 type Result = { success: true } | { success: false; error: string };
 
@@ -46,6 +49,22 @@ export async function updateCharacterLevelAction(
   }
 }
 
+export async function updateAbilityScoresAction(
+  characterId: string,
+  scores: AbilityScores
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  try {
+    await updateAbilityScoresForOwner(characterId, user.id, scores);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save ability scores." };
+  }
+}
+
 export async function upsertRaceAttributeValueAction(
   characterId: string,
   attributeId: string,
@@ -60,6 +79,22 @@ export async function upsertRaceAttributeValueAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save attribute." };
+  }
+}
+
+export async function updateInitiativeMiscModAction(
+  characterId: string,
+  value: number
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  try {
+    await updateInitiativeMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save initiative modifier." };
   }
 }
 

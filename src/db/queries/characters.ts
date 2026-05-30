@@ -9,10 +9,12 @@ import {
   classes,
   themes,
   characterRaceAttributeValues,
+  characterCombatStats,
   type NewCharacter,
   type Character,
   type Campaign,
   type CharacterRaceAttributeValue,
+  type CharacterCombatStats,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -26,6 +28,7 @@ export async function getCharacterById(id: string): Promise<Character | null> {
 
 export async function createCharacter(data: NewCharacter): Promise<Character> {
   const [character] = await db.insert(characters).values(data).returning();
+  await db.insert(characterCombatStats).values({ characterId: character.id });
   return character;
 }
 
@@ -77,6 +80,12 @@ export async function getCharacterWithCampaigns(
       classId: characters.classId,
       themeId: characters.themeId,
       level: characters.level,
+      strScore: characters.strScore,
+      dexScore: characters.dexScore,
+      conScore: characters.conScore,
+      intScore: characters.intScore,
+      wisScore: characters.wisScore,
+      chaScore: characters.chaScore,
       createdAt: characters.createdAt,
       raceName: races.name,
       className: classes.name,
@@ -98,6 +107,12 @@ export async function getCharacterWithCampaigns(
     classId: row.classId,
     themeId: row.themeId,
     level: row.level,
+    strScore: row.strScore,
+    dexScore: row.dexScore,
+    conScore: row.conScore,
+    intScore: row.intScore,
+    wisScore: row.wisScore,
+    chaScore: row.chaScore,
     createdAt: row.createdAt,
     raceName: row.raceName ?? null,
     className: row.className ?? null,
@@ -183,6 +198,48 @@ export async function deleteCharacterRaceAttributeValues(characterId: string): P
   await db
     .delete(characterRaceAttributeValues)
     .where(eq(characterRaceAttributeValues.characterId, characterId));
+}
+
+export type AbilityScores = {
+  strScore: number;
+  dexScore: number;
+  conScore: number;
+  intScore: number;
+  wisScore: number;
+  chaScore: number;
+};
+
+export async function updateCharacterAbilityScores(
+  id: string,
+  scores: AbilityScores
+): Promise<Character> {
+  const [updated] = await db
+    .update(characters)
+    .set(scores)
+    .where(eq(characters.id, id))
+    .returning();
+  return updated;
+}
+
+export async function getCharacterCombatStats(
+  characterId: string
+): Promise<CharacterCombatStats | null> {
+  const [row] = await db
+    .select()
+    .from(characterCombatStats)
+    .where(eq(characterCombatStats.characterId, characterId))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updateInitiativeMiscMod(
+  characterId: string,
+  value: number
+): Promise<void> {
+  await db
+    .update(characterCombatStats)
+    .set({ initiativeMiscMod: value })
+    .where(eq(characterCombatStats.characterId, characterId));
 }
 
 export async function upsertCharacterRaceAttributeValue(

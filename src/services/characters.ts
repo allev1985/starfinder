@@ -4,12 +4,15 @@ import {
   getCharacterById,
   updateCharacter,
   updateCharacterLevel,
+  updateCharacterAbilityScores,
   deleteCharacter,
   deleteCharacterRaceAttributeValues,
   findCampaignByJoinCode,
   isAlreadyInCampaign,
   joinCampaign,
   upsertCharacterRaceAttributeValue,
+  updateInitiativeMiscMod,
+  type AbilityScores,
 } from "@/db/queries/characters";
 import { isCharacterOwner } from "@/lib/authorization";
 import type { Character } from "@/db/schema";
@@ -75,6 +78,24 @@ export async function upsertRaceAttributeValueForOwner(
 ): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await upsertCharacterRaceAttributeValue(characterId, attributeId, value);
+}
+
+export async function updateAbilityScoresForOwner(
+  characterId: string,
+  userId: string,
+  scores: AbilityScores
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterAbilityScores(characterId, scores);
+}
+
+export async function updateInitiativeMiscModForOwner(
+  characterId: string,
+  userId: string,
+  value: number
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateInitiativeMiscMod(characterId, value);
 }
 
 export async function joinCampaignForOwner(

@@ -61,6 +61,12 @@ export const characters = pgTable("characters", {
   classId: uuid("class_id").references(() => classes.id),
   themeId: uuid("theme_id").references(() => themes.id),
   level: integer("level").notNull().default(1),
+  strScore: integer("str_score").notNull().default(10),
+  dexScore: integer("dex_score").notNull().default(10),
+  conScore: integer("con_score").notNull().default(10),
+  intScore: integer("int_score").notNull().default(10),
+  wisScore: integer("wis_score").notNull().default(10),
+  chaScore: integer("cha_score").notNull().default(10),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -77,6 +83,11 @@ export const campaignCharacters = pgTable(
   },
   (t) => [primaryKey({ columns: [t.campaignId, t.characterId] })]
 );
+
+export const characterCombatStats = pgTable("character_combat_stats", {
+  characterId: uuid("character_id").primaryKey().references(() => characters.id, { onDelete: "cascade" }),
+  initiativeMiscMod: integer("initiative_misc_mod").notNull().default(0),
+});
 
 export const characterRaceAttributeValues = pgTable(
   "character_race_attribute_values",
@@ -106,3 +117,4 @@ export type NewCampaign = typeof campaigns.$inferInsert;
 export type Character = typeof characters.$inferSelect;
 export type NewCharacter = typeof characters.$inferInsert;
 export type CharacterRaceAttributeValue = typeof characterRaceAttributeValues.$inferSelect;
+export type CharacterCombatStats = typeof characterCombatStats.$inferSelect;
