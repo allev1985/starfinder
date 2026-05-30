@@ -15,6 +15,36 @@ export const themes = pgTable("themes", {
   name: text("name").notNull(),
 });
 
+export const raceAttributes = pgTable("race_attributes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  raceId: uuid("race_id").notNull().references(() => races.id),
+  type: text("type").notNull(),
+  name: text("name").notNull(),
+  inputType: text("input_type").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull(),
+});
+
+export const classAttributes = pgTable("class_attributes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  type: text("type").notNull(),
+  name: text("name").notNull(),
+  inputType: text("input_type").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull(),
+});
+
+export const themeAttributes = pgTable("theme_attributes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  themeId: uuid("theme_id").notNull().references(() => themes.id),
+  type: text("type").notNull(),
+  name: text("name").notNull(),
+  inputType: text("input_type").notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull(),
+});
+
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -48,6 +78,9 @@ export const campaignCharacters = pgTable(
   (t) => [primaryKey({ columns: [t.campaignId, t.characterId] })]
 );
 
+export type RaceAttribute = typeof raceAttributes.$inferSelect;
+export type ClassAttribute = typeof classAttributes.$inferSelect;
+export type ThemeAttribute = typeof themeAttributes.$inferSelect;
 export type Race = typeof races.$inferSelect;
 export type NewRace = typeof races.$inferInsert;
 export type Class = typeof classes.$inferSelect;
