@@ -2,10 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns } from "@/db/queries/characters";
+import { getCharacterWithCampaigns, getCharacterRaceAttributeValues } from "@/db/queries/characters";
+import { getRaceAttributes } from "@/db/queries/reference";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import LevelControl from "./_components/level-control";
+import DescriptionSection from "./_components/description-section";
 
 export default async function CharacterDetailPage({
   params,
@@ -23,6 +25,19 @@ export default async function CharacterDetailPage({
   if (!character) redirect("/dashboard/characters");
 
   const isOwner = await isCharacterOwner(id, user.id);
+
+  const [descriptionAttributes, savedAttributeValues] = character.raceId
+    ? await Promise.all([
+        getRaceAttributes(character.raceId).then((attrs) =>
+          attrs.filter((a) => a.type === "description")
+        ),
+        getCharacterRaceAttributeValues(id),
+      ])
+    : [[], []];
+
+  const savedValuesMap = Object.fromEntries(
+    savedAttributeValues.map((v) => [v.attributeId, v.value])
+  );
 
   return (
     <div className="p-6">
@@ -50,6 +65,15 @@ export default async function CharacterDetailPage({
       <p className="mb-8 text-sm text-muted-foreground">
         Created {new Date(character.createdAt).toLocaleDateString()}
       </p>
+
+      {descriptionAttributes.length > 0 && (
+        <DescriptionSection
+          characterId={id}
+          attributes={descriptionAttributes}
+          savedValues={savedValuesMap}
+          isOwner={isOwner}
+        />
+      )}
 
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Campaigns

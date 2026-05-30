@@ -78,6 +78,20 @@ export const campaignCharacters = pgTable(
   (t) => [primaryKey({ columns: [t.campaignId, t.characterId] })]
 );
 
+export const characterRaceAttributeValues = pgTable(
+  "character_race_attribute_values",
+  {
+    characterId: uuid("character_id")
+      .notNull()
+      .references(() => characters.id, { onDelete: "cascade" }),
+    attributeId: uuid("attribute_id")
+      .notNull()
+      .references(() => raceAttributes.id, { onDelete: "cascade" }),
+    value: text("value").notNull().default(""),
+  },
+  (t) => [primaryKey({ columns: [t.characterId, t.attributeId] })]
+);
+
 export type RaceAttribute = typeof raceAttributes.$inferSelect;
 export type ClassAttribute = typeof classAttributes.$inferSelect;
 export type ThemeAttribute = typeof themeAttributes.$inferSelect;
@@ -91,3 +105,4 @@ export type Campaign = typeof campaigns.$inferSelect;
 export type NewCampaign = typeof campaigns.$inferInsert;
 export type Character = typeof characters.$inferSelect;
 export type NewCharacter = typeof characters.$inferInsert;
+export type CharacterRaceAttributeValue = typeof characterRaceAttributeValues.$inferSelect;

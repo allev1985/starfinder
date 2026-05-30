@@ -1,12 +1,15 @@
 import "server-only";
 import {
   createCharacter,
+  getCharacterById,
   updateCharacter,
   updateCharacterLevel,
   deleteCharacter,
+  deleteCharacterRaceAttributeValues,
   findCampaignByJoinCode,
   isAlreadyInCampaign,
   joinCampaign,
+  upsertCharacterRaceAttributeValue,
 } from "@/db/queries/characters";
 import { isCharacterOwner } from "@/lib/authorization";
 import type { Character } from "@/db/schema";
@@ -37,6 +40,12 @@ export async function updateCharacterForOwner(
   data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null }
 ): Promise<Character> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  if (data.raceId !== undefined) {
+    const current = await getCharacterById(characterId);
+    if (current && current.raceId !== data.raceId) {
+      await deleteCharacterRaceAttributeValues(characterId);
+    }
+  }
   return updateCharacter(characterId, data);
 }
 
@@ -56,6 +65,16 @@ export async function updateCharacterLevelForOwner(
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   if (level < 1 || level > 20) throw new Error("Level must be between 1 and 20.");
   return updateCharacterLevel(characterId, level);
+}
+
+export async function upsertRaceAttributeValueForOwner(
+  characterId: string,
+  userId: string,
+  attributeId: string,
+  value: string
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await upsertCharacterRaceAttributeValue(characterId, attributeId, value);
 }
 
 export async function joinCampaignForOwner(

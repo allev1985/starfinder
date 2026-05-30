@@ -5,6 +5,7 @@ import {
   deleteCharacterForOwner,
   joinCampaignForOwner,
   updateCharacterLevelForOwner,
+  upsertRaceAttributeValueForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -42,6 +43,23 @@ export async function updateCharacterLevelAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to update level." };
+  }
+}
+
+export async function upsertRaceAttributeValueAction(
+  characterId: string,
+  attributeId: string,
+  value: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  try {
+    await upsertRaceAttributeValueForOwner(characterId, user.id, attributeId, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save attribute." };
   }
 }
 

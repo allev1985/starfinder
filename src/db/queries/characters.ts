@@ -8,13 +8,20 @@ import {
   races,
   classes,
   themes,
+  characterRaceAttributeValues,
   type NewCharacter,
   type Character,
   type Campaign,
+  type CharacterRaceAttributeValue,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
   return db.select().from(characters).where(eq(characters.ownerId, ownerId));
+}
+
+export async function getCharacterById(id: string): Promise<Character | null> {
+  const [character] = await db.select().from(characters).where(eq(characters.id, id)).limit(1);
+  return character ?? null;
 }
 
 export async function createCharacter(data: NewCharacter): Promise<Character> {
@@ -161,4 +168,33 @@ export async function getCharacterCampaignIds(
     .from(campaignCharacters)
     .where(eq(campaignCharacters.characterId, characterId));
   return rows.map((r) => r.campaignId);
+}
+
+export async function getCharacterRaceAttributeValues(
+  characterId: string
+): Promise<CharacterRaceAttributeValue[]> {
+  return db
+    .select()
+    .from(characterRaceAttributeValues)
+    .where(eq(characterRaceAttributeValues.characterId, characterId));
+}
+
+export async function deleteCharacterRaceAttributeValues(characterId: string): Promise<void> {
+  await db
+    .delete(characterRaceAttributeValues)
+    .where(eq(characterRaceAttributeValues.characterId, characterId));
+}
+
+export async function upsertCharacterRaceAttributeValue(
+  characterId: string,
+  attributeId: string,
+  value: string
+): Promise<void> {
+  await db
+    .insert(characterRaceAttributeValues)
+    .values({ characterId, attributeId, value })
+    .onConflictDoUpdate({
+      target: [characterRaceAttributeValues.characterId, characterRaceAttributeValues.attributeId],
+      set: { value },
+    });
 }
