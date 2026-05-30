@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, timestamp, primaryKey } from "drizzle-orm/pg-core";
 
 export const races = pgTable("races", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -30,6 +30,7 @@ export const characters = pgTable("characters", {
   raceId: uuid("race_id").references(() => races.id),
   classId: uuid("class_id").references(() => classes.id),
   themeId: uuid("theme_id").references(() => themes.id),
+  level: integer("level").notNull().default(1),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

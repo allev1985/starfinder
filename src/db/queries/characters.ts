@@ -34,6 +34,18 @@ export async function updateCharacter(
   return updated;
 }
 
+export async function updateCharacterLevel(
+  id: string,
+  level: number
+): Promise<Character> {
+  const [updated] = await db
+    .update(characters)
+    .set({ level })
+    .where(eq(characters.id, id))
+    .returning();
+  return updated;
+}
+
 export async function deleteCharacter(id: string): Promise<void> {
   await db.delete(campaignCharacters).where(eq(campaignCharacters.characterId, id));
   await db.delete(characters).where(eq(characters.id, id));
@@ -43,6 +55,7 @@ export type CharacterWithMeta = Character & {
   raceName: string | null;
   className: string | null;
   themeName: string | null;
+  level: number;
 };
 
 export async function getCharacterWithCampaigns(
@@ -56,6 +69,7 @@ export async function getCharacterWithCampaigns(
       raceId: characters.raceId,
       classId: characters.classId,
       themeId: characters.themeId,
+      level: characters.level,
       createdAt: characters.createdAt,
       raceName: races.name,
       className: classes.name,
@@ -76,6 +90,7 @@ export async function getCharacterWithCampaigns(
     raceId: row.raceId,
     classId: row.classId,
     themeId: row.themeId,
+    level: row.level,
     createdAt: row.createdAt,
     raceName: row.raceName ?? null,
     className: row.className ?? null,

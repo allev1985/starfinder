@@ -4,6 +4,7 @@ import { getUser } from "@/lib/session";
 import {
   deleteCharacterForOwner,
   joinCampaignForOwner,
+  updateCharacterLevelForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -21,6 +22,26 @@ export async function deleteCharacterAction(characterId: string): Promise<Result
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to delete character." };
+  }
+}
+
+export async function updateCharacterLevelAction(
+  characterId: string,
+  level: number
+): Promise<Result> {
+  if (level < 1 || level > 20) {
+    return { success: false, error: "Level must be between 1 and 20." };
+  }
+
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  try {
+    await updateCharacterLevelForOwner(characterId, user.id, level);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to update level." };
   }
 }
 

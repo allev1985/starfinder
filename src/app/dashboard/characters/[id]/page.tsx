@@ -5,6 +5,7 @@ import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
 import { getCharacterWithCampaigns } from "@/db/queries/characters";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
+import LevelControl from "./_components/level-control";
 
 export default async function CharacterDetailPage({
   params,
@@ -30,10 +31,20 @@ export default async function CharacterDetailPage({
         {isOwner && <CharacterActions characterId={id} />}
       </div>
 
-      <div className="mb-6 flex gap-6 text-sm text-muted-foreground">
+      <div className="mb-4 flex gap-6 text-sm text-muted-foreground">
         <span><span className="font-medium text-foreground">Race</span> {character.raceName ?? "—"}</span>
         <span><span className="font-medium text-foreground">Class</span> {character.className ?? "—"}</span>
         <span><span className="font-medium text-foreground">Theme</span> {character.themeName ?? "—"}</span>
+      </div>
+
+      <div className="mb-8">
+        {isOwner ? (
+          <LevelControl characterId={id} initialLevel={character.level} />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Level</span> {character.level}
+          </p>
+        )}
       </div>
 
       <p className="mb-8 text-sm text-muted-foreground">

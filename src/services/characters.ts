@@ -2,6 +2,7 @@ import "server-only";
 import {
   createCharacter,
   updateCharacter,
+  updateCharacterLevel,
   deleteCharacter,
   findCampaignByJoinCode,
   isAlreadyInCampaign,
@@ -45,6 +46,16 @@ export async function deleteCharacterForOwner(
 ): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await deleteCharacter(characterId);
+}
+
+export async function updateCharacterLevelForOwner(
+  characterId: string,
+  userId: string,
+  level: number
+): Promise<Character> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  if (level < 1 || level > 20) throw new Error("Level must be between 1 and 20.");
+  return updateCharacterLevel(characterId, level);
 }
 
 export async function joinCampaignForOwner(
