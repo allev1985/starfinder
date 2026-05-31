@@ -94,6 +94,10 @@ export const characterCombatStats = pgTable("character_combat_stats", {
   hitPointsCurrent: integer("hit_points_current").notNull().default(0),
   resolvePointsTotal: integer("resolve_points_total").notNull().default(0),
   resolvePointsCurrent: integer("resolve_points_current").notNull().default(0),
+  eacArmorBonus: integer("eac_armor_bonus").notNull().default(0),
+  eacMiscMod: integer("eac_misc_mod").notNull().default(0),
+  kacArmorBonus: integer("kac_armor_bonus").notNull().default(0),
+  kacMiscMod: integer("kac_misc_mod").notNull().default(0),
 });
 
 export const characterRaceAttributeValues = pgTable(

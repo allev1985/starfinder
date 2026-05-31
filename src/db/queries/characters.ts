@@ -271,6 +271,22 @@ export async function updateBaseAttackBonus(
     .where(eq(characterCombatStats.characterId, characterId));
 }
 
+export async function updateEacArmorBonus(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ eacArmorBonus: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateEacMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ eacMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateKacArmorBonus(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ kacArmorBonus: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateKacMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ kacMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
 export async function upsertCharacterRaceAttributeValue(
   characterId: string,
   attributeId: string,

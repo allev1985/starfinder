@@ -10,6 +10,10 @@ import {
   updateInitiativeMiscModForOwner,
   updateHealthResolveForOwner,
   updateBaseAttackBonusForOwner,
+  updateEacArmorBonusForOwner,
+  updateEacMiscModForOwner,
+  updateKacArmorBonusForOwner,
+  updateKacMiscModForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -139,6 +143,54 @@ export async function updateHealthResolveAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save health & resolve." };
+  }
+}
+
+export async function updateEacArmorBonusAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateEacArmorBonusForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save EAC armor bonus." };
+  }
+}
+
+export async function updateEacMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateEacMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save EAC misc modifier." };
+  }
+}
+
+export async function updateKacArmorBonusAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateKacArmorBonusForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save KAC armor bonus." };
+  }
+}
+
+export async function updateKacMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateKacMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save KAC misc modifier." };
   }
 }
 

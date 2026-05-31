@@ -85,6 +85,10 @@ export default async function CharacterDetailPage({
         }}
         initiativeMiscMod={combatStats?.initiativeMiscMod ?? 0}
         baseAttackBonus={combatStats?.baseAttackBonus ?? 0}
+        eacArmorBonus={combatStats?.eacArmorBonus ?? 0}
+        eacMiscMod={combatStats?.eacMiscMod ?? 0}
+        kacArmorBonus={combatStats?.kacArmorBonus ?? 0}
+        kacMiscMod={combatStats?.kacMiscMod ?? 0}
         isOwner={isOwner}
       />
 
