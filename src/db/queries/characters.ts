@@ -8,14 +8,14 @@ import {
   races,
   classes,
   themes,
-  characterRaceAttributeValues,
+  characterDescriptions,
   characterCombatStats,
   characterSkills,
   skills,
   type NewCharacter,
   type Character,
   type Campaign,
-  type CharacterRaceAttributeValue,
+  type CharacterDescription,
   type CharacterCombatStats,
   type CharacterSkill,
 } from "@/db/schema";
@@ -75,6 +75,7 @@ export async function deleteCharacter(id: string): Promise<void> {
 
 export type CharacterWithMeta = Character & {
   raceName: string | null;
+  raceType: import("@/db/schema").RaceType | null;
   className: string | null;
   themeName: string | null;
   level: number;
@@ -101,6 +102,7 @@ export async function getCharacterWithCampaigns(
       chaScore: characters.chaScore,
       createdAt: characters.createdAt,
       raceName: races.name,
+      raceType: races.type,
       className: classes.name,
       themeName: themes.name,
       skillRanksPerLevel: classes.skillRanksPerLevel,
@@ -129,6 +131,7 @@ export async function getCharacterWithCampaigns(
     chaScore: row.chaScore,
     createdAt: row.createdAt,
     raceName: row.raceName ?? null,
+    raceType: row.raceType ?? null,
     className: row.className ?? null,
     themeName: row.themeName ?? null,
     skillRanksPerLevel: row.skillRanksPerLevel ?? 0,
@@ -200,19 +203,19 @@ export async function getCharacterCampaignIds(
   return rows.map((r) => r.campaignId);
 }
 
-export async function getCharacterRaceAttributeValues(
+export async function getCharacterDescriptionValues(
   characterId: string
-): Promise<CharacterRaceAttributeValue[]> {
+): Promise<CharacterDescription[]> {
   return db
     .select()
-    .from(characterRaceAttributeValues)
-    .where(eq(characterRaceAttributeValues.characterId, characterId));
+    .from(characterDescriptions)
+    .where(eq(characterDescriptions.characterId, characterId));
 }
 
-export async function deleteCharacterRaceAttributeValues(characterId: string): Promise<void> {
+export async function deleteCharacterDescriptionValues(characterId: string): Promise<void> {
   await db
-    .delete(characterRaceAttributeValues)
-    .where(eq(characterRaceAttributeValues.characterId, characterId));
+    .delete(characterDescriptions)
+    .where(eq(characterDescriptions.characterId, characterId));
 }
 
 export type AbilityScores = {
@@ -391,16 +394,16 @@ export async function updateCharacterSkillMiscMod(id: string, miscMod: number): 
   await db.update(characterSkills).set({ miscMod }).where(eq(characterSkills.id, id));
 }
 
-export async function upsertCharacterRaceAttributeValue(
+export async function upsertCharacterDescriptionValue(
   characterId: string,
-  attributeId: string,
+  descriptionId: string,
   value: string
 ): Promise<void> {
   await db
-    .insert(characterRaceAttributeValues)
-    .values({ characterId, attributeId, value })
+    .insert(characterDescriptions)
+    .values({ characterId, descriptionId, value })
     .onConflictDoUpdate({
-      target: [characterRaceAttributeValues.characterId, characterRaceAttributeValues.attributeId],
+      target: [characterDescriptions.characterId, characterDescriptions.descriptionId],
       set: { value },
     });
 }

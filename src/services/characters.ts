@@ -6,11 +6,11 @@ import {
   updateCharacterLevel,
   updateCharacterAbilityScores,
   deleteCharacter,
-  deleteCharacterRaceAttributeValues,
+  deleteCharacterDescriptionValues,
   findCampaignByJoinCode,
   isAlreadyInCampaign,
   joinCampaign,
-  upsertCharacterRaceAttributeValue,
+  upsertCharacterDescriptionValue,
   updateInitiativeMiscMod,
   updateHealthResolve,
   updateBaseAttackBonus,
@@ -36,6 +36,7 @@ import {
   type HealthResolveValues,
   type SkillEntry,
 } from "@/db/queries/characters";
+import { getRaceById } from "@/db/queries/reference";
 import { isCharacterOwner } from "@/lib/authorization";
 import type { Character } from "@/db/schema";
 
@@ -68,7 +69,13 @@ export async function updateCharacterForOwner(
   if (data.raceId !== undefined) {
     const current = await getCharacterById(characterId);
     if (current && current.raceId !== data.raceId) {
-      await deleteCharacterRaceAttributeValues(characterId);
+      const [oldRace, newRace] = await Promise.all([
+        current.raceId ? getRaceById(current.raceId) : null,
+        data.raceId ? getRaceById(data.raceId) : null,
+      ]);
+      if (oldRace?.type !== newRace?.type) {
+        await deleteCharacterDescriptionValues(characterId);
+      }
     }
   }
   return updateCharacter(characterId, data);
@@ -92,14 +99,14 @@ export async function updateCharacterLevelForOwner(
   return updateCharacterLevel(characterId, level);
 }
 
-export async function upsertRaceAttributeValueForOwner(
+export async function upsertDescriptionValueForOwner(
   characterId: string,
   userId: string,
-  attributeId: string,
+  descriptionId: string,
   value: string
 ): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
-  await upsertCharacterRaceAttributeValue(characterId, attributeId, value);
+  await upsertCharacterDescriptionValue(characterId, descriptionId, value);
 }
 
 export async function updateAbilityScoresForOwner(

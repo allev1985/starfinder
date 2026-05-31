@@ -2,23 +2,23 @@
 
 import { Fragment, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { upsertRaceAttributeValueAction } from "../actions";
-import type { RaceAttribute } from "@/db/schema";
+import { upsertDescriptionValueAction } from "../actions";
+import type { RaceDescription } from "@/db/schema";
 
 type Props = {
   characterId: string;
-  attributes: RaceAttribute[];
+  descriptions: RaceDescription[];
   savedValues: Record<string, string>;
   isOwner: boolean;
 };
 
-export default function DescriptionSection({ characterId, attributes, savedValues, isOwner }: Props) {
+export default function DescriptionSection({ characterId, descriptions, savedValues, isOwner }: Props) {
   const pendingRef = useRef<Record<string, string>>({});
 
-  async function handleBlur(attributeId: string, value: string) {
-    if (pendingRef.current[attributeId] === value) return;
-    pendingRef.current[attributeId] = value;
-    await upsertRaceAttributeValueAction(characterId, attributeId, value);
+  async function handleBlur(descriptionId: string, value: string) {
+    if (pendingRef.current[descriptionId] === value) return;
+    pendingRef.current[descriptionId] = value;
+    await upsertDescriptionValueAction(characterId, descriptionId, value);
   }
 
   return (
@@ -27,20 +27,20 @@ export default function DescriptionSection({ characterId, attributes, savedValue
         Description
       </h2>
       <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 max-w-sm">
-        {attributes.map((attr) => (
-          <Fragment key={attr.id}>
+        {descriptions.map((desc) => (
+          <Fragment key={desc.id}>
             <span className="text-sm font-medium">
-              {attr.name}
+              {desc.name}
             </span>
             {isOwner ? (
               <Input
-                defaultValue={savedValues[attr.id] ?? ""}
-                onBlur={(e) => handleBlur(attr.id, e.target.value)}
+                defaultValue={savedValues[desc.id] ?? ""}
+                onBlur={(e) => handleBlur(desc.id, e.target.value)}
                 className="h-7 text-sm"
               />
             ) : (
               <span className="text-sm text-muted-foreground">
-                {savedValues[attr.id] || "—"}
+                {savedValues[desc.id] || "—"}
               </span>
             )}
           </Fragment>

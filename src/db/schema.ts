@@ -1,4 +1,6 @@
-import { pgTable, uuid, text, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
+
+export const raceType = pgEnum("race_type", ["biological", "android"]);
 
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey(),
@@ -17,6 +19,7 @@ export const classSkills = pgTable("class_skills", {
 export const races = pgTable("races", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  type: raceType("type").notNull(),
 });
 
 export const classes = pgTable("classes", {
@@ -30,33 +33,10 @@ export const themes = pgTable("themes", {
   name: text("name").notNull(),
 });
 
-export const raceAttributes = pgTable("race_attributes", {
+export const raceDescriptions = pgTable("race_descriptions", {
   id: uuid("id").primaryKey().defaultRandom(),
-  raceId: uuid("race_id").notNull().references(() => races.id),
-  type: text("type").notNull(),
+  raceType: raceType("race_type").notNull(),
   name: text("name").notNull(),
-  inputType: text("input_type").notNull(),
-  description: text("description"),
-  sortOrder: integer("sort_order").notNull(),
-});
-
-export const classAttributes = pgTable("class_attributes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  classId: uuid("class_id").notNull().references(() => classes.id),
-  type: text("type").notNull(),
-  name: text("name").notNull(),
-  inputType: text("input_type").notNull(),
-  description: text("description"),
-  sortOrder: integer("sort_order").notNull(),
-});
-
-export const themeAttributes = pgTable("theme_attributes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  themeId: uuid("theme_id").notNull().references(() => themes.id),
-  type: text("type").notNull(),
-  name: text("name").notNull(),
-  inputType: text("input_type").notNull(),
-  description: text("description"),
   sortOrder: integer("sort_order").notNull(),
 });
 
@@ -134,34 +114,33 @@ export const characterSkills = pgTable("character_skills", {
   miscMod: integer("misc_mod").notNull().default(0),
 });
 
-export const characterRaceAttributeValues = pgTable(
-  "character_race_attribute_values",
+export const characterDescriptions = pgTable(
+  "character_descriptions",
   {
     characterId: uuid("character_id")
       .notNull()
       .references(() => characters.id, { onDelete: "cascade" }),
-    attributeId: uuid("attribute_id")
+    descriptionId: uuid("description_id")
       .notNull()
-      .references(() => raceAttributes.id, { onDelete: "cascade" }),
+      .references(() => raceDescriptions.id, { onDelete: "cascade" }),
     value: text("value").notNull().default(""),
   },
-  (t) => [primaryKey({ columns: [t.characterId, t.attributeId] })]
+  (t) => [primaryKey({ columns: [t.characterId, t.descriptionId] })]
 );
 
-export type RaceAttribute = typeof raceAttributes.$inferSelect;
-export type ClassAttribute = typeof classAttributes.$inferSelect;
-export type ThemeAttribute = typeof themeAttributes.$inferSelect;
+export type RaceType = typeof raceType.enumValues[number];
 export type Race = typeof races.$inferSelect;
 export type NewRace = typeof races.$inferInsert;
 export type Class = typeof classes.$inferSelect;
 export type NewClass = typeof classes.$inferInsert;
 export type Theme = typeof themes.$inferSelect;
 export type NewTheme = typeof themes.$inferInsert;
+export type RaceDescription = typeof raceDescriptions.$inferSelect;
 export type Campaign = typeof campaigns.$inferSelect;
 export type NewCampaign = typeof campaigns.$inferInsert;
 export type Character = typeof characters.$inferSelect;
 export type NewCharacter = typeof characters.$inferInsert;
-export type CharacterRaceAttributeValue = typeof characterRaceAttributeValues.$inferSelect;
+export type CharacterDescription = typeof characterDescriptions.$inferSelect;
 export type CharacterCombatStats = typeof characterCombatStats.$inferSelect;
 export type Skill = typeof skills.$inferSelect;
 export type ClassSkill = typeof classSkills.$inferSelect;

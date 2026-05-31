@@ -20,3 +20,24 @@ All table definitions in `src/db/schema.ts` SHALL produce inferred TypeScript ty
 #### Scenario: Type inference works
 - **WHEN** a developer uses `typeof myTable.$inferSelect`
 - **THEN** TypeScript SHALL resolve the correct row shape without any manual type declarations
+
+### Requirement: race_type enum in schema
+The system SHALL declare the `race_type` Postgres enum in `src/db/schema.ts` using Drizzle's `pgEnum` helper and export it for use in query files.
+
+#### Scenario: Enum is usable in query type parameters
+- **WHEN** a developer writes a query filtered by `race_type`
+- **THEN** TypeScript infers the value as `'biological' | 'android'`
+
+### Requirement: raceDescriptions and characterDescriptions tables in schema
+The system SHALL define `raceDescriptions` and `characterDescriptions` tables in `src/db/schema.ts` and export the corresponding inferred TypeScript types (`RaceDescription`, `CharacterDescription`).
+
+#### Scenario: Schema exports are typed
+- **WHEN** a developer uses `typeof raceDescriptions.$inferSelect`
+- **THEN** TypeScript resolves the correct row shape including the `race_type` enum column
+
+### Requirement: races table type column in schema
+The system SHALL add a `type` column of type `race_type` (not null) to the `races` table definition in `src/db/schema.ts`.
+
+#### Scenario: Race type is accessible on queried rows
+- **WHEN** a race row is fetched via Drizzle
+- **THEN** the `type` field is present and typed as `'biological' | 'android'`

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterRaceAttributeValues, getCharacterCombatStats, getCharacterSkills } from "@/db/queries/characters";
-import { getRaceAttributes, getAllSkillsWithClassFlag } from "@/db/queries/reference";
+import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills } from "@/db/queries/characters";
+import { getDescriptionsForType, getAllSkillsWithClassFlag } from "@/db/queries/reference";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import DescriptionSection from "./_components/description-section";
@@ -27,27 +27,25 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptionAttributes, savedAttributeValues, combatStats, characterSkills, allSkills] =
-    character.raceId
+  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills] =
+    character.raceType
       ? await Promise.all([
-          getRaceAttributes(character.raceId).then((attrs) =>
-            attrs.filter((a) => a.type === "description")
-          ),
-          getCharacterRaceAttributeValues(id),
+          getDescriptionsForType(character.raceType),
+          getCharacterDescriptionValues(id),
           getCharacterCombatStats(id),
           getCharacterSkills(id),
           getAllSkillsWithClassFlag(character.classId ?? null),
         ])
       : await Promise.all([
-          Promise.resolve([] as Awaited<ReturnType<typeof getRaceAttributes>>),
-          Promise.resolve([] as Awaited<ReturnType<typeof getCharacterRaceAttributeValues>>),
+          Promise.resolve([] as Awaited<ReturnType<typeof getDescriptionsForType>>),
+          Promise.resolve([] as Awaited<ReturnType<typeof getCharacterDescriptionValues>>),
           getCharacterCombatStats(id),
           getCharacterSkills(id),
           getAllSkillsWithClassFlag(character.classId ?? null),
         ]);
 
   const savedValuesMap = Object.fromEntries(
-    savedAttributeValues.map((v) => [v.attributeId, v.value])
+    savedDescriptionValues.map((v) => [v.descriptionId, v.value])
   );
 
   return (
@@ -110,10 +108,10 @@ export default async function CharacterDetailPage({
         resolvePointsCurrent={combatStats?.resolvePointsCurrent ?? 0}
       />
 
-      {descriptionAttributes.length > 0 && (
+      {descriptions.length > 0 && (
         <DescriptionSection
           characterId={id}
-          attributes={descriptionAttributes}
+          descriptions={descriptions}
           savedValues={savedValuesMap}
           isOwner={isOwner}
         />

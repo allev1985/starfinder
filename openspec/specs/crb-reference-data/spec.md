@@ -1,15 +1,19 @@
 ## ADDED Requirements
 
 ### Requirement: CRB races reference table
-The system SHALL have a `races` table with columns `id` (uuid PK), `name` (text, not null), and `source` (text, not null, default `'CRB'`). The table SHALL be seeded via migration with all 8 CRB races: Android, Human, Kasatha, Lashunta (Damaya), Lashunta (Korasha), Shirren, Vesk, Ysoki.
+The system SHALL have a `races` table with columns `id` (uuid PK), `name` (text, not null), and `type` (race_type enum, not null). The table SHALL be seeded via migration with all 8 CRB races: Android (`type = 'android'`), Human, Kasatha, Lashunta (Damaya), Lashunta (Korasha), Shirren, Vesk, Ysoki (all `type = 'biological'`).
 
 #### Scenario: All CRB races are present after migration
 - **WHEN** the migration runs on a fresh database
 - **THEN** the `races` table contains exactly 8 rows, one for each CRB race
 
-#### Scenario: Each race row has a source of CRB
-- **WHEN** any row from the `races` table is read
-- **THEN** its `source` field equals `'CRB'`
+#### Scenario: Android race has type android
+- **WHEN** the Android row is read from the `races` table
+- **THEN** its `type` field equals `'android'`
+
+#### Scenario: All biological races have type biological
+- **WHEN** all non-Android rows are read from the `races` table
+- **THEN** every row has `type = 'biological'`
 
 ### Requirement: CRB classes reference table
 The system SHALL have a `classes` table with columns `id` (uuid PK), `name` (text, not null), and `source` (text, not null, default `'CRB'`). The table SHALL be seeded via migration with all 7 CRB classes: Envoy, Mechanic, Mystic, Operative, Solarian, Soldier, Technomancer.

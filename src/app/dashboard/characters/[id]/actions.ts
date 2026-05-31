@@ -6,7 +6,7 @@ import {
   joinCampaignForOwner,
   updateCharacterLevelForOwner,
   updateAbilityScoresForOwner,
-  upsertRaceAttributeValueForOwner,
+  upsertDescriptionValueForOwner,
   updateInitiativeMiscModForOwner,
   updateHealthResolveForOwner,
   updateBaseAttackBonusForOwner,
@@ -84,20 +84,20 @@ export async function updateAbilityScoresAction(
   }
 }
 
-export async function upsertRaceAttributeValueAction(
+export async function upsertDescriptionValueAction(
   characterId: string,
-  attributeId: string,
+  descriptionId: string,
   value: string
 ): Promise<Result> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
 
   try {
-    await upsertRaceAttributeValueForOwner(characterId, user.id, attributeId, value);
+    await upsertDescriptionValueForOwner(characterId, user.id, descriptionId, value);
     return { success: true };
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
-    return { success: false, error: "Failed to save attribute." };
+    return { success: false, error: "Failed to save description." };
   }
 }
 
