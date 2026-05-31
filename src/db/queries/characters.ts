@@ -287,6 +287,30 @@ export async function updateKacMiscMod(characterId: string, value: number): Prom
   await db.update(characterCombatStats).set({ kacMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
 }
 
+export async function updateFortBaseSave(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ fortBaseSave: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateFortMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ fortMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateRefBaseSave(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ refBaseSave: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateRefMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ refMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateWillBaseSave(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ willBaseSave: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateWillMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ willMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
 export async function upsertCharacterRaceAttributeValue(
   characterId: string,
   attributeId: string,

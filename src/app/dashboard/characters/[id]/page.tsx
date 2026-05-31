@@ -89,6 +89,12 @@ export default async function CharacterDetailPage({
         eacMiscMod={combatStats?.eacMiscMod ?? 0}
         kacArmorBonus={combatStats?.kacArmorBonus ?? 0}
         kacMiscMod={combatStats?.kacMiscMod ?? 0}
+        fortBaseSave={combatStats?.fortBaseSave ?? 0}
+        fortMiscMod={combatStats?.fortMiscMod ?? 0}
+        refBaseSave={combatStats?.refBaseSave ?? 0}
+        refMiscMod={combatStats?.refMiscMod ?? 0}
+        willBaseSave={combatStats?.willBaseSave ?? 0}
+        willMiscMod={combatStats?.willMiscMod ?? 0}
         isOwner={isOwner}
       />
 

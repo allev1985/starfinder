@@ -11,17 +11,31 @@ import {
   updateEacMiscModAction,
   updateKacArmorBonusAction,
   updateKacMiscModAction,
+  updateFortBaseSaveAction,
+  updateFortMiscModAction,
+  updateRefBaseSaveAction,
+  updateRefMiscModAction,
+  updateWillBaseSaveAction,
+  updateWillMiscModAction,
 } from "../actions";
 
 type Props = {
   characterId: string;
   dexScore: number;
+  conScore: number;
+  wisScore: number;
   initiativeMiscMod: number;
   baseAttackBonus: number;
   eacArmorBonus: number;
   eacMiscMod: number;
   kacArmorBonus: number;
   kacMiscMod: number;
+  fortBaseSave: number;
+  fortMiscMod: number;
+  refBaseSave: number;
+  refMiscMod: number;
+  willBaseSave: number;
+  willMiscMod: number;
   isOwner: boolean;
 };
 
@@ -32,12 +46,20 @@ function formatModifier(value: number): string {
 export default function CombatStatsSection({
   characterId,
   dexScore,
+  conScore,
+  wisScore,
   initiativeMiscMod,
   baseAttackBonus,
   eacArmorBonus,
   eacMiscMod,
   kacArmorBonus,
   kacMiscMod,
+  fortBaseSave,
+  fortMiscMod,
+  refBaseSave,
+  refMiscMod,
+  willBaseSave,
+  willMiscMod,
   isOwner,
 }: Props) {
   const [miscMod, setMiscMod] = useState(initiativeMiscMod);
@@ -46,6 +68,12 @@ export default function CombatStatsSection({
   const [eacMisc, setEacMisc] = useState(eacMiscMod);
   const [kacBonus, setKacBonus] = useState(kacArmorBonus);
   const [kacMisc, setKacMisc] = useState(kacMiscMod);
+  const [fortBase, setFortBase] = useState(fortBaseSave);
+  const [fortMisc, setFortMisc] = useState(fortMiscMod);
+  const [refBase, setRefBase] = useState(refBaseSave);
+  const [refMisc, setRefMisc] = useState(refMiscMod);
+  const [willBase, setWillBase] = useState(willBaseSave);
+  const [willMisc, setWillMisc] = useState(willMiscMod);
 
   const scheduleMiscModSave = useDebouncedSave((value: number) =>
     updateInitiativeMiscModAction(characterId, value)
@@ -65,12 +93,35 @@ export default function CombatStatsSection({
   const scheduleKacMiscSave = useDebouncedSave((value: number) =>
     updateKacMiscModAction(characterId, value)
   );
+  const scheduleFortBaseSave = useDebouncedSave((value: number) =>
+    updateFortBaseSaveAction(characterId, value)
+  );
+  const scheduleFortMiscSave = useDebouncedSave((value: number) =>
+    updateFortMiscModAction(characterId, value)
+  );
+  const scheduleRefBaseSave = useDebouncedSave((value: number) =>
+    updateRefBaseSaveAction(characterId, value)
+  );
+  const scheduleRefMiscSave = useDebouncedSave((value: number) =>
+    updateRefMiscModAction(characterId, value)
+  );
+  const scheduleWillBaseSave = useDebouncedSave((value: number) =>
+    updateWillBaseSaveAction(characterId, value)
+  );
+  const scheduleWillMiscSave = useDebouncedSave((value: number) =>
+    updateWillMiscModAction(characterId, value)
+  );
 
   const dexMod = modifier(dexScore);
+  const conMod = modifier(conScore);
+  const wisMod = modifier(wisScore);
   const initiativeTotal = dexMod + miscMod;
   const eacTotal = 10 + eacBonus + dexMod + eacMisc;
   const kacTotal = 10 + kacBonus + dexMod + kacMisc;
   const kacVsCm = 8 + kacTotal;
+  const fortTotal = fortBase + conMod + fortMisc;
+  const refTotal = refBase + dexMod + refMisc;
+  const willTotal = willBase + wisMod + willMisc;
 
   function parseInput(raw: string): number {
     return isNaN(parseInt(raw, 10)) ? 0 : parseInt(raw, 10);
@@ -135,7 +186,7 @@ export default function CombatStatsSection({
       </div>
 
       {/* Armor Class */}
-      <div className="grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
+      <div className="mb-4 grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
         <span />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Total</span>
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Armor Bonus</span>
@@ -159,6 +210,33 @@ export default function CombatStatsSection({
         <span />
         <span />
         <span />
+      </div>
+
+      {/* Saving Throws */}
+      <div className="grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
+        <span />
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Total</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Base Save</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Ability Mod</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Misc</span>
+
+        <span className="text-sm font-medium">Fortitude</span>
+        <span className="text-sm text-center">{formatModifier(fortTotal)}</span>
+        {numericInput(fortBase, (v) => { setFortBase(v); scheduleFortBaseSave(v); })}
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(conMod)} CON</span>
+        {numericInput(fortMisc, (v) => { setFortMisc(v); scheduleFortMiscSave(v); })}
+
+        <span className="text-sm font-medium">Reflex</span>
+        <span className="text-sm text-center">{formatModifier(refTotal)}</span>
+        {numericInput(refBase, (v) => { setRefBase(v); scheduleRefBaseSave(v); })}
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(dexMod)} DEX</span>
+        {numericInput(refMisc, (v) => { setRefMisc(v); scheduleRefMiscSave(v); })}
+
+        <span className="text-sm font-medium">Will</span>
+        <span className="text-sm text-center">{formatModifier(willTotal)}</span>
+        {numericInput(willBase, (v) => { setWillBase(v); scheduleWillBaseSave(v); })}
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(wisMod)} WIS</span>
+        {numericInput(willMisc, (v) => { setWillMisc(v); scheduleWillMiscSave(v); })}
       </div>
     </section>
   );

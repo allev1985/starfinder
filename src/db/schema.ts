@@ -98,6 +98,12 @@ export const characterCombatStats = pgTable("character_combat_stats", {
   eacMiscMod: integer("eac_misc_mod").notNull().default(0),
   kacArmorBonus: integer("kac_armor_bonus").notNull().default(0),
   kacMiscMod: integer("kac_misc_mod").notNull().default(0),
+  fortBaseSave: integer("fort_base_save").notNull().default(0),
+  fortMiscMod: integer("fort_misc_mod").notNull().default(0),
+  refBaseSave: integer("ref_base_save").notNull().default(0),
+  refMiscMod: integer("ref_misc_mod").notNull().default(0),
+  willBaseSave: integer("will_base_save").notNull().default(0),
+  willMiscMod: integer("will_misc_mod").notNull().default(0),
 });
 
 export const characterRaceAttributeValues = pgTable(

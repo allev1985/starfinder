@@ -18,6 +18,12 @@ import {
   updateEacMiscMod,
   updateKacArmorBonus,
   updateKacMiscMod,
+  updateFortBaseSave,
+  updateFortMiscMod,
+  updateRefBaseSave,
+  updateRefMiscMod,
+  updateWillBaseSave,
+  updateWillMiscMod,
   type AbilityScores,
   type HealthResolveValues,
 } from "@/db/queries/characters";
@@ -141,6 +147,36 @@ export async function updateKacArmorBonusForOwner(characterId: string, userId: s
 export async function updateKacMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateKacMiscMod(characterId, value);
+}
+
+export async function updateFortBaseSaveForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateFortBaseSave(characterId, value);
+}
+
+export async function updateFortMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateFortMiscMod(characterId, value);
+}
+
+export async function updateRefBaseSaveForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateRefBaseSave(characterId, value);
+}
+
+export async function updateRefMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateRefMiscMod(characterId, value);
+}
+
+export async function updateWillBaseSaveForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateWillBaseSave(characterId, value);
+}
+
+export async function updateWillMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateWillMiscMod(characterId, value);
 }
 
 export async function joinCampaignForOwner(

@@ -14,6 +14,12 @@ import {
   updateEacMiscModForOwner,
   updateKacArmorBonusForOwner,
   updateKacMiscModForOwner,
+  updateFortBaseSaveForOwner,
+  updateFortMiscModForOwner,
+  updateRefBaseSaveForOwner,
+  updateRefMiscModForOwner,
+  updateWillBaseSaveForOwner,
+  updateWillMiscModForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -191,6 +197,78 @@ export async function updateKacMiscModAction(characterId: string, value: number)
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save KAC misc modifier." };
+  }
+}
+
+export async function updateFortBaseSaveAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateFortBaseSaveForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save Fortitude base save." };
+  }
+}
+
+export async function updateFortMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateFortMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save Fortitude misc modifier." };
+  }
+}
+
+export async function updateRefBaseSaveAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateRefBaseSaveForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save Reflex base save." };
+  }
+}
+
+export async function updateRefMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateRefMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save Reflex misc modifier." };
+  }
+}
+
+export async function updateWillBaseSaveAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateWillBaseSaveForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save Will base save." };
+  }
+}
+
+export async function updateWillMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateWillMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save Will misc modifier." };
   }
 }
 
