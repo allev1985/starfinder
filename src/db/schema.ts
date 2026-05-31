@@ -1,4 +1,18 @@
-import { pgTable, uuid, text, integer, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
+
+export const skills = pgTable("skills", {
+  id: uuid("id").primaryKey(),
+  name: text("name").notNull(),
+  ability: text("ability").notNull(),
+  abilityAlts: text("ability_alts").array(),
+  trainedOnly: boolean("trained_only").notNull().default(false),
+  armorCheckPenalty: boolean("armor_check_penalty").notNull().default(false),
+});
+
+export const classSkills = pgTable("class_skills", {
+  skillId: uuid("skill_id").notNull().references(() => skills.id),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+}, (t) => [primaryKey({ columns: [t.skillId, t.classId] })]);
 
 export const races = pgTable("races", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -138,3 +152,5 @@ export type Character = typeof characters.$inferSelect;
 export type NewCharacter = typeof characters.$inferInsert;
 export type CharacterRaceAttributeValue = typeof characterRaceAttributeValues.$inferSelect;
 export type CharacterCombatStats = typeof characterCombatStats.$inferSelect;
+export type Skill = typeof skills.$inferSelect;
+export type ClassSkill = typeof classSkills.$inferSelect;
