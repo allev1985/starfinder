@@ -87,6 +87,7 @@ export const campaignCharacters = pgTable(
 export const characterCombatStats = pgTable("character_combat_stats", {
   characterId: uuid("character_id").primaryKey().references(() => characters.id, { onDelete: "cascade" }),
   initiativeMiscMod: integer("initiative_misc_mod").notNull().default(0),
+  baseAttackBonus: integer("base_attack_bonus").notNull().default(0),
   staminaPointsTotal: integer("stamina_points_total").notNull().default(0),
   staminaPointsCurrent: integer("stamina_points_current").notNull().default(0),
   hitPointsTotal: integer("hit_points_total").notNull().default(0),

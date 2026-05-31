@@ -261,6 +261,16 @@ export async function updateHealthResolve(
     .where(eq(characterCombatStats.characterId, characterId));
 }
 
+export async function updateBaseAttackBonus(
+  characterId: string,
+  value: number
+): Promise<void> {
+  await db
+    .update(characterCombatStats)
+    .set({ baseAttackBonus: value })
+    .where(eq(characterCombatStats.characterId, characterId));
+}
+
 export async function upsertCharacterRaceAttributeValue(
   characterId: string,
   attributeId: string,

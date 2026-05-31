@@ -1,10 +1,11 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { updateAbilityScoresAction } from "../actions";
 import type { AbilityScores } from "@/db/queries/characters";
 import { modifier } from "@/lib/ability";
+import { useDebouncedSave } from "@/hooks/use-debounced-save";
 
 const ABILITIES: { key: keyof AbilityScores; label: string }[] = [
   { key: "strScore", label: "Strength (STR)" },
@@ -27,31 +28,11 @@ type Props = {
   onScoreChange?: (scores: AbilityScores) => void;
 };
 
-const SAVE_DELAY_MS = 600;
-
 export default function AbilityScoresSection({ characterId, scores, isOwner, onScoreChange }: Props) {
   const [current, setCurrent] = useState<AbilityScores>({ ...scores });
-  const pendingRef = useRef<AbilityScores | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (pendingRef.current) {
-        updateAbilityScoresAction(characterId, pendingRef.current);
-      }
-    };
-  }, [characterId]);
-
-  function scheduleSave(next: AbilityScores) {
-    pendingRef.current = next;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      timerRef.current = null;
-      pendingRef.current = null;
-      updateAbilityScoresAction(characterId, next);
-    }, SAVE_DELAY_MS);
-  }
+  const scheduleSave = useDebouncedSave((next: AbilityScores) =>
+    updateAbilityScoresAction(characterId, next)
+  );
 
   function handleChange(key: keyof AbilityScores, raw: string) {
     const value = parseInt(raw, 10);

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { updateHealthResolveAction } from "../actions";
 import type { HealthResolveValues } from "@/db/queries/characters";
+import { useDebouncedSave } from "@/hooks/use-debounced-save";
 
 type Props = {
   characterId: string;
@@ -15,8 +16,6 @@ const ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: ke
   { label: "Hit Points",     totalKey: "hitPointsTotal",     currentKey: "hitPointsCurrent" },
   { label: "Resolve Points", totalKey: "resolvePointsTotal", currentKey: "resolvePointsCurrent" },
 ];
-
-const SAVE_DELAY_MS = 600;
 
 export default function HealthResolveSection({
   characterId,
@@ -37,27 +36,9 @@ export default function HealthResolveSection({
     resolvePointsCurrent,
   });
 
-  const pendingRef = useRef<HealthResolveValues | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      if (pendingRef.current) {
-        updateHealthResolveAction(characterId, pendingRef.current);
-      }
-    };
-  }, [characterId]);
-
-  function scheduleSave(next: HealthResolveValues) {
-    pendingRef.current = next;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      timerRef.current = null;
-      pendingRef.current = null;
-      updateHealthResolveAction(characterId, next);
-    }, SAVE_DELAY_MS);
-  }
+  const scheduleSave = useDebouncedSave((next: HealthResolveValues) =>
+    updateHealthResolveAction(characterId, next)
+  );
 
   function handleChange(key: keyof HealthResolveValues, raw: string) {
     const parsed = parseInt(raw, 10);

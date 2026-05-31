@@ -13,6 +13,7 @@ import {
   upsertCharacterRaceAttributeValue,
   updateInitiativeMiscMod,
   updateHealthResolve,
+  updateBaseAttackBonus,
   type AbilityScores,
   type HealthResolveValues,
 } from "@/db/queries/characters";
@@ -107,6 +108,15 @@ export async function updateHealthResolveForOwner(
 ): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateHealthResolve(characterId, values);
+}
+
+export async function updateBaseAttackBonusForOwner(
+  characterId: string,
+  userId: string,
+  value: number
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateBaseAttackBonus(characterId, value);
 }
 
 export async function joinCampaignForOwner(

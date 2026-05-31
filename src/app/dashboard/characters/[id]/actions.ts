@@ -9,6 +9,7 @@ import {
   upsertRaceAttributeValueForOwner,
   updateInitiativeMiscModForOwner,
   updateHealthResolveForOwner,
+  updateBaseAttackBonusForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -96,6 +97,22 @@ export async function updateInitiativeMiscModAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save initiative modifier." };
+  }
+}
+
+export async function updateBaseAttackBonusAction(
+  characterId: string,
+  value: number
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  try {
+    await updateBaseAttackBonusForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save base attack bonus." };
   }
 }
 

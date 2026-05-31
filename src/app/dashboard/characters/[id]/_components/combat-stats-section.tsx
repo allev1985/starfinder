@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { modifier } from "@/lib/ability";
-import { updateInitiativeMiscModAction } from "../actions";
+import { useDebouncedSave } from "@/hooks/use-debounced-save";
+import { updateInitiativeMiscModAction, updateBaseAttackBonusAction } from "../actions";
 
 type Props = {
   characterId: string;
   dexScore: number;
   initiativeMiscMod: number;
+  baseAttackBonus: number;
   isOwner: boolean;
 };
 
@@ -20,18 +22,32 @@ export default function CombatStatsSection({
   characterId,
   dexScore,
   initiativeMiscMod,
+  baseAttackBonus,
   isOwner,
 }: Props) {
   const [miscMod, setMiscMod] = useState(initiativeMiscMod);
+  const [bab, setBab] = useState(baseAttackBonus);
+
+  const scheduleMiscModSave = useDebouncedSave((value: number) =>
+    updateInitiativeMiscModAction(characterId, value)
+  );
+  const scheduleBabSave = useDebouncedSave((value: number) =>
+    updateBaseAttackBonusAction(characterId, value)
+  );
 
   const dexMod = modifier(dexScore);
-  const total = dexMod + miscMod;
+  const initiativeTotal = dexMod + miscMod;
 
-  async function handleBlur(raw: string) {
-    const parsed = parseInt(raw, 10);
-    const value = isNaN(parsed) ? 0 : parsed;
+  function handleMiscModChange(raw: string) {
+    const value = isNaN(parseInt(raw, 10)) ? 0 : parseInt(raw, 10);
     setMiscMod(value);
-    await updateInitiativeMiscModAction(characterId, value);
+    scheduleMiscModSave(value);
+  }
+
+  function handleBabChange(raw: string) {
+    const value = isNaN(parseInt(raw, 10)) ? 0 : parseInt(raw, 10);
+    setBab(value);
+    scheduleBabSave(value);
   }
 
   return (
@@ -46,18 +62,31 @@ export default function CombatStatsSection({
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Misc</span>
 
         <span className="text-sm font-medium">Initiative</span>
-        <span className="text-sm text-center">{formatModifier(total)}</span>
+        <span className="text-sm text-center">{formatModifier(initiativeTotal)}</span>
         <span className="text-sm text-muted-foreground text-center">{formatModifier(dexMod)}</span>
         {isOwner ? (
           <Input
             type="number"
             value={miscMod}
-            onChange={(e) => setMiscMod(isNaN(parseInt(e.target.value, 10)) ? 0 : parseInt(e.target.value, 10))}
-            onBlur={(e) => handleBlur(e.target.value)}
+            onChange={(e) => handleMiscModChange(e.target.value)}
             className="h-7 text-sm text-center"
           />
         ) : (
           <span className="text-sm text-center">{formatModifier(miscMod)}</span>
+        )}
+
+        <span className="text-sm font-medium">Base Attack Bonus</span>
+        <span className="text-sm text-center">{formatModifier(bab)}</span>
+        <span />
+        {isOwner ? (
+          <Input
+            type="number"
+            value={bab}
+            onChange={(e) => handleBabChange(e.target.value)}
+            className="h-7 text-sm text-center"
+          />
+        ) : (
+          <span className="text-sm text-center">{formatModifier(bab)}</span>
         )}
       </div>
     </section>

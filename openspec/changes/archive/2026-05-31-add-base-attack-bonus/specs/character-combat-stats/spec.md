@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: character_combat_stats table
 The database SHALL have a `character_combat_stats` table with `character_id` as its primary key (referencing `characters.id`), an `initiative_misc_mod` integer column NOT NULL with a default of `0`, a `base_attack_bonus` integer column NOT NULL with a default of `0`, and six additional integer columns for health and resolve: `stamina_points_total`, `stamina_points_current`, `hit_points_total`, `hit_points_current`, `resolve_points_total`, `resolve_points_current` — all NOT NULL with a default of `0`.
@@ -18,57 +18,7 @@ A `character_combat_stats` row SHALL be inserted atomically when a new character
 - **WHEN** a new character is created
 - **THEN** a `character_combat_stats` row exists for that character with `base_attack_bonus = 0` and all other columns at their defaults
 
-### Requirement: Initiative misc modifier is owner-editable
-The character owner SHALL be able to update `initiative_misc_mod` via the character sheet. The value is persisted to `character_combat_stats`.
-
-#### Scenario: Owner saves misc modifier
-- **WHEN** the owner edits the initiative misc modifier and moves focus away
-- **THEN** the new value is persisted without additional user action
-
-#### Scenario: Non-owner sees read-only misc modifier
-- **WHEN** a non-owner views the character sheet
-- **THEN** the initiative misc modifier is displayed as static text with no editable input
-
-### Requirement: Initiative total is derived and displayed
-The character sheet SHALL display an Initiative total equal to `floor((dexScore - 10) / 2) + initiativeMiscMod`. The total SHALL NOT be stored in the database.
-
-#### Scenario: Initiative total reflects DEX score
-- **WHEN** a character has `dex_score = 14` and `initiative_misc_mod = 0`
-- **THEN** the initiative total displayed is `+2`
-
-#### Scenario: Initiative total reflects misc modifier
-- **WHEN** a character has `dex_score = 14` and `initiative_misc_mod = 4`
-- **THEN** the initiative total displayed is `+6`
-
-#### Scenario: Initiative total updates when DEX score changes
-- **WHEN** the owner changes the DEX ability score
-- **THEN** the initiative total shown in Combat Stats reflects the updated DEX modifier
-
-### Requirement: modifier() exported from src/lib/ability.ts
-A `modifier(score: number): number` function SHALL be exported from `src/lib/ability.ts`, returning `Math.floor((score - 10) / 2)`. The function returns a raw integer; display formatting (leading `+`) is the caller's responsibility.
-
-#### Scenario: Positive modifier
-- **WHEN** `modifier(14)` is called
-- **THEN** the return value is `2`
-
-#### Scenario: Zero modifier
-- **WHEN** `modifier(10)` is called
-- **THEN** the return value is `0`
-
-#### Scenario: Negative modifier
-- **WHEN** `modifier(8)` is called
-- **THEN** the return value is `-1`
-
-### Requirement: Combat Stats section on character sheet
-The character detail page SHALL render a **Combat Stats** section below the Ability Scores section. It SHALL display initiative with columns for Total, DEX Modifier, and Misc modifier.
-
-#### Scenario: Section always visible
-- **WHEN** a character detail page loads
-- **THEN** the Combat Stats section is visible regardless of race, class, or theme selection
-
-#### Scenario: Initiative row layout
-- **WHEN** the Combat Stats section renders
-- **THEN** the initiative row shows a derived total, a read-only DEX modifier, and an editable misc modifier input (for owner) or static text (for non-owner)
+## ADDED Requirements
 
 ### Requirement: Base Attack Bonus is owner-editable
 The character owner SHALL be able to update `base_attack_bonus` via the character sheet. The value is persisted to `character_combat_stats` using the debounced onChange pattern (600 ms).

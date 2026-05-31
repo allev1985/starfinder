@@ -9,10 +9,11 @@ type Props = {
   characterId: string;
   scores: AbilityScores;
   initiativeMiscMod: number;
+  baseAttackBonus: number;
   isOwner: boolean;
 };
 
-export default function CharacterStatsClient({ characterId, scores: initialScores, initiativeMiscMod, isOwner }: Props) {
+export default function CharacterStatsClient({ characterId, scores: initialScores, initiativeMiscMod, baseAttackBonus, isOwner }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
 
   return (
@@ -27,6 +28,7 @@ export default function CharacterStatsClient({ characterId, scores: initialScore
         characterId={characterId}
         dexScore={scores.dexScore}
         initiativeMiscMod={initiativeMiscMod}
+        baseAttackBonus={baseAttackBonus}
         isOwner={isOwner}
       />
     </>
