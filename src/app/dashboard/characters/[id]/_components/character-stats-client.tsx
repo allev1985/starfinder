@@ -3,11 +3,12 @@
 import { useState } from "react";
 import AbilityScoresSection from "./ability-scores-section";
 import CombatStatsSection from "./combat-stats-section";
+import InventorySection from "./inventory-section";
 import LevelControl from "./level-control";
 import SkillsSection from "./skills-section";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { Armor, CharacterSkill, RaceType } from "@/db/schema";
+import type { Armor, Weapon, CharacterSkill, RaceType } from "@/db/schema";
 
 type Props = {
   characterId: string;
@@ -33,6 +34,8 @@ type Props = {
   initialSkills: CharacterSkill[];
   allSkills: SkillWithClassFlag[];
   skillRanksPerLevel: number;
+  allWeapons: Weapon[];
+  initialCarriedWeapons: Weapon[];
   isOwner: boolean;
 };
 
@@ -60,6 +63,8 @@ export default function CharacterStatsClient({
   initialSkills,
   allSkills,
   skillRanksPerLevel,
+  allWeapons,
+  initialCarriedWeapons,
   isOwner,
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
@@ -97,8 +102,6 @@ export default function CharacterStatsClient({
         initiativeMiscMod={initiativeMiscMod}
         baseAttackBonus={baseAttackBonus}
         equippedArmor={currentArmor}
-        availableArmor={availableArmor}
-        onArmorChange={setCurrentArmor}
         eacMiscMod={eacMiscMod}
         kacMiscMod={kacMiscMod}
         fortBaseSave={fortBaseSave}
@@ -123,6 +126,15 @@ export default function CharacterStatsClient({
         mechanicLevel={mechanicLevel}
         armorCheckPenalty={currentArmor?.armorCheckPenalty ?? 0}
         isOwner={isOwner}
+      />
+      <InventorySection
+        characterId={characterId}
+        isOwner={isOwner}
+        initialEquippedArmor={currentArmor}
+        availableArmor={availableArmor}
+        onArmorChange={setCurrentArmor}
+        allWeapons={allWeapons}
+        initialCarriedWeapons={initialCarriedWeapons}
       />
     </>
   );

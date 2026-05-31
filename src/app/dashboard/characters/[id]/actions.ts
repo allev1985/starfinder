@@ -27,6 +27,8 @@ import {
   updateSkillMiscModForOwner,
   removeCharacterSkillForOwner,
   updateMechanicLinkForOwner,
+  addCharacterWeaponForOwner,
+  removeCharacterWeaponForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -379,6 +381,30 @@ export async function updateMechanicLinkAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to update mechanic link." };
+  }
+}
+
+export async function addWeaponAction(characterId: string, weaponId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await addCharacterWeaponForOwner(characterId, user.id, weaponId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to add weapon." };
+  }
+}
+
+export async function removeWeaponAction(characterId: string, weaponId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await removeCharacterWeaponForOwner(characterId, user.id, weaponId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to remove weapon." };
   }
 }
 

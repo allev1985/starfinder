@@ -13,6 +13,7 @@ import {
   characterDescriptions,
   characterCombatStats,
   characterSkills,
+  characterWeapons,
   skills,
   type NewCharacter,
   type Character,
@@ -506,4 +507,14 @@ export async function upsertCharacterDescriptionValue(
       target: [characterDescriptions.characterId, characterDescriptions.descriptionId],
       set: { value },
     });
+}
+
+export async function addCharacterWeapon(characterId: string, weaponId: string): Promise<void> {
+  await db.insert(characterWeapons).values({ characterId, weaponId }).onConflictDoNothing();
+}
+
+export async function removeCharacterWeapon(characterId: string, weaponId: string): Promise<void> {
+  await db
+    .delete(characterWeapons)
+    .where(and(eq(characterWeapons.characterId, characterId), eq(characterWeapons.weaponId, weaponId)));
 }

@@ -4,6 +4,7 @@ import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
 import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker } from "@/db/queries/characters";
 import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass } from "@/db/queries/reference";
+import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import DescriptionSection from "./_components/description-section";
@@ -28,7 +29,7 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor] =
+  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor, allWeapons, carriedWeapons] =
     character.raceType
       ? await Promise.all([
           getDescriptionsForType(character.raceType),
@@ -38,6 +39,8 @@ export default async function CharacterDetailPage({
           getAllSkillsWithClassFlag(character.classId ?? null),
           character.raceType === "drone" ? getCharactersForMechanicPicker(id) : Promise.resolve([] as Awaited<ReturnType<typeof getCharactersForMechanicPicker>>),
           getArmorForClass(character.classId ?? null),
+          getAllWeapons(),
+          getCharacterWeapons(id),
         ])
       : await Promise.all([
           Promise.resolve([] as Awaited<ReturnType<typeof getDescriptionsForType>>),
@@ -47,6 +50,8 @@ export default async function CharacterDetailPage({
           getAllSkillsWithClassFlag(character.classId ?? null),
           Promise.resolve([]),
           getArmorForClass(character.classId ?? null),
+          getAllWeapons(),
+          getCharacterWeapons(id),
         ]);
 
   const savedValuesMap = Object.fromEntries(
@@ -104,6 +109,8 @@ export default async function CharacterDetailPage({
         initialSkills={characterSkills}
         allSkills={allSkills}
         skillRanksPerLevel={character.skillRanksPerLevel}
+        allWeapons={allWeapons}
+        initialCarriedWeapons={carriedWeapons}
         isOwner={isOwner}
       />
 

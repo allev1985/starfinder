@@ -2,6 +2,33 @@ import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, t
 
 export const raceType = pgEnum("race_type", ["biological", "drone"]);
 export const armorType = pgEnum("armor_type", ["light", "heavy", "powered"]);
+export const weaponCategory = pgEnum("weapon_category", [
+  "small_arms",
+  "longarms",
+  "heavy",
+  "sniper",
+  "melee_basic",
+  "melee_advanced",
+  "grenade",
+  "special",
+]);
+
+export const weapons = pgTable("weapons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  itemLevel: integer("item_level").notNull(),
+  category: weaponCategory("category").notNull(),
+  damageDice: text("damage_dice").notNull(),
+  damageTypes: text("damage_types").array().notNull(),
+  criticalEffect: text("critical_effect"),
+  criticalDice: text("critical_dice"),
+  range: text("range"),
+  capacity: integer("capacity"),
+  usage: integer("usage"),
+  bulk: text("bulk").notNull(),
+  special: text("special"),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
 
 export const armor = pgTable("armor", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -148,6 +175,19 @@ export const characterSkills = pgTable("character_skills", {
   miscMod: integer("misc_mod").notNull().default(0),
 });
 
+export const characterWeapons = pgTable(
+  "character_weapons",
+  {
+    characterId: uuid("character_id")
+      .notNull()
+      .references(() => characters.id, { onDelete: "cascade" }),
+    weaponId: uuid("weapon_id")
+      .notNull()
+      .references(() => weapons.id),
+  },
+  (t) => [primaryKey({ columns: [t.characterId, t.weaponId] })]
+);
+
 export const characterDescriptions = pgTable(
   "character_descriptions",
   {
@@ -162,6 +202,10 @@ export const characterDescriptions = pgTable(
   (t) => [primaryKey({ columns: [t.characterId, t.descriptionId] })]
 );
 
+export type Weapon = typeof weapons.$inferSelect;
+export type NewWeapon = typeof weapons.$inferInsert;
+export type WeaponCategory = typeof weaponCategory.enumValues[number];
+export type CharacterWeapon = typeof characterWeapons.$inferSelect;
 export type Armor = typeof armor.$inferSelect;
 export type NewArmor = typeof armor.$inferInsert;
 export type ArmorType = typeof armorType.enumValues[number];

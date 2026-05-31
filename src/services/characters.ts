@@ -32,6 +32,8 @@ import {
   deleteCharacterSkillsBySkillId,
   updateCharacterSkillRanks,
   updateCharacterSkillMiscMod,
+  addCharacterWeapon,
+  removeCharacterWeapon,
   type AbilityScores,
   type HealthResolveValues,
   type SkillEntry,
@@ -268,6 +270,16 @@ export async function updateSkillMiscModForOwner(id: string, characterId: string
 export async function removeCharacterSkillForOwner(id: string, characterId: string, userId: string): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await deleteCharacterSkill(id);
+}
+
+export async function addCharacterWeaponForOwner(characterId: string, userId: string, weaponId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await addCharacterWeapon(characterId, weaponId);
+}
+
+export async function removeCharacterWeaponForOwner(characterId: string, userId: string, weaponId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await removeCharacterWeapon(characterId, weaponId);
 }
 
 export async function joinCampaignForOwner(

@@ -1,15 +1,4 @@
-## ADDED Requirements
-
-### Requirement: characters table has equipped_armor_id FK
-The `characters` table SHALL have a nullable `equipped_armor_id` UUID column that is a foreign key referencing `armor.id`. The column SHALL default to NULL (no armor equipped).
-
-#### Scenario: Existing characters are unaffected by migration
-- **WHEN** the migration adds `equipped_armor_id` to an existing `characters` table with rows
-- **THEN** all existing character rows have `equipped_armor_id = NULL`
-
-#### Scenario: equipped_armor_id can reference a valid armor row
-- **WHEN** a character row is updated with a valid `armor.id`
-- **THEN** the update succeeds and the FK resolves correctly
+## MODIFIED Requirements
 
 ### Requirement: Character can equip armor from the picker
 The character owner SHALL be able to select an armor from a searchable combobox in the **Inventory section** (relocated from the combat section). Selecting an armor SHALL persist `equipped_armor_id` on the character immediately (no debounce — it is a discrete selection, not a continuous input). The combobox SHALL only display armor types the character's class is proficient with.

@@ -1,0 +1,31 @@
+-- CRB longarms. Stats sourced from Archives of Nethys (aonprd.com).
+-- Columns: id, name, item_level, category, damage_dice, damage_types, critical_effect, critical_dice, range, capacity, usage, bulk, special
+
+INSERT INTO weapons (id, name, item_level, category, damage_dice, damage_types, critical_effect, critical_dice, range, capacity, usage, bulk, special) VALUES
+  ('b2000000-0000-0000-0000-000000000001', 'Azimuth Laser Rifle',             1,  'longarms', '1d8',  ARRAY['Fire'],        'Burn',      '1d6', '120 ft', 20,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000002', 'Tactical Assault Rifle',          1,  'longarms', '1d8',  ARRAY['Piercing'],    'Wound',     NULL,  '60 ft',  24,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000003', 'Thunderstrike Sonic Rifle',       1,  'longarms', '1d10', ARRAY['Sonic'],       'Deafen',    NULL,  '60 ft',  20,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000004', 'Frostbite-Class Zero Rifle',      2,  'longarms', '1d8',  ARRAY['Cold'],        'Staggered', NULL,  '60 ft',  20,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000005', 'Tactical Arc Emitter',            2,  'longarms', '1d8',  ARRAY['Electricity'], 'Arc',       '1d6', '15 ft',  20,  4,  '1',  'Arc 2'),
+  ('b2000000-0000-0000-0000-000000000006', 'Gyrojet Rifle, Tactical',         3,  'longarms', '1d8',  ARRAY['Bludgeoning'], 'Knockdown', NULL,  '120 ft', 8,   1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000007', 'Acid Dart Rifle, Tactical',       2,  'longarms', '1d8',  ARRAY['Acid'],        'Corrode',   '1d4', '60 ft',  10,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000008', 'Plasma Rifle, Red Star',          4,  'longarms', '1d10', ARRAY['Fire','Electricity'], 'Severe Wound', NULL, '80 ft', 10, 2, '1', NULL),
+  ('b2000000-0000-0000-0000-000000000009', 'Corona Laser Rifle',              5,  'longarms', '2d6',  ARRAY['Fire'],        'Burn',      '1d6', '120 ft', 20,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000010', 'Elite Assault Rifle',             6,  'longarms', '2d8',  ARRAY['Piercing'],    'Wound',     NULL,  '60 ft',  24,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000011', 'Arc Emitter, Advanced',           6,  'longarms', '2d6',  ARRAY['Electricity'], 'Arc',       '1d6', '15 ft',  20,  4,  '1',  'Arc 2'),
+  ('b2000000-0000-0000-0000-000000000012', 'Thunderstrike Sonic Rifle, Advanced', 7, 'longarms', '2d10', ARRAY['Sonic'],    'Deafen',    NULL,  '60 ft',  40,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000013', 'Plasma Rifle, White Star',        9,  'longarms', '2d10', ARRAY['Fire','Electricity'], 'Severe Wound', NULL, '80 ft', 10, 2, '1', NULL),
+  ('b2000000-0000-0000-0000-000000000014', 'Zenith Laser Rifle',              9,  'longarms', '3d6',  ARRAY['Fire'],        'Burn',      '2d6', '120 ft', 20,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000015', 'Zero Rifle, Hailstorm',           11, 'longarms', '3d8',  ARRAY['Cold'],        'Staggered', NULL,  '60 ft',  20,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000016', 'Aphelion Laser Rifle',            12, 'longarms', '4d6',  ARRAY['Fire'],        'Burn',      '2d6', '120 ft', 20,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000017', 'Plasma Rifle, Blue Star',         13, 'longarms', '3d10', ARRAY['Fire','Electricity'], 'Severe Wound', NULL, '80 ft', 10, 2, '1', NULL),
+  ('b2000000-0000-0000-0000-000000000018', 'Suppressor Assault Rifle',        14, 'longarms', '4d8',  ARRAY['Piercing'],    'Wound',     NULL,  '60 ft',  24,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000019', 'Perihelion Laser Rifle',          16, 'longarms', '5d6',  ARRAY['Fire'],        'Burn',      '4d6', '120 ft', 20,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000020', 'Plasma Rifle, Stellar',           17, 'longarms', '4d10', ARRAY['Fire','Electricity'], 'Severe Wound', NULL, '80 ft', 10, 2, '1', NULL),
+  ('b2000000-0000-0000-0000-000000000021', 'Zero Rifle, Blizzard',            18, 'longarms', '5d8',  ARRAY['Cold'],        'Staggered', NULL,  '60 ft',  20,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000022', 'Paragon Laser Rifle',             20, 'longarms', '8d6',  ARRAY['Fire'],        'Burn',      '4d6', '120 ft', 20,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000023', 'Gyrojet Rifle, Advanced',         7,  'longarms', '2d8',  ARRAY['Bludgeoning'], 'Knockdown', NULL,  '120 ft', 8,   1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000024', 'Screamer Sonic Rifle',            9,  'longarms', '3d10', ARRAY['Sonic'],       'Deafen',    NULL,  '60 ft',  40,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000025', 'Acid Dart Rifle, Advanced',       8,  'longarms', '2d8',  ARRAY['Acid'],        'Corrode',   '2d4', '60 ft',  10,  1,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000026', 'Shriek Sonic Rifle',              15, 'longarms', '5d10', ARRAY['Sonic'],       'Deafen',    NULL,  '60 ft',  40,  2,  '1',  NULL),
+  ('b2000000-0000-0000-0000-000000000027', 'Void Rifle',                      19, 'longarms', '8d8',  ARRAY['Piercing'],    'Wound',     NULL,  '60 ft',  24,  1,  '1',  NULL);

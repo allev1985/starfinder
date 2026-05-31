@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
-import ArmorPicker from "./armor-picker";
 import {
   updateInitiativeMiscModAction,
   updateBaseAttackBonusAction,
@@ -31,8 +30,6 @@ type Props = {
   initiativeMiscMod: number;
   baseAttackBonus: number;
   equippedArmor: Armor | null;
-  availableArmor: Armor[];
-  onArmorChange: (armor: Armor | null) => void;
   eacMiscMod: number;
   kacMiscMod: number;
   fortBaseSave: number;
@@ -60,8 +57,6 @@ export default function CombatStatsSection({
   initiativeMiscMod,
   baseAttackBonus,
   equippedArmor,
-  availableArmor,
-  onArmorChange,
   eacMiscMod,
   kacMiscMod,
   fortBaseSave,
@@ -239,15 +234,6 @@ export default function CombatStatsSection({
         <span className="text-sm text-muted-foreground text-center">{formatModifier(strMod)} STR</span>
         {numericInput(thrownMisc, (v) => { setThrownMisc(v); scheduleThrownMiscSave(v); })}
       </div>
-
-      {/* Armor Class */}
-      <ArmorPicker
-        availableArmor={availableArmor}
-        equippedArmor={equippedArmor}
-        characterId={characterId}
-        isOwner={isOwner}
-        onArmorChange={onArmorChange}
-      />
 
       <div className="mb-2 grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
         <span />
