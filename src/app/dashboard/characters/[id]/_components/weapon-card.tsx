@@ -17,6 +17,18 @@ import {
 import { removeWeaponAction } from "../actions";
 import type { Weapon } from "@/db/schema";
 
+const AMMO_TYPE_LABELS: Record<string, string> = {
+  battery: "Battery",
+  petrochem_fuel: "Petrochem Fuel",
+  small_arm_rounds: "Small Arm Rounds",
+  longarm_rounds: "Longarm Rounds",
+  heavy_rounds: "Heavy Rounds",
+  sniper_rounds: "Sniper Rounds",
+  shells: "Shells",
+  darts: "Darts",
+  missiles: "Missiles",
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   small_arms: "Small Arms",
   longarms: "Longarms",
@@ -76,6 +88,7 @@ export default function WeaponCard({ weapon, characterId, isOwner, onWeaponRemov
             <p className="text-sm font-semibold">{weapon.name}</p>
             <p className="text-xs text-muted-foreground">
               Level {weapon.itemLevel} · {CATEGORY_LABELS[weapon.category] ?? weapon.category}
+              {weapon.ammoType ? ` · Uses: ${AMMO_TYPE_LABELS[weapon.ammoType] ?? weapon.ammoType}` : ""}
             </p>
           </div>
           {isOwner && (

@@ -31,6 +31,9 @@ import {
   updateMechanicLinkForOwner,
   addCharacterWeaponForOwner,
   removeCharacterWeaponForOwner,
+  addCharacterEquipmentForOwner,
+  removeCharacterEquipmentForOwner,
+  updateCharacterEquipmentQuantityForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -431,6 +434,42 @@ export async function removeWeaponAction(characterId: string, weaponId: string):
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to remove weapon." };
+  }
+}
+
+export async function addEquipmentAction(characterId: string, equipmentId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await addCharacterEquipmentForOwner(characterId, user.id, equipmentId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to add equipment." };
+  }
+}
+
+export async function removeEquipmentAction(characterEquipmentId: string, characterId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await removeCharacterEquipmentForOwner(characterEquipmentId, user.id, characterId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to remove equipment." };
+  }
+}
+
+export async function updateEquipmentQuantityAction(characterEquipmentId: string, characterId: string, quantity: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateCharacterEquipmentQuantityForOwner(characterEquipmentId, user.id, characterId, quantity);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to update quantity." };
   }
 }
 

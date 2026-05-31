@@ -37,10 +37,14 @@ import {
   updateCharacterSkillMiscMod,
   addCharacterWeapon,
   removeCharacterWeapon,
+  addCharacterEquipment,
+  removeCharacterEquipment,
+  updateCharacterEquipmentQuantity,
   type AbilityScores,
   type HealthResolveValues,
   type SkillEntry,
   type CharacterArmorEntry,
+  type CharacterEquipmentEntry,
 } from "@/db/queries/characters";
 import { getRaceById, getChassisById } from "@/db/queries/reference";
 import { isCharacterOwner } from "@/lib/authorization";
@@ -298,6 +302,21 @@ export async function addCharacterWeaponForOwner(characterId: string, userId: st
 export async function removeCharacterWeaponForOwner(characterId: string, userId: string, weaponId: string): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await removeCharacterWeapon(characterId, weaponId);
+}
+
+export async function addCharacterEquipmentForOwner(characterId: string, userId: string, equipmentId: string): Promise<CharacterEquipmentEntry> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  return addCharacterEquipment(characterId, equipmentId);
+}
+
+export async function removeCharacterEquipmentForOwner(characterEquipmentId: string, userId: string, characterId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await removeCharacterEquipment(characterEquipmentId);
+}
+
+export async function updateCharacterEquipmentQuantityForOwner(characterEquipmentId: string, userId: string, characterId: string, quantity: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterEquipmentQuantity(characterEquipmentId, quantity);
 }
 
 export async function joinCampaignForOwner(

@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker, getCharacterArmor } from "@/db/queries/characters";
-import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass } from "@/db/queries/reference";
+import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker, getCharacterArmor, getCharacterEquipment } from "@/db/queries/characters";
+import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass, getAllEquipment } from "@/db/queries/reference";
 import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
@@ -29,7 +29,7 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor, characterArmorInventory, allWeapons, carriedWeapons] =
+  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor, characterArmorInventory, allWeapons, carriedWeapons, allEquipment, characterEquipmentInventory] =
     character.raceType
       ? await Promise.all([
           getDescriptionsForType(character.raceType),
@@ -42,6 +42,8 @@ export default async function CharacterDetailPage({
           getCharacterArmor(id),
           getAllWeapons(),
           getCharacterWeapons(id),
+          getAllEquipment(),
+          getCharacterEquipment(id),
         ])
       : await Promise.all([
           Promise.resolve([] as Awaited<ReturnType<typeof getDescriptionsForType>>),
@@ -54,6 +56,8 @@ export default async function CharacterDetailPage({
           getCharacterArmor(id),
           getAllWeapons(),
           getCharacterWeapons(id),
+          getAllEquipment(),
+          getCharacterEquipment(id),
         ]);
 
   const savedValuesMap = Object.fromEntries(
@@ -114,6 +118,8 @@ export default async function CharacterDetailPage({
         skillRanksPerLevel={character.skillRanksPerLevel}
         allWeapons={allWeapons}
         initialCarriedWeapons={carriedWeapons}
+        allEquipment={allEquipment}
+        initialCharacterEquipment={characterEquipmentInventory}
         isOwner={isOwner}
       />
 

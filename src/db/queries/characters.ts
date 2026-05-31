@@ -15,6 +15,8 @@ import {
   characterCombatStats,
   characterSkills,
   characterWeapons,
+  characterEquipment,
+  equipment,
   skills,
   type NewCharacter,
   type Character,
@@ -23,6 +25,7 @@ import {
   type CharacterCombatStats,
   type CharacterSkill,
   type Armor,
+  type Equipment,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -550,6 +553,44 @@ export async function upsertCharacterDescriptionValue(
       target: [characterDescriptions.characterId, characterDescriptions.descriptionId],
       set: { value },
     });
+}
+
+export type CharacterEquipmentEntry = {
+  id: string;
+  equipmentId: string;
+  quantity: number;
+  equipment: Equipment;
+};
+
+export async function getCharacterEquipment(characterId: string): Promise<CharacterEquipmentEntry[]> {
+  const rows = await db
+    .select({ id: characterEquipment.id, equipmentId: characterEquipment.equipmentId, quantity: characterEquipment.quantity, equipment })
+    .from(characterEquipment)
+    .innerJoin(equipment, eq(equipment.id, characterEquipment.equipmentId))
+    .where(eq(characterEquipment.characterId, characterId))
+    .orderBy(asc(equipment.category), asc(equipment.itemLevel));
+  return rows;
+}
+
+export async function addCharacterEquipment(characterId: string, equipmentId: string): Promise<CharacterEquipmentEntry> {
+  const [row] = await db
+    .insert(characterEquipment)
+    .values({ characterId, equipmentId, quantity: 1 })
+    .returning();
+  const [entry] = await db
+    .select({ id: characterEquipment.id, equipmentId: characterEquipment.equipmentId, quantity: characterEquipment.quantity, equipment })
+    .from(characterEquipment)
+    .innerJoin(equipment, eq(equipment.id, characterEquipment.equipmentId))
+    .where(eq(characterEquipment.id, row.id));
+  return entry;
+}
+
+export async function removeCharacterEquipment(characterEquipmentId: string): Promise<void> {
+  await db.delete(characterEquipment).where(eq(characterEquipment.id, characterEquipmentId));
+}
+
+export async function updateCharacterEquipmentQuantity(characterEquipmentId: string, quantity: number): Promise<void> {
+  await db.update(characterEquipment).set({ quantity }).where(eq(characterEquipment.id, characterEquipmentId));
 }
 
 export async function addCharacterWeapon(characterId: string, weaponId: string): Promise<void> {

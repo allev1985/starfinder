@@ -1,5 +1,25 @@
 import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, type AnyPgColumn } from "drizzle-orm/pg-core";
 
+export const equipmentCategory = pgEnum("equipment_category", [
+  "augmentation_cybernetic",
+  "augmentation_biotech",
+  "personal_upgrade",
+  "ammunition",
+]);
+
+export const augmentationSystem = pgEnum("augmentation_system", [
+  "brain",
+  "eyes",
+  "ears",
+  "throat",
+  "arm",
+  "hand",
+  "lungs",
+  "spinal_column",
+  "feet",
+  "skin",
+]);
+
 export const raceType = pgEnum("race_type", ["biological", "drone"]);
 export const armorType = pgEnum("armor_type", ["light", "heavy", "powered"]);
 export const weaponCategory = pgEnum("weapon_category", [
@@ -27,6 +47,7 @@ export const weapons = pgTable("weapons", {
   usage: integer("usage"),
   bulk: text("bulk").notNull(),
   special: text("special"),
+  ammoType: text("ammo_type"),
   sourceBook: text("source_book").notNull().default("crb"),
 });
 
@@ -212,6 +233,31 @@ export const characterDescriptions = pgTable(
   (t) => [primaryKey({ columns: [t.characterId, t.descriptionId] })]
 );
 
+export const equipment = pgTable("equipment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  category: equipmentCategory("category").notNull(),
+  itemLevel: integer("item_level").notNull(),
+  price: integer("price").notNull(),
+  bulk: text("bulk").notNull(),
+  system: augmentationSystem("system"),
+  ammoType: text("ammo_type"),
+  ammoCapacity: integer("ammo_capacity"),
+  bonusHint: text("bonus_hint"),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
+
+export const characterEquipment = pgTable("character_equipment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id")
+    .notNull()
+    .references(() => characters.id, { onDelete: "cascade" }),
+  equipmentId: uuid("equipment_id")
+    .notNull()
+    .references(() => equipment.id),
+  quantity: integer("quantity").notNull().default(1),
+});
+
 export type Weapon = typeof weapons.$inferSelect;
 export type NewWeapon = typeof weapons.$inferInsert;
 export type WeaponCategory = typeof weaponCategory.enumValues[number];
@@ -242,3 +288,9 @@ export type Skill = typeof skills.$inferSelect;
 export type ClassSkill = typeof classSkills.$inferSelect;
 export type CharacterSkill = typeof characterSkills.$inferSelect;
 export type NewCharacterSkill = typeof characterSkills.$inferInsert;
+export type Equipment = typeof equipment.$inferSelect;
+export type NewEquipment = typeof equipment.$inferInsert;
+export type EquipmentCategory = typeof equipmentCategory.enumValues[number];
+export type AugmentationSystem = typeof augmentationSystem.enumValues[number];
+export type CharacterEquipment = typeof characterEquipment.$inferSelect;
+export type NewCharacterEquipment = typeof characterEquipment.$inferInsert;

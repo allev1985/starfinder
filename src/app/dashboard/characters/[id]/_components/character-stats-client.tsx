@@ -9,7 +9,8 @@ import SkillsSection from "./skills-section";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { CharacterArmorEntry } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { Armor, Weapon, CharacterSkill, RaceType } from "@/db/schema";
+import type { Armor, Weapon, Equipment, CharacterSkill, RaceType } from "@/db/schema";
+import type { CharacterEquipmentEntry } from "@/db/queries/characters";
 
 type Props = {
   characterId: string;
@@ -38,6 +39,8 @@ type Props = {
   skillRanksPerLevel: number;
   allWeapons: Weapon[];
   initialCarriedWeapons: Weapon[];
+  allEquipment: Equipment[];
+  initialCharacterEquipment: CharacterEquipmentEntry[];
   isOwner: boolean;
 };
 
@@ -68,6 +71,8 @@ export default function CharacterStatsClient({
   skillRanksPerLevel,
   allWeapons,
   initialCarriedWeapons,
+  allEquipment,
+  initialCharacterEquipment,
   isOwner,
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
@@ -138,6 +143,8 @@ export default function CharacterStatsClient({
         onWornArmorChange={setCurrentArmor}
         allWeapons={allWeapons}
         initialCarriedWeapons={initialCarriedWeapons}
+        allEquipment={allEquipment}
+        initialCharacterEquipment={initialCharacterEquipment}
       />
     </>
   );

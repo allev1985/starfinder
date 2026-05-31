@@ -1,11 +1,4 @@
-## ADDED Requirements
-
-### Requirement: weaponCategory enum
-The database SHALL have a `weapon_category` Postgres enum with values: `small_arms`, `longarms`, `heavy`, `sniper`, `melee_basic`, `melee_advanced`, `grenade`, `special`.
-
-#### Scenario: Enum values are enforced at the DB level
-- **WHEN** an INSERT into `weapons` uses a value not in the enum
-- **THEN** the database rejects the insert with a constraint violation
+## MODIFIED Requirements
 
 ### Requirement: weapons reference table schema
 The system SHALL have a `weapons` table with the following columns:
@@ -37,6 +30,18 @@ The system SHALL have a `weapons` table with the following columns:
 - **WHEN** a weapon with criticalEffect `"Wound"` is inserted with null critical_dice
 - **THEN** the insert succeeds and critical_dice reads back as null
 
+#### Scenario: Energy weapon has ammo_type set to battery
+- **WHEN** a laser pistol row is queried
+- **THEN** `ammo_type` reads back as `'battery'`
+
+#### Scenario: Ballistic small arm has ammo_type set to small_arm_rounds
+- **WHEN** a semi-auto pistol row is queried
+- **THEN** `ammo_type` reads back as `'small_arm_rounds'`
+
+#### Scenario: Grenade has null ammo_type
+- **WHEN** a grenade row is queried
+- **THEN** `ammo_type` is null
+
 ### Requirement: CRB weapons seeded by category
 The system SHALL seed all CRB weapons via SQL migrations, one migration file per weapon category. Stats SHALL be sourced from Archives of Nethys (aonprd.com). The seed SHALL cover all 8 categories: small arms, longarms, heavy weapons, sniper weapons, basic melee, advanced melee, grenades, and special weapons. All energy-using weapons SHALL have `ammo_type` set; all melee weapons and grenades SHALL have `ammo_type` null.
 
@@ -51,18 +56,6 @@ The system SHALL seed all CRB weapons via SQL migrations, one migration file per
 #### Scenario: Multi-type damage weapon stores all types
 - **WHEN** a seed migration inserts a weapon with Piercing and Slashing damage
 - **THEN** `damage_types` reads back as `["Piercing", "Slashing"]`
-
-#### Scenario: Energy weapon has ammo_type set to battery
-- **WHEN** a laser pistol row is queried
-- **THEN** `ammo_type` reads back as `'battery'`
-
-#### Scenario: Ballistic small arm has ammo_type set to small_arm_rounds
-- **WHEN** a semi-auto pistol row is queried
-- **THEN** `ammo_type` reads back as `'small_arm_rounds'`
-
-#### Scenario: Grenade has null ammo_type
-- **WHEN** a grenade row is queried
-- **THEN** `ammo_type` is null
 
 #### Scenario: All seeded ranged weapons have ammo_type set
 - **WHEN** all seed migrations run

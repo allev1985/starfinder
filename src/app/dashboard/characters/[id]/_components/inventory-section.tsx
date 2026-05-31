@@ -4,8 +4,9 @@ import { useState } from "react";
 import ArmorInventory from "./armor-inventory";
 import WeaponCard from "./weapon-card";
 import WeaponPicker from "./weapon-picker";
-import type { Armor, Weapon } from "@/db/schema";
-import type { CharacterArmorEntry } from "@/db/queries/characters";
+import EquipmentInventory from "./equipment-inventory";
+import type { Armor, Weapon, Equipment } from "@/db/schema";
+import type { CharacterArmorEntry, CharacterEquipmentEntry } from "@/db/queries/characters";
 
 type Props = {
   characterId: string;
@@ -15,6 +16,8 @@ type Props = {
   onWornArmorChange: (armor: Armor | null) => void;
   allWeapons: Weapon[];
   initialCarriedWeapons: Weapon[];
+  allEquipment: Equipment[];
+  initialCharacterEquipment: CharacterEquipmentEntry[];
 };
 
 export default function InventorySection({
@@ -25,6 +28,8 @@ export default function InventorySection({
   onWornArmorChange,
   allWeapons,
   initialCarriedWeapons,
+  allEquipment,
+  initialCharacterEquipment,
 }: Props) {
   const [carriedWeapons, setCarriedWeapons] = useState<Weapon[]>(initialCarriedWeapons);
 
@@ -78,6 +83,13 @@ export default function InventorySection({
           />
         )}
       </div>
+
+      <EquipmentInventory
+        characterId={characterId}
+        isOwner={isOwner}
+        allEquipment={allEquipment}
+        initialCharacterEquipment={initialCharacterEquipment}
+      />
     </section>
   );
 }

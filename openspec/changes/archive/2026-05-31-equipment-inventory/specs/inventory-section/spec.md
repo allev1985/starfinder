@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Inventory section on the character sheet
 The character sheet SHALL have an Inventory section rendered below the combat stats section. The Inventory section SHALL contain three subsections in order: Armor (top), Weapons (middle), and Equipment (bottom). The section SHALL use the heading "Inventory".
