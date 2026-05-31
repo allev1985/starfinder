@@ -10,9 +10,8 @@ import {
   updateInitiativeMiscModForOwner,
   updateHealthResolveForOwner,
   updateBaseAttackBonusForOwner,
-  updateEacArmorBonusForOwner,
+  updateEquippedArmorForOwner,
   updateEacMiscModForOwner,
-  updateKacArmorBonusForOwner,
   updateKacMiscModForOwner,
   updateFortBaseSaveForOwner,
   updateFortMiscModForOwner,
@@ -160,15 +159,15 @@ export async function updateHealthResolveAction(
   }
 }
 
-export async function updateEacArmorBonusAction(characterId: string, value: number): Promise<Result> {
+export async function updateEquippedArmorAction(characterId: string, armorId: string | null): Promise<Result> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
   try {
-    await updateEacArmorBonusForOwner(characterId, user.id, value);
+    await updateEquippedArmorForOwner(characterId, user.id, armorId);
     return { success: true };
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
-    return { success: false, error: "Failed to save EAC armor bonus." };
+    return { success: false, error: "Failed to update equipped armor." };
   }
 }
 
@@ -181,18 +180,6 @@ export async function updateEacMiscModAction(characterId: string, value: number)
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save EAC misc modifier." };
-  }
-}
-
-export async function updateKacArmorBonusAction(characterId: string, value: number): Promise<Result> {
-  const user = await getUser();
-  if (!user) return { success: false, error: "Not authenticated." };
-  try {
-    await updateKacArmorBonusForOwner(characterId, user.id, value);
-    return { success: true };
-  } catch (err) {
-    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
-    return { success: false, error: "Failed to save KAC armor bonus." };
   }
 }
 

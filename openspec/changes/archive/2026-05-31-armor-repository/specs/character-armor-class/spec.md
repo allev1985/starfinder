@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: EAC total is derived and displayed
 The character sheet SHALL display an EAC total equal to `10 + armor.eac_bonus + effectiveDex + eac_misc_mod`, where `effectiveDex` is `min(modifier(dex_score), armor.max_dex_bonus)` when `max_dex_bonus` is not null, or `modifier(dex_score)` when `max_dex_bonus` is null (no cap). When no armor is equipped, `armor.eac_bonus` is treated as 0 and the DEX modifier is uncapped. The total SHALL NOT be stored in the database.
@@ -49,24 +49,8 @@ The AC grid SHALL display the armor bonus as a read-only value derived from the 
 - **WHEN** a non-owner views the character sheet
 - **THEN** the Armor Bonus column shows the same read-only values as for the owner
 
-### Requirement: KAC vs. Combat Maneuvers is derived and displayed
-The character sheet SHALL display a KAC vs. Combat Maneuvers value equal to `8 + KAC total`. The value SHALL NOT be stored in the database and has no editable inputs.
+## REMOVED Requirements
 
-#### Scenario: KAC vs. CM reflects KAC total
-- **WHEN** the KAC total is `15`
-- **THEN** the KAC vs. Combat Maneuvers value displayed is `23`
-
-#### Scenario: KAC vs. CM row has no editable inputs
-- **WHEN** any user views the character sheet
-- **THEN** the KAC vs. Combat Maneuvers row shows only a read-only derived value
-
-### Requirement: Armor Class rows displayed in Combat Stats section
-The Combat Stats section SHALL render EAC, KAC, and KAC vs. Combat Maneuvers rows below the Base Attack Bonus row. Each row SHALL display the derived total and relevant component values, with misc modifier editable for the owner.
-
-#### Scenario: AC rows always visible
-- **WHEN** a character detail page loads
-- **THEN** EAC, KAC, and KAC vs. Combat Maneuvers rows are visible in the Combat Stats section
-
-#### Scenario: AC sub-grid column headers
-- **WHEN** the AC rows render
-- **THEN** column headers for Total, Armor Bonus, DEX Mod, and Misc are shown above the AC rows
+### Requirement: EAC and KAC armor bonus and misc modifier are owner-editable
+**Reason**: Armor bonus is now derived from the equipped armor row, not manually entered. The `eac_armor_bonus` and `kac_armor_bonus` columns are removed from `character_combat_stats`. Only `eac_misc_mod` and `kac_misc_mod` remain editable.
+**Migration**: Characters with existing manually-entered armor bonus values will lose those values. The values had no semantic meaning without an armor row and are intentionally discarded. Owners should equip armor from the new picker to restore their AC.

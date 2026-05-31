@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
 import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker } from "@/db/queries/characters";
-import { getDescriptionsForType, getAllSkillsWithClassFlag } from "@/db/queries/reference";
+import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass } from "@/db/queries/reference";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import DescriptionSection from "./_components/description-section";
@@ -28,7 +28,7 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions] =
+  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor] =
     character.raceType
       ? await Promise.all([
           getDescriptionsForType(character.raceType),
@@ -37,6 +37,7 @@ export default async function CharacterDetailPage({
           getCharacterSkills(id),
           getAllSkillsWithClassFlag(character.classId ?? null),
           character.raceType === "drone" ? getCharactersForMechanicPicker(id) : Promise.resolve([] as Awaited<ReturnType<typeof getCharactersForMechanicPicker>>),
+          getArmorForClass(character.classId ?? null),
         ])
       : await Promise.all([
           Promise.resolve([] as Awaited<ReturnType<typeof getDescriptionsForType>>),
@@ -45,6 +46,7 @@ export default async function CharacterDetailPage({
           getCharacterSkills(id),
           getAllSkillsWithClassFlag(character.classId ?? null),
           Promise.resolve([]),
+          getArmorForClass(character.classId ?? null),
         ]);
 
   const savedValuesMap = Object.fromEntries(
@@ -86,9 +88,9 @@ export default async function CharacterDetailPage({
         initialLevel={character.level}
         initiativeMiscMod={combatStats?.initiativeMiscMod ?? 0}
         baseAttackBonus={combatStats?.baseAttackBonus ?? 0}
-        eacArmorBonus={combatStats?.eacArmorBonus ?? 0}
+        initialEquippedArmor={character.equippedArmor}
+        availableArmor={availableArmor}
         eacMiscMod={combatStats?.eacMiscMod ?? 0}
-        kacArmorBonus={combatStats?.kacArmorBonus ?? 0}
         kacMiscMod={combatStats?.kacMiscMod ?? 0}
         fortBaseSave={combatStats?.fortBaseSave ?? 0}
         fortMiscMod={combatStats?.fortMiscMod ?? 0}

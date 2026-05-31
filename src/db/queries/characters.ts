@@ -9,6 +9,7 @@ import {
   classes,
   themes,
   chassis,
+  armor,
   characterDescriptions,
   characterCombatStats,
   characterSkills,
@@ -19,6 +20,7 @@ import {
   type CharacterDescription,
   type CharacterCombatStats,
   type CharacterSkill,
+  type Armor,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -107,6 +109,7 @@ export type CharacterWithMeta = Character & {
   mechanicName: string | null;
   mechanicLevel: number | null;
   mechanicIntScore: number | null;
+  equippedArmor: Armor | null;
 };
 
 const mechanic = db.select().from(characters).as("mechanic");
@@ -124,6 +127,7 @@ export async function getCharacterWithCampaigns(
       themeId: characters.themeId,
       chassisId: characters.chassisId,
       mechanicCharacterId: characters.mechanicCharacterId,
+      equippedArmorId: characters.equippedArmorId,
       level: characters.level,
       strScore: characters.strScore,
       dexScore: characters.dexScore,
@@ -141,6 +145,7 @@ export async function getCharacterWithCampaigns(
       mechanicName: mechanic.name,
       mechanicLevel: mechanic.level,
       mechanicIntScore: mechanic.intScore,
+      armor: armor,
     })
     .from(characters)
     .leftJoin(races, eq(characters.raceId, races.id))
@@ -148,6 +153,7 @@ export async function getCharacterWithCampaigns(
     .leftJoin(themes, eq(characters.themeId, themes.id))
     .leftJoin(chassis, eq(characters.chassisId, chassis.id))
     .leftJoin(mechanic, eq(characters.mechanicCharacterId, mechanic.id))
+    .leftJoin(armor, eq(characters.equippedArmorId, armor.id))
     .where(eq(characters.id, characterId));
 
   if (!row) return { character: null, campaigns: [] };
@@ -161,6 +167,7 @@ export async function getCharacterWithCampaigns(
     themeId: row.themeId,
     chassisId: row.chassisId,
     mechanicCharacterId: row.mechanicCharacterId,
+    equippedArmorId: row.equippedArmorId,
     level: row.level,
     strScore: row.strScore,
     dexScore: row.dexScore,
@@ -178,6 +185,7 @@ export async function getCharacterWithCampaigns(
     mechanicName: row.mechanicName ?? null,
     mechanicLevel: row.mechanicLevel ?? null,
     mechanicIntScore: row.mechanicIntScore ?? null,
+    equippedArmor: row.armor ?? null,
   };
 
   const joined = await db
@@ -385,16 +393,12 @@ export async function updateBaseAttackBonus(
     .where(eq(characterCombatStats.characterId, characterId));
 }
 
-export async function updateEacArmorBonus(characterId: string, value: number): Promise<void> {
-  await db.update(characterCombatStats).set({ eacArmorBonus: value }).where(eq(characterCombatStats.characterId, characterId));
+export async function updateEquippedArmor(characterId: string, armorId: string | null): Promise<void> {
+  await db.update(characters).set({ equippedArmorId: armorId }).where(eq(characters.id, characterId));
 }
 
 export async function updateEacMiscMod(characterId: string, value: number): Promise<void> {
   await db.update(characterCombatStats).set({ eacMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
-}
-
-export async function updateKacArmorBonus(characterId: string, value: number): Promise<void> {
-  await db.update(characterCombatStats).set({ kacArmorBonus: value }).where(eq(characterCombatStats.characterId, characterId));
 }
 
 export async function updateKacMiscMod(characterId: string, value: number): Promise<void> {

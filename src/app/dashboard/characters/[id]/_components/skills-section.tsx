@@ -27,6 +27,7 @@ type Props = {
   level: number;
   raceType: RaceType | null;
   mechanicLevel: number | null;
+  armorCheckPenalty: number;
   isOwner: boolean;
 };
 
@@ -54,6 +55,7 @@ function BiologicalSkillRow({
   ranks,
   maxRanks,
   scores,
+  armorCheckPenalty,
   isOwner,
   characterId,
   onRanksChange,
@@ -64,6 +66,7 @@ function BiologicalSkillRow({
   ranks: number;
   maxRanks: number;
   scores: AbilityScores;
+  armorCheckPenalty: number;
   isOwner: boolean;
   characterId: string;
   onRanksChange: (id: string, value: number) => void;
@@ -82,7 +85,8 @@ function BiologicalSkillRow({
   const abilityKey = ABILITY_KEY_MAP[effectiveAbility] ?? "intScore";
   const abilityMod = modifier(scores[abilityKey]);
   const classBonus = skill.isClassSkill && ranks > 0 ? 3 : 0;
-  const total = ranks + classBonus + abilityMod + miscMod;
+  const acp = skill.armorCheckPenalty ? armorCheckPenalty : 0;
+  const total = ranks + classBonus + abilityMod + miscMod + acp;
 
   function handleRanksChange(raw: string) {
     const parsed = parseInt(raw, 10);
@@ -140,6 +144,9 @@ function BiologicalSkillRow({
       ) : (
         <span className="text-sm text-center">{formatMod(miscMod)}</span>
       )}
+      <span className={`text-sm text-center ${acp !== 0 ? "text-destructive" : "text-muted-foreground"}`}>
+        {acp !== 0 ? formatMod(acp) : "—"}
+      </span>
       <span className="text-sm font-semibold text-center">{formatMod(total)}</span>
       {isOwner && skill.trainedOnly ? (
         <button
@@ -224,6 +231,7 @@ function DroneSkillRow({
       ) : (
         <span className="text-sm text-center">{formatMod(miscMod)}</span>
       )}
+      <span className="text-sm text-center text-muted-foreground">—</span>
       <span className="text-sm font-semibold text-center">{formatMod(total)}</span>
       {isOwner ? (
         <button
@@ -250,6 +258,7 @@ export default function SkillsSection({
   level,
   raceType,
   mechanicLevel,
+  armorCheckPenalty,
   isOwner,
 }: Props) {
   const router = useRouter();
@@ -341,13 +350,14 @@ export default function SkillsSection({
           )}
         </p>
       ) : (
-        <div className="grid grid-cols-[1fr_4.5rem_3.5rem_3.5rem_3rem_3.5rem_3rem_2rem] items-center gap-x-2 gap-y-1.5">
+        <div className="grid grid-cols-[1fr_4.5rem_3.5rem_3.5rem_3rem_3.5rem_3rem_3rem_2rem] items-center gap-x-2 gap-y-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Skill</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Ability</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Ranks</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Class</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Mod</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Misc</span>
+          <span className={`text-xs font-semibold uppercase tracking-wide text-center ${armorCheckPenalty !== 0 ? "text-destructive" : "text-muted-foreground"}`}>ACP</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Total</span>
           <span />
           {sortedSkills.map((row) => {
@@ -378,6 +388,7 @@ export default function SkillsSection({
                   ranks={currentRanks}
                   maxRanks={maxRanks}
                   scores={scores}
+                  armorCheckPenalty={armorCheckPenalty}
                   isOwner={isOwner}
                   characterId={characterId}
                   onRanksChange={handleRanksChange}

@@ -26,41 +26,61 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function parseAuthError(message: string | undefined): string {
+    if (!message || message === "{}" || message.trim() === "") {
+      return "Something went wrong. Please try again.";
+    }
+    return message;
+  }
+
   async function handleSendCode(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
-    });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+      if (error) {
+        setError(parseAuthError(error.message));
+        return;
+      }
+      setStep("verify");
+    } catch {
+      setError("Could not reach the auth service. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setStep("verify");
   }
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: "email",
-    });
-    setLoading(false);
-    if (error) {
-      if (error.message.toLowerCase().includes("expired")) {
-        setError("Code has expired. Please request a new one.");
-      } else {
-        setError("Invalid code. Please check and try again.");
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: "email",
+      });
+      if (error) {
+        const msg = error.message?.toLowerCase() ?? "";
+        if (msg.includes("expired") || msg.includes("otp")) {
+          setError("Code has expired. Please request a new one.");
+        } else if (msg.includes("invalid") || msg === "{}" || msg === "") {
+          setError("Invalid code. Please check and try again.");
+        } else {
+          setError(parseAuthError(error.message));
+        }
+        return;
       }
-      return;
+      router.push("/dashboard");
+    } catch {
+      setError("Could not reach the auth service. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    router.push("/dashboard");
   }
 
   return (

@@ -10,6 +10,8 @@ import {
   skills,
   classSkills,
   chassis,
+  armor,
+  classArmorProficiency,
   type Race,
   type Class,
   type Theme,
@@ -17,6 +19,7 @@ import {
   type RaceType,
   type Skill,
   type Chassis,
+  type Armor,
 } from "@/db/schema";
 
 export type SkillWithClassFlag = Skill & { isClassSkill: boolean };
@@ -64,6 +67,26 @@ export async function getDroneSkills(): Promise<Skill[]> {
     .from(skills)
     .where(inArray(skills.name, DRONE_SKILL_NAMES))
     .orderBy(asc(skills.name));
+}
+
+export async function getArmorForClass(classId: string | null): Promise<Armor[]> {
+  if (!classId) return [];
+  const proficiencies = await db
+    .select({ armorType: classArmorProficiency.armorType })
+    .from(classArmorProficiency)
+    .where(eq(classArmorProficiency.classId, classId));
+  if (proficiencies.length === 0) return [];
+  const types = proficiencies.map((p) => p.armorType);
+  return db
+    .select()
+    .from(armor)
+    .where(inArray(armor.type, types))
+    .orderBy(asc(armor.type), asc(armor.itemLevel));
+}
+
+export async function getArmorById(id: string): Promise<Armor | null> {
+  const [row] = await db.select().from(armor).where(eq(armor.id, id)).limit(1);
+  return row ?? null;
 }
 
 export async function getDescriptionsForType(raceType: RaceType): Promise<RaceDescription[]> {

@@ -7,7 +7,7 @@ import LevelControl from "./level-control";
 import SkillsSection from "./skills-section";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { CharacterSkill, RaceType } from "@/db/schema";
+import type { Armor, CharacterSkill, RaceType } from "@/db/schema";
 
 type Props = {
   characterId: string;
@@ -17,9 +17,9 @@ type Props = {
   initialLevel: number;
   initiativeMiscMod: number;
   baseAttackBonus: number;
-  eacArmorBonus: number;
+  initialEquippedArmor: Armor | null;
+  availableArmor: Armor[];
   eacMiscMod: number;
-  kacArmorBonus: number;
   kacMiscMod: number;
   fortBaseSave: number;
   fortMiscMod: number;
@@ -44,9 +44,9 @@ export default function CharacterStatsClient({
   initialLevel,
   initiativeMiscMod,
   baseAttackBonus,
-  eacArmorBonus,
+  initialEquippedArmor,
+  availableArmor,
   eacMiscMod,
-  kacArmorBonus,
   kacMiscMod,
   fortBaseSave,
   fortMiscMod,
@@ -64,6 +64,7 @@ export default function CharacterStatsClient({
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
   const [level, setLevel] = useState(initialLevel);
+  const [currentArmor, setCurrentArmor] = useState<Armor | null>(initialEquippedArmor);
 
   return (
     <>
@@ -95,9 +96,10 @@ export default function CharacterStatsClient({
         wisScore={scores.wisScore}
         initiativeMiscMod={initiativeMiscMod}
         baseAttackBonus={baseAttackBonus}
-        eacArmorBonus={eacArmorBonus}
+        equippedArmor={currentArmor}
+        availableArmor={availableArmor}
+        onArmorChange={setCurrentArmor}
         eacMiscMod={eacMiscMod}
-        kacArmorBonus={kacArmorBonus}
         kacMiscMod={kacMiscMod}
         fortBaseSave={fortBaseSave}
         fortMiscMod={fortMiscMod}
@@ -119,6 +121,7 @@ export default function CharacterStatsClient({
         level={level}
         raceType={raceType}
         mechanicLevel={mechanicLevel}
+        armorCheckPenalty={currentArmor?.armorCheckPenalty ?? 0}
         isOwner={isOwner}
       />
     </>

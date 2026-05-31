@@ -1,6 +1,23 @@
 import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const raceType = pgEnum("race_type", ["biological", "drone"]);
+export const armorType = pgEnum("armor_type", ["light", "heavy", "powered"]);
+
+export const armor = pgTable("armor", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  type: armorType("type").notNull(),
+  itemLevel: integer("item_level").notNull(),
+  price: integer("price").notNull(),
+  eacBonus: integer("eac_bonus").notNull(),
+  kacBonus: integer("kac_bonus").notNull(),
+  maxDexBonus: integer("max_dex_bonus"),
+  armorCheckPenalty: integer("armor_check_penalty").notNull().default(0),
+  speedAdjustment: integer("speed_adjustment").notNull().default(0),
+  bulk: text("bulk").notNull(),
+  upgradeSlots: integer("upgrade_slots").notNull().default(0),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
 
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey(),
@@ -15,6 +32,11 @@ export const classSkills = pgTable("class_skills", {
   skillId: uuid("skill_id").notNull().references(() => skills.id),
   classId: uuid("class_id").notNull().references(() => classes.id),
 }, (t) => [primaryKey({ columns: [t.skillId, t.classId] })]);
+
+export const classArmorProficiency = pgTable("class_armor_proficiency", {
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  armorType: armorType("armor_type").notNull(),
+}, (t) => [primaryKey({ columns: [t.classId, t.armorType] })]);
 
 export const chassis = pgTable("chassis", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -68,6 +90,7 @@ export const characters = pgTable("characters", {
   themeId: uuid("theme_id").references(() => themes.id),
   chassisId: uuid("chassis_id").references(() => chassis.id),
   mechanicCharacterId: uuid("mechanic_character_id").references((): AnyPgColumn => characters.id),
+  equippedArmorId: uuid("equipped_armor_id").references(() => armor.id),
   level: integer("level").notNull().default(1),
   strScore: integer("str_score").notNull().default(10),
   dexScore: integer("dex_score").notNull().default(10),
@@ -102,9 +125,7 @@ export const characterCombatStats = pgTable("character_combat_stats", {
   hitPointsCurrent: integer("hit_points_current").notNull().default(0),
   resolvePointsTotal: integer("resolve_points_total").notNull().default(0),
   resolvePointsCurrent: integer("resolve_points_current").notNull().default(0),
-  eacArmorBonus: integer("eac_armor_bonus").notNull().default(0),
   eacMiscMod: integer("eac_misc_mod").notNull().default(0),
-  kacArmorBonus: integer("kac_armor_bonus").notNull().default(0),
   kacMiscMod: integer("kac_misc_mod").notNull().default(0),
   fortBaseSave: integer("fort_base_save").notNull().default(0),
   fortMiscMod: integer("fort_misc_mod").notNull().default(0),
@@ -141,6 +162,10 @@ export const characterDescriptions = pgTable(
   (t) => [primaryKey({ columns: [t.characterId, t.descriptionId] })]
 );
 
+export type Armor = typeof armor.$inferSelect;
+export type NewArmor = typeof armor.$inferInsert;
+export type ArmorType = typeof armorType.enumValues[number];
+export type ClassArmorProficiency = typeof classArmorProficiency.$inferSelect;
 export type Chassis = typeof chassis.$inferSelect;
 export type NewChassis = typeof chassis.$inferInsert;
 export type RaceType = typeof raceType.enumValues[number];

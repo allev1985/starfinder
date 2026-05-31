@@ -4,12 +4,11 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
+import ArmorPicker from "./armor-picker";
 import {
   updateInitiativeMiscModAction,
   updateBaseAttackBonusAction,
-  updateEacArmorBonusAction,
   updateEacMiscModAction,
-  updateKacArmorBonusAction,
   updateKacMiscModAction,
   updateFortBaseSaveAction,
   updateFortMiscModAction,
@@ -21,6 +20,7 @@ import {
   updateRangedAttackMiscModAction,
   updateThrownAttackMiscModAction,
 } from "../actions";
+import type { Armor } from "@/db/schema";
 
 type Props = {
   characterId: string;
@@ -30,9 +30,10 @@ type Props = {
   wisScore: number;
   initiativeMiscMod: number;
   baseAttackBonus: number;
-  eacArmorBonus: number;
+  equippedArmor: Armor | null;
+  availableArmor: Armor[];
+  onArmorChange: (armor: Armor | null) => void;
   eacMiscMod: number;
-  kacArmorBonus: number;
   kacMiscMod: number;
   fortBaseSave: number;
   fortMiscMod: number;
@@ -58,9 +59,10 @@ export default function CombatStatsSection({
   wisScore,
   initiativeMiscMod,
   baseAttackBonus,
-  eacArmorBonus,
+  equippedArmor,
+  availableArmor,
+  onArmorChange,
   eacMiscMod,
-  kacArmorBonus,
   kacMiscMod,
   fortBaseSave,
   fortMiscMod,
@@ -75,9 +77,7 @@ export default function CombatStatsSection({
 }: Props) {
   const [miscMod, setMiscMod] = useState(initiativeMiscMod);
   const [bab, setBab] = useState(baseAttackBonus);
-  const [eacBonus, setEacBonus] = useState(eacArmorBonus);
   const [eacMisc, setEacMisc] = useState(eacMiscMod);
-  const [kacBonus, setKacBonus] = useState(kacArmorBonus);
   const [kacMisc, setKacMisc] = useState(kacMiscMod);
   const [fortBase, setFortBase] = useState(fortBaseSave);
   const [fortMisc, setFortMisc] = useState(fortMiscMod);
@@ -95,14 +95,8 @@ export default function CombatStatsSection({
   const scheduleBabSave = useDebouncedSave((value: number) =>
     updateBaseAttackBonusAction(characterId, value)
   );
-  const scheduleEacBonusSave = useDebouncedSave((value: number) =>
-    updateEacArmorBonusAction(characterId, value)
-  );
   const scheduleEacMiscSave = useDebouncedSave((value: number) =>
     updateEacMiscModAction(characterId, value)
-  );
-  const scheduleKacBonusSave = useDebouncedSave((value: number) =>
-    updateKacArmorBonusAction(characterId, value)
   );
   const scheduleKacMiscSave = useDebouncedSave((value: number) =>
     updateKacMiscModAction(characterId, value)
@@ -139,9 +133,16 @@ export default function CombatStatsSection({
   const dexMod = modifier(dexScore);
   const conMod = modifier(conScore);
   const wisMod = modifier(wisScore);
+
+  const eacArmorBonus = equippedArmor?.eacBonus ?? 0;
+  const kacArmorBonus = equippedArmor?.kacBonus ?? 0;
+  const effectiveDex = equippedArmor?.maxDexBonus != null
+    ? Math.min(dexMod, equippedArmor.maxDexBonus)
+    : dexMod;
+
   const initiativeTotal = dexMod + miscMod;
-  const eacTotal = 10 + eacBonus + dexMod + eacMisc;
-  const kacTotal = 10 + kacBonus + dexMod + kacMisc;
+  const eacTotal = 10 + eacArmorBonus + effectiveDex + eacMisc;
+  const kacTotal = 10 + kacArmorBonus + effectiveDex + kacMisc;
   const kacVsCm = 8 + kacTotal;
   const meleeTotal = bab + strMod + meleeMisc;
   const rangedTotal = bab + dexMod + rangedMisc;
@@ -240,7 +241,15 @@ export default function CombatStatsSection({
       </div>
 
       {/* Armor Class */}
-      <div className="mb-4 grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
+      <ArmorPicker
+        availableArmor={availableArmor}
+        equippedArmor={equippedArmor}
+        characterId={characterId}
+        isOwner={isOwner}
+        onArmorChange={onArmorChange}
+      />
+
+      <div className="mb-2 grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
         <span />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Total</span>
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Armor Bonus</span>
@@ -249,14 +258,14 @@ export default function CombatStatsSection({
 
         <span className="text-sm font-medium">EAC</span>
         <span className="text-sm text-center">{eacTotal}</span>
-        {numericInput(eacBonus, (v) => { setEacBonus(v); scheduleEacBonusSave(v); })}
-        <span className="text-sm text-muted-foreground text-center">{formatModifier(dexMod)}</span>
+        <span className="text-sm text-muted-foreground text-center">{eacArmorBonus}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(effectiveDex)}</span>
         {numericInput(eacMisc, (v) => { setEacMisc(v); scheduleEacMiscSave(v); })}
 
         <span className="text-sm font-medium">KAC</span>
         <span className="text-sm text-center">{kacTotal}</span>
-        {numericInput(kacBonus, (v) => { setKacBonus(v); scheduleKacBonusSave(v); })}
-        <span className="text-sm text-muted-foreground text-center">{formatModifier(dexMod)}</span>
+        <span className="text-sm text-muted-foreground text-center">{kacArmorBonus}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(effectiveDex)}</span>
         {numericInput(kacMisc, (v) => { setKacMisc(v); scheduleKacMiscSave(v); })}
 
         <span className="text-sm font-medium">KAC vs. CM</span>

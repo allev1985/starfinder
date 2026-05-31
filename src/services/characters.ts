@@ -14,9 +14,8 @@ import {
   updateInitiativeMiscMod,
   updateHealthResolve,
   updateBaseAttackBonus,
-  updateEacArmorBonus,
+  updateEquippedArmor,
   updateEacMiscMod,
-  updateKacArmorBonus,
   updateKacMiscMod,
   updateFortBaseSave,
   updateFortMiscMod,
@@ -179,19 +178,14 @@ export async function updateBaseAttackBonusForOwner(
   await updateBaseAttackBonus(characterId, value);
 }
 
-export async function updateEacArmorBonusForOwner(characterId: string, userId: string, value: number): Promise<void> {
+export async function updateEquippedArmorForOwner(characterId: string, userId: string, armorId: string | null): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
-  await updateEacArmorBonus(characterId, value);
+  await updateEquippedArmor(characterId, armorId);
 }
 
 export async function updateEacMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateEacMiscMod(characterId, value);
-}
-
-export async function updateKacArmorBonusForOwner(characterId: string, userId: string, value: number): Promise<void> {
-  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
-  await updateKacArmorBonus(characterId, value);
 }
 
 export async function updateKacMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
