@@ -17,10 +17,14 @@ import {
   updateRefMiscModAction,
   updateWillBaseSaveAction,
   updateWillMiscModAction,
+  updateMeleeAttackMiscModAction,
+  updateRangedAttackMiscModAction,
+  updateThrownAttackMiscModAction,
 } from "../actions";
 
 type Props = {
   characterId: string;
+  strScore: number;
   dexScore: number;
   conScore: number;
   wisScore: number;
@@ -36,6 +40,9 @@ type Props = {
   refMiscMod: number;
   willBaseSave: number;
   willMiscMod: number;
+  meleeAttackMiscMod: number;
+  rangedAttackMiscMod: number;
+  thrownAttackMiscMod: number;
   isOwner: boolean;
 };
 
@@ -45,6 +52,7 @@ function formatModifier(value: number): string {
 
 export default function CombatStatsSection({
   characterId,
+  strScore,
   dexScore,
   conScore,
   wisScore,
@@ -60,6 +68,9 @@ export default function CombatStatsSection({
   refMiscMod,
   willBaseSave,
   willMiscMod,
+  meleeAttackMiscMod,
+  rangedAttackMiscMod,
+  thrownAttackMiscMod,
   isOwner,
 }: Props) {
   const [miscMod, setMiscMod] = useState(initiativeMiscMod);
@@ -74,6 +85,9 @@ export default function CombatStatsSection({
   const [refMisc, setRefMisc] = useState(refMiscMod);
   const [willBase, setWillBase] = useState(willBaseSave);
   const [willMisc, setWillMisc] = useState(willMiscMod);
+  const [meleeMisc, setMeleeMisc] = useState(meleeAttackMiscMod);
+  const [rangedMisc, setRangedMisc] = useState(rangedAttackMiscMod);
+  const [thrownMisc, setThrownMisc] = useState(thrownAttackMiscMod);
 
   const scheduleMiscModSave = useDebouncedSave((value: number) =>
     updateInitiativeMiscModAction(characterId, value)
@@ -111,7 +125,17 @@ export default function CombatStatsSection({
   const scheduleWillMiscSave = useDebouncedSave((value: number) =>
     updateWillMiscModAction(characterId, value)
   );
+  const scheduleMeleeMiscSave = useDebouncedSave((value: number) =>
+    updateMeleeAttackMiscModAction(characterId, value)
+  );
+  const scheduleRangedMiscSave = useDebouncedSave((value: number) =>
+    updateRangedAttackMiscModAction(characterId, value)
+  );
+  const scheduleThrownMiscSave = useDebouncedSave((value: number) =>
+    updateThrownAttackMiscModAction(characterId, value)
+  );
 
+  const strMod = modifier(strScore);
   const dexMod = modifier(dexScore);
   const conMod = modifier(conScore);
   const wisMod = modifier(wisScore);
@@ -119,6 +143,9 @@ export default function CombatStatsSection({
   const eacTotal = 10 + eacBonus + dexMod + eacMisc;
   const kacTotal = 10 + kacBonus + dexMod + kacMisc;
   const kacVsCm = 8 + kacTotal;
+  const meleeTotal = bab + strMod + meleeMisc;
+  const rangedTotal = bab + dexMod + rangedMisc;
+  const thrownTotal = bab + strMod + thrownMisc;
   const fortTotal = fortBase + conMod + fortMisc;
   const refTotal = refBase + dexMod + refMisc;
   const willTotal = willBase + wisMod + willMisc;
@@ -183,6 +210,33 @@ export default function CombatStatsSection({
         ) : (
           <span className="text-sm text-center">{formatModifier(bab)}</span>
         )}
+      </div>
+
+      {/* Attack Bonuses */}
+      <div className="mb-4 grid grid-cols-[12rem_5rem_5rem_5rem_5rem] items-center gap-x-3 gap-y-2">
+        <span />
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Total</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">BAB</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Ability Mod</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Misc</span>
+
+        <span className="text-sm font-medium">Melee Attack</span>
+        <span className="text-sm text-center">{formatModifier(meleeTotal)}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(bab)}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(strMod)} STR</span>
+        {numericInput(meleeMisc, (v) => { setMeleeMisc(v); scheduleMeleeMiscSave(v); })}
+
+        <span className="text-sm font-medium">Ranged Attack</span>
+        <span className="text-sm text-center">{formatModifier(rangedTotal)}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(bab)}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(dexMod)} DEX</span>
+        {numericInput(rangedMisc, (v) => { setRangedMisc(v); scheduleRangedMiscSave(v); })}
+
+        <span className="text-sm font-medium">Thrown Attack</span>
+        <span className="text-sm text-center">{formatModifier(thrownTotal)}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(bab)}</span>
+        <span className="text-sm text-muted-foreground text-center">{formatModifier(strMod)} STR</span>
+        {numericInput(thrownMisc, (v) => { setThrownMisc(v); scheduleThrownMiscSave(v); })}
       </div>
 
       {/* Armor Class */}

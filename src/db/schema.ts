@@ -104,6 +104,9 @@ export const characterCombatStats = pgTable("character_combat_stats", {
   refMiscMod: integer("ref_misc_mod").notNull().default(0),
   willBaseSave: integer("will_base_save").notNull().default(0),
   willMiscMod: integer("will_misc_mod").notNull().default(0),
+  meleeAttackMiscMod: integer("melee_attack_misc_mod").notNull().default(0),
+  rangedAttackMiscMod: integer("ranged_attack_misc_mod").notNull().default(0),
+  thrownAttackMiscMod: integer("thrown_attack_misc_mod").notNull().default(0),
 });
 
 export const characterRaceAttributeValues = pgTable(

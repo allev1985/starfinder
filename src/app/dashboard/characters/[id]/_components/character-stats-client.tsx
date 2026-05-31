@@ -20,6 +20,9 @@ type Props = {
   refMiscMod: number;
   willBaseSave: number;
   willMiscMod: number;
+  meleeAttackMiscMod: number;
+  rangedAttackMiscMod: number;
+  thrownAttackMiscMod: number;
   isOwner: boolean;
 };
 
@@ -38,6 +41,9 @@ export default function CharacterStatsClient({
   refMiscMod,
   willBaseSave,
   willMiscMod,
+  meleeAttackMiscMod,
+  rangedAttackMiscMod,
+  thrownAttackMiscMod,
   isOwner,
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
@@ -52,6 +58,7 @@ export default function CharacterStatsClient({
       />
       <CombatStatsSection
         characterId={characterId}
+        strScore={scores.strScore}
         dexScore={scores.dexScore}
         conScore={scores.conScore}
         wisScore={scores.wisScore}
@@ -67,6 +74,9 @@ export default function CharacterStatsClient({
         refMiscMod={refMiscMod}
         willBaseSave={willBaseSave}
         willMiscMod={willMiscMod}
+        meleeAttackMiscMod={meleeAttackMiscMod}
+        rangedAttackMiscMod={rangedAttackMiscMod}
+        thrownAttackMiscMod={thrownAttackMiscMod}
         isOwner={isOwner}
       />
     </>

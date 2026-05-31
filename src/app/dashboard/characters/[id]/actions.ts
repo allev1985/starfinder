@@ -20,6 +20,9 @@ import {
   updateRefMiscModForOwner,
   updateWillBaseSaveForOwner,
   updateWillMiscModForOwner,
+  updateMeleeAttackMiscModForOwner,
+  updateRangedAttackMiscModForOwner,
+  updateThrownAttackMiscModForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -269,6 +272,42 @@ export async function updateWillMiscModAction(characterId: string, value: number
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save Will misc modifier." };
+  }
+}
+
+export async function updateMeleeAttackMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateMeleeAttackMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save melee attack misc modifier." };
+  }
+}
+
+export async function updateRangedAttackMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateRangedAttackMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save ranged attack misc modifier." };
+  }
+}
+
+export async function updateThrownAttackMiscModAction(characterId: string, value: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateThrownAttackMiscModForOwner(characterId, user.id, value);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save thrown attack misc modifier." };
   }
 }
 

@@ -311,6 +311,18 @@ export async function updateWillMiscMod(characterId: string, value: number): Pro
   await db.update(characterCombatStats).set({ willMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
 }
 
+export async function updateMeleeAttackMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ meleeAttackMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateRangedAttackMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ rangedAttackMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function updateThrownAttackMiscMod(characterId: string, value: number): Promise<void> {
+  await db.update(characterCombatStats).set({ thrownAttackMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
 export async function upsertCharacterRaceAttributeValue(
   characterId: string,
   attributeId: string,

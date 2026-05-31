@@ -24,6 +24,9 @@ import {
   updateRefMiscMod,
   updateWillBaseSave,
   updateWillMiscMod,
+  updateMeleeAttackMiscMod,
+  updateRangedAttackMiscMod,
+  updateThrownAttackMiscMod,
   type AbilityScores,
   type HealthResolveValues,
 } from "@/db/queries/characters";
@@ -177,6 +180,21 @@ export async function updateWillBaseSaveForOwner(characterId: string, userId: st
 export async function updateWillMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateWillMiscMod(characterId, value);
+}
+
+export async function updateMeleeAttackMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateMeleeAttackMiscMod(characterId, value);
+}
+
+export async function updateRangedAttackMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateRangedAttackMiscMod(characterId, value);
+}
+
+export async function updateThrownAttackMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateThrownAttackMiscMod(characterId, value);
 }
 
 export async function joinCampaignForOwner(

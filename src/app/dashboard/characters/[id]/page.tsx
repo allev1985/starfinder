@@ -95,6 +95,9 @@ export default async function CharacterDetailPage({
         refMiscMod={combatStats?.refMiscMod ?? 0}
         willBaseSave={combatStats?.willBaseSave ?? 0}
         willMiscMod={combatStats?.willMiscMod ?? 0}
+        meleeAttackMiscMod={combatStats?.meleeAttackMiscMod ?? 0}
+        rangedAttackMiscMod={combatStats?.rangedAttackMiscMod ?? 0}
+        thrownAttackMiscMod={combatStats?.thrownAttackMiscMod ?? 0}
         isOwner={isOwner}
       />
 
