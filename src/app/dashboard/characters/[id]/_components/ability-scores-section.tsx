@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { updateAbilityScoresAction } from "../actions";
 import type { AbilityScores } from "@/db/queries/characters";
+import type { RaceType } from "@/db/schema";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
 
@@ -24,11 +25,15 @@ function formatModifier(score: number): string {
 type Props = {
   characterId: string;
   scores: AbilityScores;
+  raceType: RaceType | null;
   isOwner: boolean;
   onScoreChange?: (scores: AbilityScores) => void;
 };
 
-export default function AbilityScoresSection({ characterId, scores, isOwner, onScoreChange }: Props) {
+export default function AbilityScoresSection({ characterId, scores, raceType, isOwner, onScoreChange }: Props) {
+  const visibleAbilities = raceType === "drone"
+    ? ABILITIES.filter((a) => a.key !== "conScore")
+    : ABILITIES;
   const [current, setCurrent] = useState<AbilityScores>({ ...scores });
   const scheduleSave = useDebouncedSave((next: AbilityScores) =>
     updateAbilityScoresAction(characterId, next)
@@ -51,7 +56,7 @@ export default function AbilityScoresSection({ characterId, scores, isOwner, onS
         <span />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Score</span>
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Modifier</span>
-        {ABILITIES.map(({ key, label }) => (
+        {visibleAbilities.map(({ key, label }) => (
           <Fragment key={key}>
             <span className="text-sm font-medium">{label}</span>
             {isOwner ? (

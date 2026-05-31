@@ -2,13 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills } from "@/db/queries/characters";
+import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker } from "@/db/queries/characters";
 import { getDescriptionsForType, getAllSkillsWithClassFlag } from "@/db/queries/reference";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import DescriptionSection from "./_components/description-section";
 import CharacterStatsClient from "./_components/character-stats-client";
 import HealthResolveSection from "./_components/health-resolve-section";
+import MechanicPanel from "./_components/mechanic-panel";
 
 export default async function CharacterDetailPage({
   params,
@@ -27,7 +28,7 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills] =
+  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions] =
     character.raceType
       ? await Promise.all([
           getDescriptionsForType(character.raceType),
@@ -35,6 +36,7 @@ export default async function CharacterDetailPage({
           getCharacterCombatStats(id),
           getCharacterSkills(id),
           getAllSkillsWithClassFlag(character.classId ?? null),
+          character.raceType === "drone" ? getCharactersForMechanicPicker(id) : Promise.resolve([] as Awaited<ReturnType<typeof getCharactersForMechanicPicker>>),
         ])
       : await Promise.all([
           Promise.resolve([] as Awaited<ReturnType<typeof getDescriptionsForType>>),
@@ -42,6 +44,7 @@ export default async function CharacterDetailPage({
           getCharacterCombatStats(id),
           getCharacterSkills(id),
           getAllSkillsWithClassFlag(character.classId ?? null),
+          Promise.resolve([]),
         ]);
 
   const savedValuesMap = Object.fromEntries(
@@ -57,6 +60,9 @@ export default async function CharacterDetailPage({
 
       <div className="mb-4 flex gap-6 text-sm text-muted-foreground">
         <span><span className="font-medium text-foreground">Race</span> {character.raceName ?? "—"}</span>
+        {character.raceType === "drone" && character.chassisName && (
+          <span><span className="font-medium text-foreground">Chassis</span> {character.chassisName}</span>
+        )}
         <span><span className="font-medium text-foreground">Class</span> {character.className ?? "—"}</span>
         <span><span className="font-medium text-foreground">Theme</span> {character.themeName ?? "—"}</span>
       </div>
@@ -67,6 +73,8 @@ export default async function CharacterDetailPage({
 
       <CharacterStatsClient
         characterId={id}
+        raceType={character.raceType}
+        mechanicLevel={character.mechanicLevel}
         scores={{
           strScore: character.strScore,
           dexScore: character.dexScore,
@@ -100,6 +108,7 @@ export default async function CharacterDetailPage({
       <HealthResolveSection
         characterId={id}
         isOwner={isOwner}
+        raceType={character.raceType}
         staminaPointsTotal={combatStats?.staminaPointsTotal ?? 0}
         staminaPointsCurrent={combatStats?.staminaPointsCurrent ?? 0}
         hitPointsTotal={combatStats?.hitPointsTotal ?? 0}
@@ -107,6 +116,18 @@ export default async function CharacterDetailPage({
         resolvePointsTotal={combatStats?.resolvePointsTotal ?? 0}
         resolvePointsCurrent={combatStats?.resolvePointsCurrent ?? 0}
       />
+
+      {character.raceType === "drone" && (
+        <MechanicPanel
+          characterId={id}
+          isOwner={isOwner}
+          mechanicCharacterId={character.mechanicCharacterId ?? null}
+          mechanicName={character.mechanicName}
+          mechanicLevel={character.mechanicLevel}
+          mechanicIntScore={character.mechanicIntScore}
+          pickerOptions={mechanicPickerOptions}
+        />
+      )}
 
       {descriptions.length > 0 && (
         <DescriptionSection

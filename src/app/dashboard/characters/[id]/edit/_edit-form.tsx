@@ -6,7 +6,7 @@ import { updateCharacterAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { Race, Class, Theme } from "@/db/schema";
+import type { Race, Class, Theme, Chassis } from "@/db/schema";
 import type { CharacterWithMeta } from "@/db/queries/characters";
 
 interface Props {
@@ -14,12 +14,14 @@ interface Props {
   races: Race[];
   classes: Class[];
   themes: Theme[];
+  chassisList: Chassis[];
 }
 
-export default function EditCharacterForm({ character, races, classes, themes }: Props) {
+export default function EditCharacterForm({ character, races, classes, themes, chassisList }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const isDrone = character.raceType === "drone";
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -65,6 +67,24 @@ export default function EditCharacterForm({ character, races, classes, themes }:
         </select>
       </div>
 
+      {isDrone && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="chassisId">Chassis</Label>
+          <select
+            id="chassisId"
+            name="chassisId"
+            required
+            defaultValue={character.chassisId ?? ""}
+            className={selectClass}
+          >
+            <option value="" disabled>Select a chassis…</option>
+            {chassisList.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         <Label htmlFor="classId">Class</Label>
         <select
@@ -81,21 +101,23 @@ export default function EditCharacterForm({ character, races, classes, themes }:
         </select>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="themeId">Theme</Label>
-        <select
-          id="themeId"
-          name="themeId"
-          required
-          defaultValue={character.themeId ?? ""}
-          className={selectClass}
-        >
-          <option value="" disabled>Select a theme…</option>
-          {themes.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
-          ))}
-        </select>
-      </div>
+      {!isDrone && (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="themeId">Theme</Label>
+          <select
+            id="themeId"
+            name="themeId"
+            required
+            defaultValue={character.themeId ?? ""}
+            className={selectClass}
+          >
+            <option value="" disabled>Select a theme…</option>
+            {themes.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {error && <p className="text-destructive text-sm">{error}</p>}
       <div className="flex gap-2">

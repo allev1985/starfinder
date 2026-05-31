@@ -8,12 +8,14 @@ import {
   raceDescriptions,
   skills,
   classSkills,
+  chassis,
   type Race,
   type Class,
   type Theme,
   type RaceDescription,
   type RaceType,
   type Skill,
+  type Chassis,
 } from "@/db/schema";
 
 export type SkillWithClassFlag = Skill & { isClassSkill: boolean };
@@ -44,6 +46,15 @@ export async function getClasses(): Promise<Class[]> {
 
 export async function getThemes(): Promise<Theme[]> {
   return db.select().from(themes);
+}
+
+export async function getAllChassis(): Promise<Chassis[]> {
+  return db.select().from(chassis).orderBy(asc(chassis.name));
+}
+
+export async function getChassisById(id: string): Promise<Chassis | null> {
+  const [row] = await db.select().from(chassis).where(eq(chassis.id, id)).limit(1);
+  return row ?? null;
 }
 
 export async function getDescriptionsForType(raceType: RaceType): Promise<RaceDescription[]> {

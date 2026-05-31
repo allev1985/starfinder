@@ -7,10 +7,12 @@ import LevelControl from "./level-control";
 import SkillsSection from "./skills-section";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { CharacterSkill } from "@/db/schema";
+import type { CharacterSkill, RaceType } from "@/db/schema";
 
 type Props = {
   characterId: string;
+  raceType: RaceType | null;
+  mechanicLevel: number | null;
   scores: AbilityScores;
   initialLevel: number;
   initiativeMiscMod: number;
@@ -36,6 +38,8 @@ type Props = {
 
 export default function CharacterStatsClient({
   characterId,
+  raceType,
+  mechanicLevel,
   scores: initialScores,
   initialLevel,
   initiativeMiscMod,
@@ -79,6 +83,7 @@ export default function CharacterStatsClient({
       <AbilityScoresSection
         characterId={characterId}
         scores={scores}
+        raceType={raceType}
         isOwner={isOwner}
         onScoreChange={setScores}
       />
@@ -112,6 +117,8 @@ export default function CharacterStatsClient({
         scores={scores}
         skillRanksPerLevel={skillRanksPerLevel}
         level={level}
+        raceType={raceType}
+        mechanicLevel={mechanicLevel}
         isOwner={isOwner}
       />
     </>

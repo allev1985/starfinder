@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   characters,
@@ -8,6 +8,7 @@ import {
   races,
   classes,
   themes,
+  chassis,
   characterDescriptions,
   characterCombatStats,
   characterSkills,
@@ -29,24 +30,51 @@ export async function getCharacterById(id: string): Promise<Character | null> {
   return character ?? null;
 }
 
+const DRONE_SKILL_NAMES = ["Acrobatics", "Athletics", "Computers", "Perception", "Stealth", "Survival"];
+
+async function getDroneSkillIds(): Promise<string[]> {
+  const rows = await db
+    .select({ id: skills.id })
+    .from(skills)
+    .where(inArray(skills.name, DRONE_SKILL_NAMES));
+  return rows.map((r) => r.id);
+}
+
 export async function createCharacter(data: NewCharacter): Promise<Character> {
   const [character] = await db.insert(characters).values(data).returning();
   await db.insert(characterCombatStats).values({ characterId: character.id });
-  const untrainedSkills = await db
-    .select({ id: skills.id })
-    .from(skills)
-    .where(eq(skills.trainedOnly, false));
-  if (untrainedSkills.length > 0) {
+
+  const race = data.raceId
+    ? (await db.select({ type: races.type }).from(races).where(eq(races.id, data.raceId)).limit(1))[0]
+    : null;
+
+  if (race?.type === "drone") {
+    const droneSkillIds = await getDroneSkillIds();
+    const skillIds = new Set(droneSkillIds);
+    if (data.chassisId) {
+      const [ch] = await db.select({ bonusSkillId: chassis.bonusSkillId }).from(chassis).where(eq(chassis.id, data.chassisId)).limit(1);
+      if (ch?.bonusSkillId) skillIds.add(ch.bonusSkillId);
+    }
     await db.insert(characterSkills).values(
-      untrainedSkills.map((s) => ({ characterId: character.id, skillId: s.id, ranks: 0, miscMod: 0 }))
+      [...skillIds].map((skillId) => ({ characterId: character.id, skillId, ranks: 0, miscMod: 0 }))
     );
+  } else {
+    const untrainedSkills = await db
+      .select({ id: skills.id })
+      .from(skills)
+      .where(eq(skills.trainedOnly, false));
+    if (untrainedSkills.length > 0) {
+      await db.insert(characterSkills).values(
+        untrainedSkills.map((s) => ({ characterId: character.id, skillId: s.id, ranks: 0, miscMod: 0 }))
+      );
+    }
   }
   return character;
 }
 
 export async function updateCharacter(
   id: string,
-  data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null }
+  data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null; chassisId?: string | null }
 ): Promise<Character> {
   const [updated] = await db
     .update(characters)
@@ -80,7 +108,13 @@ export type CharacterWithMeta = Character & {
   themeName: string | null;
   level: number;
   skillRanksPerLevel: number;
+  chassisName: string | null;
+  mechanicName: string | null;
+  mechanicLevel: number | null;
+  mechanicIntScore: number | null;
 };
+
+const mechanic = db.select().from(characters).as("mechanic");
 
 export async function getCharacterWithCampaigns(
   characterId: string
@@ -93,6 +127,8 @@ export async function getCharacterWithCampaigns(
       raceId: characters.raceId,
       classId: characters.classId,
       themeId: characters.themeId,
+      chassisId: characters.chassisId,
+      mechanicCharacterId: characters.mechanicCharacterId,
       level: characters.level,
       strScore: characters.strScore,
       dexScore: characters.dexScore,
@@ -106,11 +142,17 @@ export async function getCharacterWithCampaigns(
       className: classes.name,
       themeName: themes.name,
       skillRanksPerLevel: classes.skillRanksPerLevel,
+      chassisName: chassis.name,
+      mechanicName: mechanic.name,
+      mechanicLevel: mechanic.level,
+      mechanicIntScore: mechanic.intScore,
     })
     .from(characters)
     .leftJoin(races, eq(characters.raceId, races.id))
     .leftJoin(classes, eq(characters.classId, classes.id))
     .leftJoin(themes, eq(characters.themeId, themes.id))
+    .leftJoin(chassis, eq(characters.chassisId, chassis.id))
+    .leftJoin(mechanic, eq(characters.mechanicCharacterId, mechanic.id))
     .where(eq(characters.id, characterId));
 
   if (!row) return { character: null, campaigns: [] };
@@ -122,6 +164,8 @@ export async function getCharacterWithCampaigns(
     raceId: row.raceId,
     classId: row.classId,
     themeId: row.themeId,
+    chassisId: row.chassisId,
+    mechanicCharacterId: row.mechanicCharacterId,
     level: row.level,
     strScore: row.strScore,
     dexScore: row.dexScore,
@@ -135,6 +179,10 @@ export async function getCharacterWithCampaigns(
     className: row.className ?? null,
     themeName: row.themeName ?? null,
     skillRanksPerLevel: row.skillRanksPerLevel ?? 0,
+    chassisName: row.chassisName ?? null,
+    mechanicName: row.mechanicName ?? null,
+    mechanicLevel: row.mechanicLevel ?? null,
+    mechanicIntScore: row.mechanicIntScore ?? null,
   };
 
   const joined = await db
@@ -277,6 +325,59 @@ export async function updateHealthResolve(
     .update(characterCombatStats)
     .set(values)
     .where(eq(characterCombatStats.characterId, characterId));
+}
+
+export type MechanicPickerEntry = {
+  id: string;
+  name: string;
+  className: string | null;
+  level: number;
+  intScore: number;
+  isMechanic: boolean;
+};
+
+export async function getCharactersForMechanicPicker(
+  droneCharacterId: string
+): Promise<MechanicPickerEntry[]> {
+  const drone = await getCharacterById(droneCharacterId);
+  if (!drone) return [];
+
+  const rows = await db
+    .select({
+      id: characters.id,
+      name: characters.name,
+      className: classes.name,
+      level: characters.level,
+      intScore: characters.intScore,
+    })
+    .from(characters)
+    .leftJoin(classes, eq(characters.classId, classes.id))
+    .where(eq(characters.ownerId, drone.ownerId));
+
+  return rows
+    .filter((r) => r.id !== droneCharacterId)
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      className: r.className ?? null,
+      level: r.level,
+      intScore: r.intScore,
+      isMechanic: r.className === "Mechanic",
+    }))
+    .sort((a, b) => {
+      if (a.isMechanic !== b.isMechanic) return a.isMechanic ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+}
+
+export async function updateMechanicLink(
+  characterId: string,
+  mechanicCharacterId: string | null
+): Promise<void> {
+  await db
+    .update(characters)
+    .set({ mechanicCharacterId })
+    .where(eq(characters.id, characterId));
 }
 
 export async function updateBaseAttackBonus(

@@ -1,6 +1,6 @@
-import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, type AnyPgColumn } from "drizzle-orm/pg-core";
 
-export const raceType = pgEnum("race_type", ["biological", "android"]);
+export const raceType = pgEnum("race_type", ["biological", "drone"]);
 
 export const skills = pgTable("skills", {
   id: uuid("id").primaryKey(),
@@ -15,6 +15,17 @@ export const classSkills = pgTable("class_skills", {
   skillId: uuid("skill_id").notNull().references(() => skills.id),
   classId: uuid("class_id").notNull().references(() => classes.id),
 }, (t) => [primaryKey({ columns: [t.skillId, t.classId] })]);
+
+export const chassis = pgTable("chassis", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  bonusSkillId: uuid("bonus_skill_id").references(() => skills.id),
+  defaultStr: integer("default_str").notNull().default(10),
+  defaultDex: integer("default_dex").notNull().default(10),
+  defaultInt: integer("default_int").notNull().default(10),
+  defaultWis: integer("default_wis").notNull().default(10),
+  defaultCha: integer("default_cha").notNull().default(10),
+});
 
 export const races = pgTable("races", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -55,6 +66,8 @@ export const characters = pgTable("characters", {
   raceId: uuid("race_id").references(() => races.id),
   classId: uuid("class_id").references(() => classes.id),
   themeId: uuid("theme_id").references(() => themes.id),
+  chassisId: uuid("chassis_id").references(() => chassis.id),
+  mechanicCharacterId: uuid("mechanic_character_id").references((): AnyPgColumn => characters.id),
   level: integer("level").notNull().default(1),
   strScore: integer("str_score").notNull().default(10),
   dexScore: integer("dex_score").notNull().default(10),
@@ -128,6 +141,8 @@ export const characterDescriptions = pgTable(
   (t) => [primaryKey({ columns: [t.characterId, t.descriptionId] })]
 );
 
+export type Chassis = typeof chassis.$inferSelect;
+export type NewChassis = typeof chassis.$inferInsert;
 export type RaceType = typeof raceType.enumValues[number];
 export type Race = typeof races.$inferSelect;
 export type NewRace = typeof races.$inferInsert;

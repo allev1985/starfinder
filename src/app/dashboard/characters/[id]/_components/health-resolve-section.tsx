@@ -4,22 +4,29 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { updateHealthResolveAction } from "../actions";
 import type { HealthResolveValues } from "@/db/queries/characters";
+import type { RaceType } from "@/db/schema";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
 
 type Props = {
   characterId: string;
   isOwner: boolean;
+  raceType: RaceType | null;
 } & HealthResolveValues;
 
-const ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
+const BIOLOGICAL_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
   { label: "Stamina Points", totalKey: "staminaPointsTotal", currentKey: "staminaPointsCurrent" },
   { label: "Hit Points",     totalKey: "hitPointsTotal",     currentKey: "hitPointsCurrent" },
   { label: "Resolve Points", totalKey: "resolvePointsTotal", currentKey: "resolvePointsCurrent" },
 ];
 
+const ANDROID_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
+  { label: "Hit Points", totalKey: "hitPointsTotal", currentKey: "hitPointsCurrent" },
+];
+
 export default function HealthResolveSection({
   characterId,
   isOwner,
+  raceType,
   staminaPointsTotal,
   staminaPointsCurrent,
   hitPointsTotal,
@@ -27,6 +34,9 @@ export default function HealthResolveSection({
   resolvePointsTotal,
   resolvePointsCurrent,
 }: Props) {
+  const isDrone = raceType === "drone";
+  const rows = isDrone ? ANDROID_ROWS : BIOLOGICAL_ROWS;
+
   const [values, setValues] = useState<HealthResolveValues>({
     staminaPointsTotal,
     staminaPointsCurrent,
@@ -45,7 +55,7 @@ export default function HealthResolveSection({
     const clamped = isNaN(parsed) ? 0 : Math.max(0, parsed);
     const next = { ...values, [key]: clamped };
 
-    for (const { totalKey, currentKey } of ROWS) {
+    for (const { totalKey, currentKey } of rows) {
       if (key === totalKey) next[currentKey] = Math.min(next[currentKey], clamped);
       if (key === currentKey) next[currentKey] = Math.min(clamped, next[totalKey]);
     }
@@ -57,14 +67,14 @@ export default function HealthResolveSection({
   return (
     <section className="mb-8">
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Health &amp; Resolve
+        {isDrone ? "Hit Points" : "Health & Resolve"}
       </h2>
       <div className="grid grid-cols-[12rem_5rem_5rem] items-center gap-x-3 gap-y-2">
         <span />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Total</span>
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Current</span>
 
-        {ROWS.map(({ label, totalKey, currentKey }) => (
+        {rows.map(({ label, totalKey, currentKey }) => (
           <React.Fragment key={label}>
             <span className="text-sm font-medium">{label}</span>
             {isOwner ? (

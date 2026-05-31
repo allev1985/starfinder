@@ -14,7 +14,7 @@ import {
 } from "../actions";
 import AddSkillsDialog from "./add-skills-dialog";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { CharacterSkill } from "@/db/schema";
+import type { CharacterSkill, RaceType } from "@/db/schema";
 import type { AbilityScores } from "@/db/queries/characters";
 
 type Props = {
@@ -24,6 +24,8 @@ type Props = {
   scores: AbilityScores;
   skillRanksPerLevel: number;
   level: number;
+  raceType: RaceType | null;
+  mechanicLevel: number | null;
   isOwner: boolean;
 };
 
@@ -45,7 +47,7 @@ function formatMod(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`;
 }
 
-function SkillRow({
+function BiologicalSkillRow({
   row,
   skill,
   ranks,
@@ -154,6 +156,72 @@ function SkillRow({
   );
 }
 
+function DroneSkillRow({
+  row,
+  skill,
+  mechanicLevel,
+  scores,
+  isOwner,
+  characterId,
+}: {
+  row: CharacterSkill;
+  skill: SkillWithClassFlag;
+  mechanicLevel: number | null;
+  scores: AbilityScores;
+  isOwner: boolean;
+  characterId: string;
+}) {
+  const [miscMod, setMiscMod] = useState(row.miscMod);
+  const scheduleMiscSave = useDebouncedSave((v: number) =>
+    updateSkillMiscModAction(row.id, characterId, v)
+  );
+
+  const effectiveAbility = row.abilityOverride ?? skill.ability;
+  const abilityKey = ABILITY_KEY_MAP[effectiveAbility] ?? "intScore";
+  const abilityMod = modifier(scores[abilityKey]);
+  const ranks = mechanicLevel ?? 0;
+  const classBonus = ranks > 0 ? 3 : 0;
+  const total = ranks + classBonus + abilityMod + miscMod;
+
+  function handleMiscChange(raw: string) {
+    const v = parseInt(raw, 10);
+    const next = isNaN(v) ? 0 : v;
+    setMiscMod(next);
+    scheduleMiscSave(next);
+  }
+
+  return (
+    <>
+      <span className="text-sm font-medium">
+        <span className="mr-1 text-amber-500">★</span>
+        {skill.name}
+      </span>
+      <span className="text-xs text-muted-foreground text-center">
+        {abilityLabel(skill.ability, skill.abilityAlts)}
+      </span>
+      <span className="text-sm text-center text-muted-foreground">
+        {mechanicLevel !== null ? mechanicLevel : "—"}
+      </span>
+      <span className="text-sm text-center text-muted-foreground">
+        {classBonus > 0 ? `+${classBonus}` : "—"}
+      </span>
+      <span className="text-sm text-center text-muted-foreground">{formatMod(abilityMod)}</span>
+      {isOwner ? (
+        <Input
+          type="number"
+          value={miscMod}
+          onChange={(e) => handleMiscChange(e.target.value)}
+          className="h-7 text-sm text-center"
+        />
+      ) : (
+        <span className="text-sm text-center">{formatMod(miscMod)}</span>
+      )}
+      <span className="text-sm font-semibold text-center">{formatMod(total)}</span>
+      <span />
+    </>
+  );
+}
+
 export default function SkillsSection({
   characterId,
   initialSkills,
@@ -161,18 +229,28 @@ export default function SkillsSection({
   scores,
   skillRanksPerLevel,
   level,
+  raceType,
+  mechanicLevel,
   isOwner,
 }: Props) {
   const router = useRouter();
+  const isDrone = raceType === "drone";
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
-  // Tracks live rank edits so the budget counter stays accurate across all rows.
-  // Falls back to server value for any row not yet edited.
   const [rankOverrides, setRankOverrides] = useState<Map<string, number>>(new Map());
 
   const visibleSkills = initialSkills.filter((s) => !removedIds.has(s.id));
 
+  const skillMap = new Map(allSkills.map((s) => [s.id, s]));
+  const sortedSkills = [...visibleSkills].sort((a, b) => {
+    const aName = skillMap.get(a.skillId)?.name ?? "";
+    const bName = skillMap.get(b.skillId)?.name ?? "";
+    if (aName !== bName) return aName.localeCompare(bName);
+    return (a.label ?? "").localeCompare(b.label ?? "");
+  });
+
+  // Biological-only budget state
   const intMod = modifier(scores.intScore);
   const ranksPerLevel = Math.max(1, skillRanksPerLevel + intMod);
   const totalAvailable = ranksPerLevel * level;
@@ -181,15 +259,6 @@ export default function SkillsSection({
     0
   );
   const remaining = totalAvailable - ranksUsed;
-
-  const skillMap = new Map(allSkills.map((s) => [s.id, s]));
-
-  const sortedSkills = [...visibleSkills].sort((a, b) => {
-    const aName = skillMap.get(a.skillId)?.name ?? "";
-    const bName = skillMap.get(b.skillId)?.name ?? "";
-    if (aName !== bName) return aName.localeCompare(bName);
-    return (a.label ?? "").localeCompare(b.label ?? "");
-  });
 
   function handleRanksChange(id: string, value: number) {
     setRankOverrides((prev) => new Map(prev).set(id, value));
@@ -227,10 +296,12 @@ export default function SkillsSection({
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span className={`text-xs ${remaining < 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-            Ranks: {ranksUsed} / {totalAvailable}
-          </span>
-          {isOwner && (
+          {!isDrone && (
+            <span className={`text-xs ${remaining < 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+              Ranks: {ranksUsed} / {totalAvailable}
+            </span>
+          )}
+          {isOwner && !isDrone && (
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={openDialog}>
               + Add Skills
             </Button>
@@ -241,7 +312,7 @@ export default function SkillsSection({
       {visibleSkills.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No skills added yet.{" "}
-          {isOwner && (
+          {isOwner && !isDrone && (
             <button type="button" className="underline hover:text-foreground" onClick={openDialog}>
               Add skills
             </button>
@@ -260,12 +331,25 @@ export default function SkillsSection({
           {sortedSkills.map((row) => {
             const skill = allSkills.find((s) => s.id === row.skillId);
             if (!skill) return null;
+            if (isDrone) {
+              return (
+                <Fragment key={row.id}>
+                  <DroneSkillRow
+                    row={row}
+                    skill={skill}
+                    mechanicLevel={mechanicLevel}
+                    scores={scores}
+                    isOwner={isOwner}
+                    characterId={characterId}
+                  />
+                </Fragment>
+              );
+            }
             const currentRanks = rankOverrides.get(row.id) ?? row.ranks;
-            // This row can go up to its current value plus whatever budget is unspent
             const maxRanks = currentRanks + Math.max(0, remaining);
             return (
               <Fragment key={row.id}>
-                <SkillRow
+                <BiologicalSkillRow
                   row={row}
                   skill={skill}
                   ranks={currentRanks}
@@ -282,7 +366,7 @@ export default function SkillsSection({
         </div>
       )}
 
-      {isOwner && (
+      {isOwner && !isDrone && (
         <AddSkillsDialog
           key={dialogKey}
           allSkills={allSkills}

@@ -27,6 +27,7 @@ import {
   updateMeleeAttackMiscMod,
   updateRangedAttackMiscMod,
   updateThrownAttackMiscMod,
+  updateMechanicLink,
   upsertCharacterSkills,
   deleteCharacterSkill,
   deleteCharacterSkillsBySkillId,
@@ -36,7 +37,7 @@ import {
   type HealthResolveValues,
   type SkillEntry,
 } from "@/db/queries/characters";
-import { getRaceById } from "@/db/queries/reference";
+import { getRaceById, getChassisById } from "@/db/queries/reference";
 import { isCharacterOwner } from "@/lib/authorization";
 import type { Character } from "@/db/schema";
 
@@ -50,20 +51,48 @@ export async function createCharacterForUser({
   raceId,
   classId,
   themeId,
+  chassisId,
 }: {
   name: string;
   ownerId: string;
   raceId: string;
   classId: string;
-  themeId: string;
+  themeId: string | null;
+  chassisId?: string | null;
 }): Promise<Character> {
-  return createCharacter({ name, ownerId, raceId, classId, themeId });
+  let abilityOverrides: Partial<{
+    strScore: number; dexScore: number; intScore: number; wisScore: number; chaScore: number;
+  }> = {};
+
+  if (chassisId) {
+    const ch = await getChassisById(chassisId);
+    if (ch) {
+      abilityOverrides = {
+        strScore: ch.defaultStr,
+        dexScore: ch.defaultDex,
+        intScore: ch.defaultInt,
+        wisScore: ch.defaultWis,
+        chaScore: ch.defaultCha,
+      };
+    }
+  }
+
+  return createCharacter({ name, ownerId, raceId, classId, themeId, chassisId: chassisId ?? null, ...abilityOverrides });
+}
+
+export async function updateMechanicLinkForOwner(
+  characterId: string,
+  userId: string,
+  mechanicCharacterId: string | null
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateMechanicLink(characterId, mechanicCharacterId);
 }
 
 export async function updateCharacterForOwner(
   characterId: string,
   userId: string,
-  data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null }
+  data: { name: string; raceId?: string | null; classId?: string | null; themeId?: string | null; chassisId?: string | null }
 ): Promise<Character> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   if (data.raceId !== undefined) {

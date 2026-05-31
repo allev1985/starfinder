@@ -27,6 +27,7 @@ import {
   updateSkillRanksForOwner,
   updateSkillMiscModForOwner,
   removeCharacterSkillForOwner,
+  updateMechanicLinkForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -376,6 +377,21 @@ export async function removeCharacterSkillAction(
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to remove skill." };
+  }
+}
+
+export async function updateMechanicLinkAction(
+  characterId: string,
+  mechanicCharacterId: string | null
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateMechanicLinkForOwner(characterId, user.id, mechanicCharacterId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to update mechanic link." };
   }
 }
 
