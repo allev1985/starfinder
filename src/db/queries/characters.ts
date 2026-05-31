@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   characters,
@@ -30,17 +30,10 @@ export async function getCharacterById(id: string): Promise<Character | null> {
   return character ?? null;
 }
 
-const DRONE_SKILL_NAMES = ["Acrobatics", "Athletics", "Computers", "Perception", "Stealth", "Survival"];
-
-async function getDroneSkillIds(): Promise<string[]> {
-  const rows = await db
-    .select({ id: skills.id })
-    .from(skills)
-    .where(inArray(skills.name, DRONE_SKILL_NAMES));
-  return rows.map((r) => r.id);
-}
-
-export async function createCharacter(data: NewCharacter): Promise<Character> {
+export async function createCharacter(
+  data: NewCharacter,
+  { skillUnitSkillId }: { skillUnitSkillId?: string | null } = {}
+): Promise<Character> {
   const [character] = await db.insert(characters).values(data).returning();
   await db.insert(characterCombatStats).values({ characterId: character.id });
 
@@ -49,15 +42,17 @@ export async function createCharacter(data: NewCharacter): Promise<Character> {
     : null;
 
   if (race?.type === "drone") {
-    const droneSkillIds = await getDroneSkillIds();
-    const skillIds = new Set(droneSkillIds);
+    const skillIds = new Set<string>();
+    if (skillUnitSkillId) skillIds.add(skillUnitSkillId);
     if (data.chassisId) {
       const [ch] = await db.select({ bonusSkillId: chassis.bonusSkillId }).from(chassis).where(eq(chassis.id, data.chassisId)).limit(1);
       if (ch?.bonusSkillId) skillIds.add(ch.bonusSkillId);
     }
-    await db.insert(characterSkills).values(
-      [...skillIds].map((skillId) => ({ characterId: character.id, skillId, ranks: 0, miscMod: 0 }))
-    );
+    if (skillIds.size > 0) {
+      await db.insert(characterSkills).values(
+        [...skillIds].map((skillId) => ({ characterId: character.id, skillId, ranks: 0, miscMod: 0 }))
+      );
+    }
   } else {
     const untrainedSkills = await db
       .select({ id: skills.id })

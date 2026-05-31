@@ -15,6 +15,8 @@ export async function createCharacterAction(formData: FormData): Promise<Result>
   const themeId = formData.get("themeId");
   const chassisIdRaw = formData.get("chassisId");
   const chassisId = typeof chassisIdRaw === "string" && chassisIdRaw.trim().length > 0 ? chassisIdRaw.trim() : null;
+  const skillUnitRaw = formData.get("skillUnitSkillId");
+  const skillUnitSkillId = typeof skillUnitRaw === "string" && skillUnitRaw.trim().length > 0 ? skillUnitRaw.trim() : null;
 
   if (typeof name !== "string" || name.trim().length === 0) {
     return { success: false, error: "Character name is required." };
@@ -39,6 +41,9 @@ export async function createCharacterAction(formData: FormData): Promise<Result>
   if (!isDrone && !resolvedThemeId) {
     return { success: false, error: "Theme is required." };
   }
+  if (isDrone && !skillUnitSkillId) {
+    return { success: false, error: "Skill Unit is required." };
+  }
 
   try {
     const character = await createCharacterForUser({
@@ -48,6 +53,7 @@ export async function createCharacterAction(formData: FormData): Promise<Result>
       classId: classId.trim(),
       themeId: resolvedThemeId,
       chassisId,
+      skillUnitSkillId,
     });
     return { success: true, characterId: character.id };
   } catch {

@@ -29,6 +29,8 @@ type Props = {
   isOwner: boolean;
 };
 
+const DRONE_SKILL_NAMES = new Set(["Acrobatics", "Athletics", "Computers", "Perception", "Stealth", "Survival"]);
+
 const ABILITY_KEY_MAP: Record<string, keyof AbilityScores> = {
   STR: "strScore",
   DEX: "dexScore",
@@ -163,6 +165,7 @@ function DroneSkillRow({
   scores,
   isOwner,
   characterId,
+  onRemove,
 }: {
   row: CharacterSkill;
   skill: SkillWithClassFlag;
@@ -170,6 +173,7 @@ function DroneSkillRow({
   scores: AbilityScores;
   isOwner: boolean;
   characterId: string;
+  onRemove: (id: string) => void;
 }) {
   const [miscMod, setMiscMod] = useState(row.miscMod);
   const scheduleMiscSave = useDebouncedSave((v: number) =>
@@ -188,6 +192,11 @@ function DroneSkillRow({
     const next = isNaN(v) ? 0 : v;
     setMiscMod(next);
     scheduleMiscSave(next);
+  }
+
+  async function handleRemove() {
+    await removeCharacterSkillAction(row.id, characterId);
+    onRemove(row.id);
   }
 
   return (
@@ -217,7 +226,18 @@ function DroneSkillRow({
         <span className="text-sm text-center">{formatMod(miscMod)}</span>
       )}
       <span className="text-sm font-semibold text-center">{formatMod(total)}</span>
-      <span />
+      {isOwner ? (
+        <button
+          type="button"
+          onClick={handleRemove}
+          className="text-muted-foreground hover:text-destructive justify-self-center"
+          aria-label="Remove skill"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      ) : (
+        <span />
+      )}
     </>
   );
 }
@@ -235,6 +255,9 @@ export default function SkillsSection({
 }: Props) {
   const router = useRouter();
   const isDrone = raceType === "drone";
+  const droneAllowedSkillIds = isDrone
+    ? new Set(allSkills.filter((s) => DRONE_SKILL_NAMES.has(s.name)).map((s) => s.id))
+    : undefined;
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
@@ -301,7 +324,7 @@ export default function SkillsSection({
               Ranks: {ranksUsed} / {totalAvailable}
             </span>
           )}
-          {isOwner && !isDrone && (
+          {isOwner && (
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={openDialog}>
               + Add Skills
             </Button>
@@ -312,7 +335,7 @@ export default function SkillsSection({
       {visibleSkills.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No skills added yet.{" "}
-          {isOwner && !isDrone && (
+          {isOwner && (
             <button type="button" className="underline hover:text-foreground" onClick={openDialog}>
               Add skills
             </button>
@@ -341,6 +364,7 @@ export default function SkillsSection({
                     scores={scores}
                     isOwner={isOwner}
                     characterId={characterId}
+                    onRemove={handleRemove}
                   />
                 </Fragment>
               );
@@ -366,7 +390,7 @@ export default function SkillsSection({
         </div>
       )}
 
-      {isOwner && !isDrone && (
+      {isOwner && (
         <AddSkillsDialog
           key={dialogKey}
           allSkills={allSkills}
@@ -375,6 +399,7 @@ export default function SkillsSection({
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           onSaved={handleSaved}
+          allowedSkillIds={droneAllowedSkillIds}
         />
       )}
     </section>

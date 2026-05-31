@@ -52,6 +52,7 @@ export async function createCharacterForUser({
   classId,
   themeId,
   chassisId,
+  skillUnitSkillId,
 }: {
   name: string;
   ownerId: string;
@@ -59,6 +60,7 @@ export async function createCharacterForUser({
   classId: string;
   themeId: string | null;
   chassisId?: string | null;
+  skillUnitSkillId?: string | null;
 }): Promise<Character> {
   let abilityOverrides: Partial<{
     strScore: number; dexScore: number; intScore: number; wisScore: number; chaScore: number;
@@ -77,7 +79,10 @@ export async function createCharacterForUser({
     }
   }
 
-  return createCharacter({ name, ownerId, raceId, classId, themeId, chassisId: chassisId ?? null, ...abilityOverrides });
+  return createCharacter(
+    { name, ownerId, raceId, classId, themeId, chassisId: chassisId ?? null, ...abilityOverrides },
+    { skillUnitSkillId: skillUnitSkillId ?? null }
+  );
 }
 
 export async function updateMechanicLinkForOwner(

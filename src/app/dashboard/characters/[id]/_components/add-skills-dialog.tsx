@@ -30,6 +30,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
+  allowedSkillIds?: Set<string>;
 };
 
 type ProfessionEntry = { tempId: string; label: string; ability: string; existingId?: string };
@@ -41,12 +42,17 @@ export default function AddSkillsDialog({
   open,
   onOpenChange,
   onSaved,
+  allowedSkillIds,
 }: Props) {
   const professionSkill = allSkills.find((s) => s.name === PROFESSION_NAME);
   const trainedOnlyIds = new Set(allSkills.filter((s) => s.trainedOnly).map((s) => s.id));
   const existingSkillIds = new Set(
     existingSkills
-      .filter((s) => s.skillId !== professionSkill?.id && trainedOnlyIds.has(s.skillId))
+      .filter((s) => {
+        if (s.skillId === professionSkill?.id) return false;
+        if (allowedSkillIds) return allowedSkillIds.has(s.skillId);
+        return trainedOnlyIds.has(s.skillId);
+      })
       .map((s) => s.skillId)
   );
   const existingProfessions = existingSkills.filter(
@@ -144,7 +150,11 @@ export default function AddSkillsDialog({
     }
   }
 
-  const nonProfessionSkills = allSkills.filter((s) => s.name !== PROFESSION_NAME && s.trainedOnly);
+  const nonProfessionSkills = allSkills.filter((s) => {
+    if (s.name === PROFESSION_NAME) return false;
+    if (allowedSkillIds) return allowedSkillIds.has(s.id);
+    return s.trainedOnly;
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,7 +181,7 @@ export default function AddSkillsDialog({
             </label>
           ))}
 
-          {professionSkill && (
+          {professionSkill && !allowedSkillIds && (
             <div className="rounded px-2 py-1.5">
               <label className="flex items-center gap-3 cursor-pointer">
                 <Checkbox

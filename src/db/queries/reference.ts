@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   races,
@@ -55,6 +55,16 @@ export async function getAllChassis(): Promise<Chassis[]> {
 export async function getChassisById(id: string): Promise<Chassis | null> {
   const [row] = await db.select().from(chassis).where(eq(chassis.id, id)).limit(1);
   return row ?? null;
+}
+
+const DRONE_SKILL_NAMES = ["Acrobatics", "Athletics", "Computers", "Perception", "Stealth", "Survival"];
+
+export async function getDroneSkills(): Promise<Skill[]> {
+  return db
+    .select()
+    .from(skills)
+    .where(inArray(skills.name, DRONE_SKILL_NAMES))
+    .orderBy(asc(skills.name));
 }
 
 export async function getDescriptionsForType(raceType: RaceType): Promise<RaceDescription[]> {
