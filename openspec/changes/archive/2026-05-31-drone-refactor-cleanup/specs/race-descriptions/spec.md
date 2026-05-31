@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: race_type enum
 The system SHALL define a Postgres enum `race_type` with values `'biological'` and `'drone'`. This enum SHALL be used as the column type wherever a race category is stored.

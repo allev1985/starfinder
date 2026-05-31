@@ -19,7 +19,7 @@ const BIOLOGICAL_ROWS: { label: string; totalKey: keyof HealthResolveValues; cur
   { label: "Resolve Points", totalKey: "resolvePointsTotal", currentKey: "resolvePointsCurrent" },
 ];
 
-const ANDROID_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
+const DRONE_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
   { label: "Hit Points", totalKey: "hitPointsTotal", currentKey: "hitPointsCurrent" },
 ];
 
@@ -35,7 +35,7 @@ export default function HealthResolveSection({
   resolvePointsCurrent,
 }: Props) {
   const isDrone = raceType === "drone";
-  const rows = isDrone ? ANDROID_ROWS : BIOLOGICAL_ROWS;
+  const rows = isDrone ? DRONE_ROWS : BIOLOGICAL_ROWS;
 
   const [values, setValues] = useState<HealthResolveValues>({
     staminaPointsTotal,

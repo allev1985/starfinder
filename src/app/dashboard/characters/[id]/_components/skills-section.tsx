@@ -16,6 +16,7 @@ import AddSkillsDialog from "./add-skills-dialog";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
 import type { CharacterSkill, RaceType } from "@/db/schema";
 import type { AbilityScores } from "@/db/queries/characters";
+import { DRONE_SKILL_NAMES } from "@/lib/drone";
 
 type Props = {
   characterId: string;
@@ -28,8 +29,6 @@ type Props = {
   mechanicLevel: number | null;
   isOwner: boolean;
 };
-
-const DRONE_SKILL_NAMES = new Set(["Acrobatics", "Athletics", "Computers", "Perception", "Stealth", "Survival"]);
 
 const ABILITY_KEY_MAP: Record<string, keyof AbilityScores> = {
   STR: "strScore",
@@ -256,7 +255,7 @@ export default function SkillsSection({
   const router = useRouter();
   const isDrone = raceType === "drone";
   const droneAllowedSkillIds = isDrone
-    ? new Set(allSkills.filter((s) => DRONE_SKILL_NAMES.has(s.name)).map((s) => s.id))
+    ? new Set(allSkills.filter((s) => (DRONE_SKILL_NAMES as readonly string[]).includes(s.name)).map((s) => s.id))
     : undefined;
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
