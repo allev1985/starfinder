@@ -7,9 +7,10 @@ import { updateCharacterLevelAction } from "../actions";
 interface Props {
   characterId: string;
   initialLevel: number;
+  onLevelChange?: (level: number) => void;
 }
 
-export default function LevelControl({ characterId, initialLevel }: Props) {
+export default function LevelControl({ characterId, initialLevel, onLevelChange }: Props) {
   const [level, setLevel] = useState(initialLevel);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,10 +18,12 @@ export default function LevelControl({ characterId, initialLevel }: Props) {
     if (next < 1 || next > 20) return;
     const prev = level;
     setLevel(next);
+    onLevelChange?.(next);
     setError(null);
     const result = await updateCharacterLevelAction(characterId, next);
     if (!result.success) {
       setLevel(prev);
+      onLevelChange?.(prev);
       setError(result.error);
     }
   }

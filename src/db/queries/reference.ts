@@ -8,13 +8,29 @@ import {
   raceAttributes,
   classAttributes,
   themeAttributes,
+  skills,
+  classSkills,
   type Race,
   type Class,
   type Theme,
   type RaceAttribute,
   type ClassAttribute,
   type ThemeAttribute,
+  type Skill,
 } from "@/db/schema";
+
+export type SkillWithClassFlag = Skill & { isClassSkill: boolean };
+
+export async function getAllSkillsWithClassFlag(classId: string | null): Promise<SkillWithClassFlag[]> {
+  const allSkills = await db.select().from(skills).orderBy(asc(skills.name));
+  if (!classId) return allSkills.map((s) => ({ ...s, isClassSkill: false }));
+  const classSkillRows = await db
+    .select({ skillId: classSkills.skillId })
+    .from(classSkills)
+    .where(eq(classSkills.classId, classId));
+  const classSkillIds = new Set(classSkillRows.map((r) => r.skillId));
+  return allSkills.map((s) => ({ ...s, isClassSkill: classSkillIds.has(s.id) }));
+}
 
 export async function getRaces(): Promise<Race[]> {
   return db.select().from(races);

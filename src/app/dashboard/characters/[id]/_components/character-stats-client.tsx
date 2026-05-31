@@ -3,11 +3,16 @@
 import { useState } from "react";
 import AbilityScoresSection from "./ability-scores-section";
 import CombatStatsSection from "./combat-stats-section";
+import LevelControl from "./level-control";
+import SkillsSection from "./skills-section";
 import type { AbilityScores } from "@/db/queries/characters";
+import type { SkillWithClassFlag } from "@/db/queries/reference";
+import type { CharacterSkill } from "@/db/schema";
 
 type Props = {
   characterId: string;
   scores: AbilityScores;
+  initialLevel: number;
   initiativeMiscMod: number;
   baseAttackBonus: number;
   eacArmorBonus: number;
@@ -23,12 +28,16 @@ type Props = {
   meleeAttackMiscMod: number;
   rangedAttackMiscMod: number;
   thrownAttackMiscMod: number;
+  initialSkills: CharacterSkill[];
+  allSkills: SkillWithClassFlag[];
+  skillRanksPerLevel: number;
   isOwner: boolean;
 };
 
 export default function CharacterStatsClient({
   characterId,
   scores: initialScores,
+  initialLevel,
   initiativeMiscMod,
   baseAttackBonus,
   eacArmorBonus,
@@ -44,12 +53,29 @@ export default function CharacterStatsClient({
   meleeAttackMiscMod,
   rangedAttackMiscMod,
   thrownAttackMiscMod,
+  initialSkills,
+  allSkills,
+  skillRanksPerLevel,
   isOwner,
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
+  const [level, setLevel] = useState(initialLevel);
 
   return (
     <>
+      {isOwner ? (
+        <div className="mb-8">
+          <LevelControl
+            characterId={characterId}
+            initialLevel={initialLevel}
+            onLevelChange={setLevel}
+          />
+        </div>
+      ) : (
+        <p className="mb-8 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Level</span> {level}
+        </p>
+      )}
       <AbilityScoresSection
         characterId={characterId}
         scores={scores}
@@ -77,6 +103,15 @@ export default function CharacterStatsClient({
         meleeAttackMiscMod={meleeAttackMiscMod}
         rangedAttackMiscMod={rangedAttackMiscMod}
         thrownAttackMiscMod={thrownAttackMiscMod}
+        isOwner={isOwner}
+      />
+      <SkillsSection
+        characterId={characterId}
+        initialSkills={initialSkills}
+        allSkills={allSkills}
+        scores={scores}
+        skillRanksPerLevel={skillRanksPerLevel}
+        level={level}
         isOwner={isOwner}
       />
     </>

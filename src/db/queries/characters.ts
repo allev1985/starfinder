@@ -10,11 +10,14 @@ import {
   themes,
   characterRaceAttributeValues,
   characterCombatStats,
+  characterSkills,
+  skills,
   type NewCharacter,
   type Character,
   type Campaign,
   type CharacterRaceAttributeValue,
   type CharacterCombatStats,
+  type CharacterSkill,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -29,6 +32,15 @@ export async function getCharacterById(id: string): Promise<Character | null> {
 export async function createCharacter(data: NewCharacter): Promise<Character> {
   const [character] = await db.insert(characters).values(data).returning();
   await db.insert(characterCombatStats).values({ characterId: character.id });
+  const untrainedSkills = await db
+    .select({ id: skills.id })
+    .from(skills)
+    .where(eq(skills.trainedOnly, false));
+  if (untrainedSkills.length > 0) {
+    await db.insert(characterSkills).values(
+      untrainedSkills.map((s) => ({ characterId: character.id, skillId: s.id, ranks: 0, miscMod: 0 }))
+    );
+  }
   return character;
 }
 
@@ -66,6 +78,7 @@ export type CharacterWithMeta = Character & {
   className: string | null;
   themeName: string | null;
   level: number;
+  skillRanksPerLevel: number;
 };
 
 export async function getCharacterWithCampaigns(
@@ -90,6 +103,7 @@ export async function getCharacterWithCampaigns(
       raceName: races.name,
       className: classes.name,
       themeName: themes.name,
+      skillRanksPerLevel: classes.skillRanksPerLevel,
     })
     .from(characters)
     .leftJoin(races, eq(characters.raceId, races.id))
@@ -117,6 +131,7 @@ export async function getCharacterWithCampaigns(
     raceName: row.raceName ?? null,
     className: row.className ?? null,
     themeName: row.themeName ?? null,
+    skillRanksPerLevel: row.skillRanksPerLevel ?? 0,
   };
 
   const joined = await db
@@ -321,6 +336,59 @@ export async function updateRangedAttackMiscMod(characterId: string, value: numb
 
 export async function updateThrownAttackMiscMod(characterId: string, value: number): Promise<void> {
   await db.update(characterCombatStats).set({ thrownAttackMiscMod: value }).where(eq(characterCombatStats.characterId, characterId));
+}
+
+export async function getCharacterSkills(characterId: string): Promise<CharacterSkill[]> {
+  return db
+    .select()
+    .from(characterSkills)
+    .where(eq(characterSkills.characterId, characterId));
+}
+
+export type SkillEntry = {
+  skillId: string;
+  label?: string | null;
+  abilityOverride?: string | null;
+  ranks: number;
+  miscMod: number;
+};
+
+export async function upsertCharacterSkills(
+  characterId: string,
+  skills: SkillEntry[]
+): Promise<void> {
+  if (skills.length === 0) return;
+  await db.insert(characterSkills).values(
+    skills.map((s) => ({
+      characterId,
+      skillId: s.skillId,
+      label: s.label ?? null,
+      abilityOverride: s.abilityOverride ?? null,
+      ranks: s.ranks,
+      miscMod: s.miscMod,
+    }))
+  );
+}
+
+export async function deleteCharacterSkill(id: string): Promise<void> {
+  await db.delete(characterSkills).where(eq(characterSkills.id, id));
+}
+
+export async function deleteCharacterSkillsBySkillId(
+  characterId: string,
+  skillId: string
+): Promise<void> {
+  await db
+    .delete(characterSkills)
+    .where(and(eq(characterSkills.characterId, characterId), eq(characterSkills.skillId, skillId)));
+}
+
+export async function updateCharacterSkillRanks(id: string, ranks: number): Promise<void> {
+  await db.update(characterSkills).set({ ranks }).where(eq(characterSkills.id, id));
+}
+
+export async function updateCharacterSkillMiscMod(id: string, miscMod: number): Promise<void> {
+  await db.update(characterSkills).set({ miscMod }).where(eq(characterSkills.id, id));
 }
 
 export async function upsertCharacterRaceAttributeValue(

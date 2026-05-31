@@ -23,11 +23,15 @@ import {
   updateMeleeAttackMiscModForOwner,
   updateRangedAttackMiscModForOwner,
   updateThrownAttackMiscModForOwner,
+  saveCharacterSkillsForOwner,
+  updateSkillRanksForOwner,
+  updateSkillMiscModForOwner,
+  removeCharacterSkillForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
 } from "@/services/characters";
-import type { AbilityScores, HealthResolveValues } from "@/db/queries/characters";
+import type { AbilityScores, HealthResolveValues, SkillEntry } from "@/db/queries/characters";
 
 type Result = { success: true } | { success: false; error: string };
 
@@ -308,6 +312,70 @@ export async function updateThrownAttackMiscModAction(characterId: string, value
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save thrown attack misc modifier." };
+  }
+}
+
+export async function saveCharacterSkillsAction(
+  characterId: string,
+  added: SkillEntry[],
+  removedIds: string[],
+  removedBySkillId: { skillId: string }[]
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await saveCharacterSkillsForOwner(characterId, user.id, added, removedIds, removedBySkillId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save skills." };
+  }
+}
+
+export async function updateSkillRanksAction(
+  id: string,
+  characterId: string,
+  ranks: number
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateSkillRanksForOwner(id, characterId, user.id, ranks);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save ranks." };
+  }
+}
+
+export async function updateSkillMiscModAction(
+  id: string,
+  characterId: string,
+  miscMod: number
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateSkillMiscModForOwner(id, characterId, user.id, miscMod);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save misc modifier." };
+  }
+}
+
+export async function removeCharacterSkillAction(
+  id: string,
+  characterId: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await removeCharacterSkillForOwner(id, characterId, user.id);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to remove skill." };
   }
 }
 

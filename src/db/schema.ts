@@ -22,6 +22,7 @@ export const races = pgTable("races", {
 export const classes = pgTable("classes", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  skillRanksPerLevel: integer("skill_ranks_per_level").notNull().default(0),
 });
 
 export const themes = pgTable("themes", {
@@ -123,6 +124,16 @@ export const characterCombatStats = pgTable("character_combat_stats", {
   thrownAttackMiscMod: integer("thrown_attack_misc_mod").notNull().default(0),
 });
 
+export const characterSkills = pgTable("character_skills", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  skillId: uuid("skill_id").notNull().references(() => skills.id),
+  label: text("label"),
+  abilityOverride: text("ability_override"),
+  ranks: integer("ranks").notNull().default(0),
+  miscMod: integer("misc_mod").notNull().default(0),
+});
+
 export const characterRaceAttributeValues = pgTable(
   "character_race_attribute_values",
   {
@@ -154,3 +165,5 @@ export type CharacterRaceAttributeValue = typeof characterRaceAttributeValues.$i
 export type CharacterCombatStats = typeof characterCombatStats.$inferSelect;
 export type Skill = typeof skills.$inferSelect;
 export type ClassSkill = typeof classSkills.$inferSelect;
+export type CharacterSkill = typeof characterSkills.$inferSelect;
+export type NewCharacterSkill = typeof characterSkills.$inferInsert;

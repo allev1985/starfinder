@@ -2,11 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterRaceAttributeValues, getCharacterCombatStats } from "@/db/queries/characters";
-import { getRaceAttributes } from "@/db/queries/reference";
+import { getCharacterWithCampaigns, getCharacterRaceAttributeValues, getCharacterCombatStats, getCharacterSkills } from "@/db/queries/characters";
+import { getRaceAttributes, getAllSkillsWithClassFlag } from "@/db/queries/reference";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
-import LevelControl from "./_components/level-control";
 import DescriptionSection from "./_components/description-section";
 import CharacterStatsClient from "./_components/character-stats-client";
 import HealthResolveSection from "./_components/health-resolve-section";
@@ -28,19 +27,24 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptionAttributes, savedAttributeValues, combatStats] = character.raceId
-    ? await Promise.all([
-        getRaceAttributes(character.raceId).then((attrs) =>
-          attrs.filter((a) => a.type === "description")
-        ),
-        getCharacterRaceAttributeValues(id),
-        getCharacterCombatStats(id),
-      ])
-    : await Promise.all([
-        Promise.resolve([] as Awaited<ReturnType<typeof getRaceAttributes>>),
-        Promise.resolve([] as Awaited<ReturnType<typeof getCharacterRaceAttributeValues>>),
-        getCharacterCombatStats(id),
-      ]);
+  const [descriptionAttributes, savedAttributeValues, combatStats, characterSkills, allSkills] =
+    character.raceId
+      ? await Promise.all([
+          getRaceAttributes(character.raceId).then((attrs) =>
+            attrs.filter((a) => a.type === "description")
+          ),
+          getCharacterRaceAttributeValues(id),
+          getCharacterCombatStats(id),
+          getCharacterSkills(id),
+          getAllSkillsWithClassFlag(character.classId ?? null),
+        ])
+      : await Promise.all([
+          Promise.resolve([] as Awaited<ReturnType<typeof getRaceAttributes>>),
+          Promise.resolve([] as Awaited<ReturnType<typeof getCharacterRaceAttributeValues>>),
+          getCharacterCombatStats(id),
+          getCharacterSkills(id),
+          getAllSkillsWithClassFlag(character.classId ?? null),
+        ]);
 
   const savedValuesMap = Object.fromEntries(
     savedAttributeValues.map((v) => [v.attributeId, v.value])
@@ -59,16 +63,6 @@ export default async function CharacterDetailPage({
         <span><span className="font-medium text-foreground">Theme</span> {character.themeName ?? "—"}</span>
       </div>
 
-      <div className="mb-8">
-        {isOwner ? (
-          <LevelControl characterId={id} initialLevel={character.level} />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Level</span> {character.level}
-          </p>
-        )}
-      </div>
-
       <p className="mb-8 text-sm text-muted-foreground">
         Created {new Date(character.createdAt).toLocaleDateString()}
       </p>
@@ -83,6 +77,7 @@ export default async function CharacterDetailPage({
           wisScore: character.wisScore,
           chaScore: character.chaScore,
         }}
+        initialLevel={character.level}
         initiativeMiscMod={combatStats?.initiativeMiscMod ?? 0}
         baseAttackBonus={combatStats?.baseAttackBonus ?? 0}
         eacArmorBonus={combatStats?.eacArmorBonus ?? 0}
@@ -98,6 +93,9 @@ export default async function CharacterDetailPage({
         meleeAttackMiscMod={combatStats?.meleeAttackMiscMod ?? 0}
         rangedAttackMiscMod={combatStats?.rangedAttackMiscMod ?? 0}
         thrownAttackMiscMod={combatStats?.thrownAttackMiscMod ?? 0}
+        initialSkills={characterSkills}
+        allSkills={allSkills}
+        skillRanksPerLevel={character.skillRanksPerLevel}
         isOwner={isOwner}
       />
 

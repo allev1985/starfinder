@@ -27,8 +27,14 @@ import {
   updateMeleeAttackMiscMod,
   updateRangedAttackMiscMod,
   updateThrownAttackMiscMod,
+  upsertCharacterSkills,
+  deleteCharacterSkill,
+  deleteCharacterSkillsBySkillId,
+  updateCharacterSkillRanks,
+  updateCharacterSkillMiscMod,
   type AbilityScores,
   type HealthResolveValues,
+  type SkillEntry,
 } from "@/db/queries/characters";
 import { isCharacterOwner } from "@/lib/authorization";
 import type { Character } from "@/db/schema";
@@ -195,6 +201,38 @@ export async function updateRangedAttackMiscModForOwner(characterId: string, use
 export async function updateThrownAttackMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateThrownAttackMiscMod(characterId, value);
+}
+
+export async function saveCharacterSkillsForOwner(
+  characterId: string,
+  userId: string,
+  added: SkillEntry[],
+  removedIds: string[],
+  removedBySkillId: { skillId: string }[]
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  for (const { skillId } of removedBySkillId) {
+    await deleteCharacterSkillsBySkillId(characterId, skillId);
+  }
+  for (const id of removedIds) {
+    await deleteCharacterSkill(id);
+  }
+  await upsertCharacterSkills(characterId, added);
+}
+
+export async function updateSkillRanksForOwner(id: string, characterId: string, userId: string, ranks: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterSkillRanks(id, ranks);
+}
+
+export async function updateSkillMiscModForOwner(id: string, characterId: string, userId: string, miscMod: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterSkillMiscMod(id, miscMod);
+}
+
+export async function removeCharacterSkillForOwner(id: string, characterId: string, userId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await deleteCharacterSkill(id);
 }
 
 export async function joinCampaignForOwner(
