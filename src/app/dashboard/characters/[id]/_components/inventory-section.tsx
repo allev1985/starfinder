@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import ArmorPicker from "./armor-picker";
+import ArmorInventory from "./armor-inventory";
 import WeaponCard from "./weapon-card";
 import WeaponPicker from "./weapon-picker";
 import type { Armor, Weapon } from "@/db/schema";
+import type { CharacterArmorEntry } from "@/db/queries/characters";
 
 type Props = {
   characterId: string;
   isOwner: boolean;
-  initialEquippedArmor: Armor | null;
+  initialCharacterArmor: CharacterArmorEntry[];
   availableArmor: Armor[];
-  onArmorChange: (armor: Armor | null) => void;
+  onWornArmorChange: (armor: Armor | null) => void;
   allWeapons: Weapon[];
   initialCarriedWeapons: Weapon[];
 };
@@ -19,9 +20,9 @@ type Props = {
 export default function InventorySection({
   characterId,
   isOwner,
-  initialEquippedArmor,
+  initialCharacterArmor,
   availableArmor,
-  onArmorChange,
+  onWornArmorChange,
   allWeapons,
   initialCarriedWeapons,
 }: Props) {
@@ -43,12 +44,12 @@ export default function InventorySection({
         Inventory
       </h2>
 
-      <ArmorPicker
-        availableArmor={availableArmor}
-        equippedArmor={initialEquippedArmor}
+      <ArmorInventory
         characterId={characterId}
         isOwner={isOwner}
-        onArmorChange={onArmorChange}
+        initialCharacterArmor={initialCharacterArmor}
+        availableArmor={availableArmor}
+        onWornArmorChange={onWornArmorChange}
       />
 
       <div>

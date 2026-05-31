@@ -10,7 +10,9 @@ import {
   updateInitiativeMiscModForOwner,
   updateHealthResolveForOwner,
   updateBaseAttackBonusForOwner,
-  updateEquippedArmorForOwner,
+  addArmorForOwner,
+  removeArmorForOwner,
+  toggleArmorWornForOwner,
   updateEacMiscModForOwner,
   updateKacMiscModForOwner,
   updateFortBaseSaveForOwner,
@@ -161,15 +163,39 @@ export async function updateHealthResolveAction(
   }
 }
 
-export async function updateEquippedArmorAction(characterId: string, armorId: string | null): Promise<Result> {
+export async function addArmorAction(characterId: string, armorId: string): Promise<Result> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
   try {
-    await updateEquippedArmorForOwner(characterId, user.id, armorId);
+    await addArmorForOwner(characterId, user.id, armorId);
     return { success: true };
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
-    return { success: false, error: "Failed to update equipped armor." };
+    return { success: false, error: "Failed to add armor." };
+  }
+}
+
+export async function removeArmorAction(characterArmorId: string, characterId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await removeArmorForOwner(characterArmorId, user.id, characterId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to remove armor." };
+  }
+}
+
+export async function toggleArmorWornAction(characterArmorId: string, characterId: string, worn: boolean): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await toggleArmorWornForOwner(characterArmorId, user.id, characterId, worn);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to update worn armor." };
   }
 }
 

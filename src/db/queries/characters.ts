@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
   characters,
@@ -10,6 +10,7 @@ import {
   themes,
   chassis,
   armor,
+  characterArmor,
   characterDescriptions,
   characterCombatStats,
   characterSkills,
@@ -99,7 +100,7 @@ export async function deleteCharacter(id: string): Promise<void> {
   await db.delete(characters).where(eq(characters.id, id));
 }
 
-export type CharacterWithMeta = Character & {
+export type CharacterWithMeta = Omit<Character, "equippedArmorId"> & {
   raceName: string | null;
   raceType: import("@/db/schema").RaceType | null;
   className: string | null;
@@ -118,6 +119,8 @@ const mechanic = db.select().from(characters).as("mechanic");
 export async function getCharacterWithCampaigns(
   characterId: string
 ): Promise<{ character: CharacterWithMeta | null; campaigns: Campaign[] }> {
+  const wornArmor = db.select().from(characterArmor).as("worn_armor");
+
   const [row] = await db
     .select({
       id: characters.id,
@@ -128,7 +131,6 @@ export async function getCharacterWithCampaigns(
       themeId: characters.themeId,
       chassisId: characters.chassisId,
       mechanicCharacterId: characters.mechanicCharacterId,
-      equippedArmorId: characters.equippedArmorId,
       level: characters.level,
       strScore: characters.strScore,
       dexScore: characters.dexScore,
@@ -154,7 +156,8 @@ export async function getCharacterWithCampaigns(
     .leftJoin(themes, eq(characters.themeId, themes.id))
     .leftJoin(chassis, eq(characters.chassisId, chassis.id))
     .leftJoin(mechanic, eq(characters.mechanicCharacterId, mechanic.id))
-    .leftJoin(armor, eq(characters.equippedArmorId, armor.id))
+    .leftJoin(wornArmor, and(eq(wornArmor.characterId, characters.id), eq(wornArmor.worn, true)))
+    .leftJoin(armor, eq(armor.id, wornArmor.armorId))
     .where(eq(characters.id, characterId));
 
   if (!row) return { character: null, campaigns: [] };
@@ -168,7 +171,6 @@ export async function getCharacterWithCampaigns(
     themeId: row.themeId,
     chassisId: row.chassisId,
     mechanicCharacterId: row.mechanicCharacterId,
-    equippedArmorId: row.equippedArmorId,
     level: row.level,
     strScore: row.strScore,
     dexScore: row.dexScore,
@@ -394,8 +396,49 @@ export async function updateBaseAttackBonus(
     .where(eq(characterCombatStats.characterId, characterId));
 }
 
-export async function updateEquippedArmor(characterId: string, armorId: string | null): Promise<void> {
-  await db.update(characters).set({ equippedArmorId: armorId }).where(eq(characters.id, characterId));
+export type CharacterArmorEntry = {
+  id: string;
+  armorId: string;
+  worn: boolean;
+  armor: Armor;
+};
+
+export async function getCharacterArmor(characterId: string): Promise<CharacterArmorEntry[]> {
+  const rows = await db
+    .select({ id: characterArmor.id, armorId: characterArmor.armorId, worn: characterArmor.worn, armor })
+    .from(characterArmor)
+    .innerJoin(armor, eq(armor.id, characterArmor.armorId))
+    .where(eq(characterArmor.characterId, characterId))
+    .orderBy(asc(armor.itemLevel));
+  return rows;
+}
+
+export async function addCharacterArmor(characterId: string, armorId: string): Promise<CharacterArmorEntry> {
+  const [row] = await db
+    .insert(characterArmor)
+    .values({ characterId, armorId, worn: false })
+    .returning();
+  const [entry] = await db
+    .select({ id: characterArmor.id, armorId: characterArmor.armorId, worn: characterArmor.worn, armor })
+    .from(characterArmor)
+    .innerJoin(armor, eq(armor.id, characterArmor.armorId))
+    .where(eq(characterArmor.id, row.id));
+  return entry;
+}
+
+export async function removeCharacterArmor(characterArmorId: string): Promise<void> {
+  await db.delete(characterArmor).where(eq(characterArmor.id, characterArmorId));
+}
+
+export async function toggleCharacterArmorWorn(characterArmorId: string, characterId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.update(characterArmor).set({ worn: false }).where(eq(characterArmor.characterId, characterId));
+    await tx.update(characterArmor).set({ worn: true }).where(eq(characterArmor.id, characterArmorId));
+  });
+}
+
+export async function unsetCharacterArmorWorn(characterArmorId: string): Promise<void> {
+  await db.update(characterArmor).set({ worn: false }).where(eq(characterArmor.id, characterArmorId));
 }
 
 export async function updateEacMiscMod(characterId: string, value: number): Promise<void> {

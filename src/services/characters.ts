@@ -14,7 +14,10 @@ import {
   updateInitiativeMiscMod,
   updateHealthResolve,
   updateBaseAttackBonus,
-  updateEquippedArmor,
+  addCharacterArmor,
+  removeCharacterArmor,
+  toggleCharacterArmorWorn,
+  unsetCharacterArmorWorn,
   updateEacMiscMod,
   updateKacMiscMod,
   updateFortBaseSave,
@@ -37,6 +40,7 @@ import {
   type AbilityScores,
   type HealthResolveValues,
   type SkillEntry,
+  type CharacterArmorEntry,
 } from "@/db/queries/characters";
 import { getRaceById, getChassisById } from "@/db/queries/reference";
 import { isCharacterOwner } from "@/lib/authorization";
@@ -180,9 +184,23 @@ export async function updateBaseAttackBonusForOwner(
   await updateBaseAttackBonus(characterId, value);
 }
 
-export async function updateEquippedArmorForOwner(characterId: string, userId: string, armorId: string | null): Promise<void> {
+export async function addArmorForOwner(characterId: string, userId: string, armorId: string): Promise<CharacterArmorEntry> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
-  await updateEquippedArmor(characterId, armorId);
+  return addCharacterArmor(characterId, armorId);
+}
+
+export async function removeArmorForOwner(characterArmorId: string, userId: string, characterId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await removeCharacterArmor(characterArmorId);
+}
+
+export async function toggleArmorWornForOwner(characterArmorId: string, userId: string, characterId: string, worn: boolean): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  if (worn) {
+    await toggleCharacterArmorWorn(characterArmorId, characterId);
+  } else {
+    await unsetCharacterArmorWorn(characterArmorId);
+  }
 }
 
 export async function updateEacMiscModForOwner(characterId: string, userId: string, value: number): Promise<void> {

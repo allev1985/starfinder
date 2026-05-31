@@ -117,7 +117,6 @@ export const characters = pgTable("characters", {
   themeId: uuid("theme_id").references(() => themes.id),
   chassisId: uuid("chassis_id").references(() => chassis.id),
   mechanicCharacterId: uuid("mechanic_character_id").references((): AnyPgColumn => characters.id),
-  equippedArmorId: uuid("equipped_armor_id").references(() => armor.id),
   level: integer("level").notNull().default(1),
   strScore: integer("str_score").notNull().default(10),
   dexScore: integer("dex_score").notNull().default(10),
@@ -188,6 +187,17 @@ export const characterWeapons = pgTable(
   (t) => [primaryKey({ columns: [t.characterId, t.weaponId] })]
 );
 
+export const characterArmor = pgTable("character_armor", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id")
+    .notNull()
+    .references(() => characters.id, { onDelete: "cascade" }),
+  armorId: uuid("armor_id")
+    .notNull()
+    .references(() => armor.id),
+  worn: boolean("worn").notNull().default(false),
+});
+
 export const characterDescriptions = pgTable(
   "character_descriptions",
   {
@@ -209,6 +219,8 @@ export type CharacterWeapon = typeof characterWeapons.$inferSelect;
 export type Armor = typeof armor.$inferSelect;
 export type NewArmor = typeof armor.$inferInsert;
 export type ArmorType = typeof armorType.enumValues[number];
+export type CharacterArmor = typeof characterArmor.$inferSelect;
+export type NewCharacterArmor = typeof characterArmor.$inferInsert;
 export type ClassArmorProficiency = typeof classArmorProficiency.$inferSelect;
 export type Chassis = typeof chassis.$inferSelect;
 export type NewChassis = typeof chassis.$inferInsert;

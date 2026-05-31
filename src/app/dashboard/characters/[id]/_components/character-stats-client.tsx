@@ -7,6 +7,7 @@ import InventorySection from "./inventory-section";
 import LevelControl from "./level-control";
 import SkillsSection from "./skills-section";
 import type { AbilityScores } from "@/db/queries/characters";
+import type { CharacterArmorEntry } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
 import type { Armor, Weapon, CharacterSkill, RaceType } from "@/db/schema";
 
@@ -19,6 +20,7 @@ type Props = {
   initiativeMiscMod: number;
   baseAttackBonus: number;
   initialEquippedArmor: Armor | null;
+  initialCharacterArmor: CharacterArmorEntry[];
   availableArmor: Armor[];
   eacMiscMod: number;
   kacMiscMod: number;
@@ -48,6 +50,7 @@ export default function CharacterStatsClient({
   initiativeMiscMod,
   baseAttackBonus,
   initialEquippedArmor,
+  initialCharacterArmor,
   availableArmor,
   eacMiscMod,
   kacMiscMod,
@@ -130,9 +133,9 @@ export default function CharacterStatsClient({
       <InventorySection
         characterId={characterId}
         isOwner={isOwner}
-        initialEquippedArmor={currentArmor}
+        initialCharacterArmor={initialCharacterArmor}
         availableArmor={availableArmor}
-        onArmorChange={setCurrentArmor}
+        onWornArmorChange={setCurrentArmor}
         allWeapons={allWeapons}
         initialCarriedWeapons={initialCarriedWeapons}
       />

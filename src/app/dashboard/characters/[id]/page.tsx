@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker } from "@/db/queries/characters";
+import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker, getCharacterArmor } from "@/db/queries/characters";
 import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass } from "@/db/queries/reference";
 import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
 import CharacterActions from "./_components/character-actions";
@@ -29,7 +29,7 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor, allWeapons, carriedWeapons] =
+  const [descriptions, savedDescriptionValues, combatStats, characterSkills, allSkills, mechanicPickerOptions, availableArmor, characterArmorInventory, allWeapons, carriedWeapons] =
     character.raceType
       ? await Promise.all([
           getDescriptionsForType(character.raceType),
@@ -39,6 +39,7 @@ export default async function CharacterDetailPage({
           getAllSkillsWithClassFlag(character.classId ?? null),
           character.raceType === "drone" ? getCharactersForMechanicPicker(id) : Promise.resolve([] as Awaited<ReturnType<typeof getCharactersForMechanicPicker>>),
           getArmorForClass(character.classId ?? null),
+          getCharacterArmor(id),
           getAllWeapons(),
           getCharacterWeapons(id),
         ])
@@ -50,6 +51,7 @@ export default async function CharacterDetailPage({
           getAllSkillsWithClassFlag(character.classId ?? null),
           Promise.resolve([]),
           getArmorForClass(character.classId ?? null),
+          getCharacterArmor(id),
           getAllWeapons(),
           getCharacterWeapons(id),
         ]);
@@ -94,6 +96,7 @@ export default async function CharacterDetailPage({
         initiativeMiscMod={combatStats?.initiativeMiscMod ?? 0}
         baseAttackBonus={combatStats?.baseAttackBonus ?? 0}
         initialEquippedArmor={character.equippedArmor}
+        initialCharacterArmor={characterArmorInventory}
         availableArmor={availableArmor}
         eacMiscMod={combatStats?.eacMiscMod ?? 0}
         kacMiscMod={combatStats?.kacMiscMod ?? 0}
