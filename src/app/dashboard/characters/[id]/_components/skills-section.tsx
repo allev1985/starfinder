@@ -319,7 +319,7 @@ export default function SkillsSection({
     <section className="mb-8">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">
             Skills
           </h2>
           <span className="text-xs text-muted-foreground">

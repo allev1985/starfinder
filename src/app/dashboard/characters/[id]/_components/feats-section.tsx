@@ -241,7 +241,7 @@ export default function FeatsSection({ characterId, initialFeats, isOwner }: Pro
   return (
     <section className="mt-8">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Feats</h2>
+        <h2 className="block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Feats</h2>
         {isOwner && <AddFeatDialog characterId={characterId} onAdd={handleAdd} />}
       </div>
 

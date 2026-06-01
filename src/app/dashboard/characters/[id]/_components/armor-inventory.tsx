@@ -177,7 +177,7 @@ export default function ArmorInventory({ characterId, isOwner, initialCharacterA
 
   return (
     <div className="mb-4">
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Armor</h3>
+      <h3 className="mb-2 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Armor</h3>
 
       {inventory.length === 0 ? (
         <p className="mb-3 text-sm text-muted-foreground">No armor in inventory.</p>

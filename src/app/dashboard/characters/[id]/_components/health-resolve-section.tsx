@@ -66,7 +66,7 @@ export default function HealthResolveSection({
 
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">
         {isDrone ? "Hit Points" : "Health & Resolve"}
       </h2>
       <div className="grid grid-cols-[12rem_5rem_5rem] items-center gap-x-3 gap-y-2">

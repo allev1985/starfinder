@@ -228,7 +228,7 @@ export default function EquipmentInventory({ characterId, isOwner, allEquipment,
 
   return (
     <div>
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Equipment</h3>
+      <h3 className="mb-2 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Equipment</h3>
 
       <div className="mb-3">
         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Augmentations &amp; Upgrades</p>

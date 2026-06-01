@@ -7,12 +7,8 @@ import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass, ge
 import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
 import { getCharacterSpells, getSpellsByClassAndLevel, getSpellsKnownLimits } from "@/db/queries/spells";
 import CharacterActions from "./_components/character-actions";
-import SpellsSection from "./_components/spells-section";
 import JoinCampaignForm from "./_components/join-campaign-form";
-import DescriptionSection from "./_components/description-section";
 import CharacterStatsClient from "./_components/character-stats-client";
-import HealthResolveSection from "./_components/health-resolve-section";
-import MechanicPanel from "./_components/mechanic-panel";
 
 export default async function CharacterDetailPage({
   params,
@@ -105,9 +101,26 @@ export default async function CharacterDetailPage({
         <span><span className="font-medium text-foreground">Theme</span> {character.themeName ?? "—"}</span>
       </div>
 
-      <p className="mb-8 text-sm text-muted-foreground">
-        Created {new Date(character.createdAt).toLocaleDateString()}
-      </p>
+      {campaigns.length > 0 ? (
+        <div className="mb-6 flex flex-wrap gap-3">
+          {campaigns.map((campaign) => (
+            <Link
+              key={campaign.id}
+              href={`/dashboard/campaigns/${campaign.id}`}
+              className="text-sm font-medium hover:text-foreground/80"
+            >
+              {campaign.name}
+            </Link>
+          ))}
+        </div>
+      ) : isOwner ? (
+        <div className="mb-6 max-w-sm">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Join a campaign
+          </h2>
+          <JoinCampaignForm characterId={id} />
+        </div>
+      ) : null}
 
       <CharacterStatsClient
         characterId={id}
@@ -154,83 +167,25 @@ export default async function CharacterDetailPage({
         hasClass={!!character.classId}
         hasTheme={!!character.themeId}
         isOwner={isOwner}
-      />
-
-      <HealthResolveSection
-        characterId={id}
-        isOwner={isOwner}
-        raceType={character.raceType}
         staminaPointsTotal={combatStats?.staminaPointsTotal ?? 0}
         staminaPointsCurrent={combatStats?.staminaPointsCurrent ?? 0}
         hitPointsTotal={combatStats?.hitPointsTotal ?? 0}
         hitPointsCurrent={combatStats?.hitPointsCurrent ?? 0}
         resolvePointsTotal={combatStats?.resolvePointsTotal ?? 0}
         resolvePointsCurrent={combatStats?.resolvePointsCurrent ?? 0}
+        isSpellcaster={character.isSpellcaster}
+        classId={character.classId ?? null}
+        knownSpells={characterKnownSpells}
+        spellCatalog={spellCatalog}
+        spellsKnownLimits={spellsKnownLimits}
+        descriptions={descriptions}
+        savedDescriptionValues={savedValuesMap}
+        mechanicCharacterId={character.mechanicCharacterId ?? null}
+        mechanicName={character.mechanicName}
+        mechanicIntScore={character.mechanicIntScore}
+        pickerOptions={mechanicPickerOptions}
       />
 
-      {character.raceType === "drone" && (
-        <MechanicPanel
-          characterId={id}
-          isOwner={isOwner}
-          mechanicCharacterId={character.mechanicCharacterId ?? null}
-          mechanicName={character.mechanicName}
-          mechanicLevel={character.mechanicLevel}
-          mechanicIntScore={character.mechanicIntScore}
-          pickerOptions={mechanicPickerOptions}
-        />
-      )}
-
-      {descriptions.length > 0 && (
-        <DescriptionSection
-          characterId={id}
-          descriptions={descriptions}
-          savedValues={savedValuesMap}
-          isOwner={isOwner}
-        />
-      )}
-
-      {character.isSpellcaster && character.classId && (
-        <SpellsSection
-          characterId={id}
-          classId={character.classId!}
-          isOwner={isOwner}
-          knownSpells={characterKnownSpells}
-          spellCatalog={spellCatalog}
-          spellsKnownLimits={spellsKnownLimits}
-        />
-      )}
-
-      <h2 className="mb-3 mt-8 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Campaigns
-      </h2>
-
-      {campaigns.length === 0 ? (
-        <p className="mb-6 text-sm text-muted-foreground">
-          Not in any campaigns yet.
-        </p>
-      ) : (
-        <ul className="mb-6 flex flex-col divide-y">
-          {campaigns.map((campaign) => (
-            <li key={campaign.id}>
-              <Link
-                href={`/dashboard/campaigns/${campaign.id}`}
-                className="block py-3 text-sm font-medium hover:text-foreground/80"
-              >
-                {campaign.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {isOwner && (
-        <div className="max-w-sm">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Join a campaign
-          </h2>
-          <JoinCampaignForm characterId={id} />
-        </div>
-      )}
     </div>
   );
 }

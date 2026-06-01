@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useRef } from "react";
+import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { upsertDescriptionValueAction } from "../actions";
 import type { RaceDescription } from "@/db/schema";
@@ -23,27 +23,25 @@ export default function DescriptionSection({ characterId, descriptions, savedVal
 
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">
         Description
       </h2>
-      <div className="grid grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2 max-w-sm">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
         {descriptions.map((desc) => (
-          <Fragment key={desc.id}>
-            <span className="text-sm font-medium">
-              {desc.name}
-            </span>
+          <div key={desc.id} className="flex items-center gap-2">
+            <span className="shrink-0 text-xs font-medium">{desc.name}</span>
             {isOwner ? (
               <Input
                 defaultValue={savedValues[desc.id] ?? ""}
                 onBlur={(e) => handleBlur(desc.id, e.target.value)}
-                className="h-7 text-sm"
+                className="h-6 w-24 text-xs"
               />
             ) : (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {savedValues[desc.id] || "—"}
               </span>
             )}
-          </Fragment>
+          </div>
         ))}
       </div>
     </section>
