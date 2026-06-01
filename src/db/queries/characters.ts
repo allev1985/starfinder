@@ -110,6 +110,7 @@ export type CharacterWithMeta = Omit<Character, "equippedArmorId"> & {
   themeName: string | null;
   level: number;
   skillRanksPerLevel: number;
+  isSpellcaster: boolean;
   chassisName: string | null;
   mechanicName: string | null;
   mechanicLevel: number | null;
@@ -147,6 +148,7 @@ export async function getCharacterWithCampaigns(
       className: classes.name,
       themeName: themes.name,
       skillRanksPerLevel: classes.skillRanksPerLevel,
+      isSpellcaster: classes.isSpellcaster,
       chassisName: chassis.name,
       mechanicName: mechanic.name,
       mechanicLevel: mechanic.level,
@@ -187,6 +189,7 @@ export async function getCharacterWithCampaigns(
     className: row.className ?? null,
     themeName: row.themeName ?? null,
     skillRanksPerLevel: row.skillRanksPerLevel ?? 0,
+    isSpellcaster: row.isSpellcaster ?? false,
     chassisName: row.chassisName ?? null,
     mechanicName: row.mechanicName ?? null,
     mechanicLevel: row.mechanicLevel ?? null,

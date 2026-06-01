@@ -53,3 +53,18 @@ The `class_armor_proficiency` table SHALL be treated as CRB reference data. Its 
 #### Scenario: class_armor_proficiency rows are present after seed migration
 - **WHEN** the class proficiency seed migration runs
 - **THEN** `SELECT COUNT(*) FROM class_armor_proficiency` returns 9 (5 light-only classes × 1 + 2 heavy-proficient classes × 2 = 9 rows)
+
+### Requirement: is_spellcaster flag on classes
+The `classes` table SHALL have an `is_spellcaster` column of type `boolean`, not null, defaulting to `false`. A migration SHALL set `is_spellcaster = true` for Mystic and Technomancer; all other CRB classes SHALL remain `false`.
+
+#### Scenario: Mystic is marked as spellcaster
+- **WHEN** the migration runs
+- **THEN** the Mystic row in `classes` has `is_spellcaster = true`
+
+#### Scenario: Technomancer is marked as spellcaster
+- **WHEN** the migration runs
+- **THEN** the Technomancer row in `classes` has `is_spellcaster = true`
+
+#### Scenario: Non-spellcasting classes are false
+- **WHEN** the migration runs
+- **THEN** Envoy, Mechanic, Operative, Solarian, and Soldier all have `is_spellcaster = false`

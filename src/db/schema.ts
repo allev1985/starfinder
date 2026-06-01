@@ -103,10 +103,23 @@ export const races = pgTable("races", {
   type: raceType("type").notNull(),
 });
 
+export const spellSchool = pgEnum("spell_school", [
+  "abjuration",
+  "conjuration",
+  "divination",
+  "enchantment",
+  "evocation",
+  "illusion",
+  "necromancy",
+  "transmutation",
+  "universal",
+]);
+
 export const classes = pgTable("classes", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   skillRanksPerLevel: integer("skill_ranks_per_level").notNull().default(0),
+  isSpellcaster: boolean("is_spellcaster").notNull().default(false),
 });
 
 export const themes = pgTable("themes", {
@@ -258,6 +271,43 @@ export const characterEquipment = pgTable("character_equipment", {
   quantity: integer("quantity").notNull().default(1),
 });
 
+export const spells = pgTable("spells", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  school: spellSchool("school").notNull(),
+  castingTime: text("casting_time").notNull(),
+  range: text("range").notNull(),
+  area: text("area"),
+  targets: text("targets"),
+  duration: text("duration").notNull(),
+  savingThrow: text("saving_throw"),
+  spellResist: text("spell_resist"),
+  description: text("description").notNull(),
+  damage: text("damage"),
+  damageNote: text("damage_note"),
+  source: text("source").notNull().default("CRB"),
+});
+
+export const spellClass = pgTable("spell_class", {
+  spellId: uuid("spell_id").notNull().references(() => spells.id),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  spellLevel: integer("spell_level").notNull(),
+}, (t) => [primaryKey({ columns: [t.spellId, t.classId] })]);
+
+export const characterSpells = pgTable("character_spells", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  spellId: uuid("spell_id").notNull().references(() => spells.id),
+  spellLevel: integer("spell_level").notNull(),
+});
+
+export const classSpellProgression = pgTable("class_spell_progression", {
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  characterLevel: integer("character_level").notNull(),
+  spellLevel: integer("spell_level").notNull(),
+  spellsKnown: integer("spells_known").notNull(),
+}, (t) => [primaryKey({ columns: [t.classId, t.characterLevel, t.spellLevel] })]);
+
 export type Weapon = typeof weapons.$inferSelect;
 export type NewWeapon = typeof weapons.$inferInsert;
 export type WeaponCategory = typeof weaponCategory.enumValues[number];
@@ -294,3 +344,10 @@ export type EquipmentCategory = typeof equipmentCategory.enumValues[number];
 export type AugmentationSystem = typeof augmentationSystem.enumValues[number];
 export type CharacterEquipment = typeof characterEquipment.$inferSelect;
 export type NewCharacterEquipment = typeof characterEquipment.$inferInsert;
+export type SpellSchool = typeof spellSchool.enumValues[number];
+export type Spell = typeof spells.$inferSelect;
+export type NewSpell = typeof spells.$inferInsert;
+export type SpellClass = typeof spellClass.$inferSelect;
+export type CharacterSpell = typeof characterSpells.$inferSelect;
+export type NewCharacterSpell = typeof characterSpells.$inferInsert;
+export type ClassSpellProgression = typeof classSpellProgression.$inferSelect;

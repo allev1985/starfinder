@@ -25,6 +25,8 @@ export default function LevelControl({ characterId, initialLevel, onLevelChange 
       setLevel(prev);
       onLevelChange?.(prev);
       setError(result.error);
+    } else {
+      window.dispatchEvent(new CustomEvent("character:level-changed", { detail: { level: next } }));
     }
   }
 

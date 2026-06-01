@@ -37,7 +37,10 @@ import {
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
+  addCharacterSpellForOwner,
+  removeCharacterSpellForOwner,
 } from "@/services/characters";
+import { getSpellsKnownLimits } from "@/db/queries/spells";
 import type { AbilityScores, HealthResolveValues, SkillEntry } from "@/db/queries/characters";
 
 type Result = { success: true } | { success: false; error: string };
@@ -495,3 +498,42 @@ export async function joinCampaignAction(
     return { success: false, error: "Failed to join campaign." };
   }
 }
+
+export async function addSpellAction(
+  characterId: string,
+  spellId: string,
+  spellLevel: number
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await addCharacterSpellForOwner(characterId, user.id, spellId, spellLevel);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to add spell." };
+  }
+}
+
+export async function removeSpellAction(
+  characterId: string,
+  spellId: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await removeCharacterSpellForOwner(characterId, user.id, spellId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to remove spell." };
+  }
+}
+
+export async function fetchSpellsKnownLimitsAction(
+  classId: string,
+  level: number
+): Promise<Record<number, number>> {
+  return getSpellsKnownLimits(classId, level);
+}
+

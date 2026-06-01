@@ -48,6 +48,11 @@ import {
 } from "@/db/queries/characters";
 import { getRaceById, getChassisById } from "@/db/queries/reference";
 import { isCharacterOwner } from "@/lib/authorization";
+import {
+  addCharacterSpell,
+  removeCharacterSpell,
+} from "@/db/queries/spells";
+import type { CharacterSpell } from "@/db/schema";
 import type { Character } from "@/db/schema";
 
 export class NotOwnerError extends Error {}
@@ -318,6 +323,26 @@ export async function updateCharacterEquipmentQuantityForOwner(characterEquipmen
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateCharacterEquipmentQuantity(characterEquipmentId, quantity);
 }
+
+export async function addCharacterSpellForOwner(
+  characterId: string,
+  userId: string,
+  spellId: string,
+  spellLevel: number
+): Promise<CharacterSpell> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  return addCharacterSpell(characterId, spellId, spellLevel);
+}
+
+export async function removeCharacterSpellForOwner(
+  characterId: string,
+  userId: string,
+  spellId: string
+): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await removeCharacterSpell(characterId, spellId);
+}
+
 
 export async function joinCampaignForOwner(
   characterId: string,

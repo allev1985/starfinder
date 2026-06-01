@@ -5,7 +5,9 @@ import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
 import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker, getCharacterArmor, getCharacterEquipment } from "@/db/queries/characters";
 import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass, getAllEquipment } from "@/db/queries/reference";
 import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
+import { getCharacterSpells, getSpellsByClassAndLevel, getSpellsKnownLimits } from "@/db/queries/spells";
 import CharacterActions from "./_components/character-actions";
+import SpellsSection from "./_components/spells-section";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import DescriptionSection from "./_components/description-section";
 import CharacterStatsClient from "./_components/character-stats-client";
@@ -63,6 +65,19 @@ export default async function CharacterDetailPage({
   const savedValuesMap = Object.fromEntries(
     savedDescriptionValues.map((v) => [v.descriptionId, v.value])
   );
+
+  const [characterKnownSpells, spellCatalog, spellsKnownLimits] =
+    character.isSpellcaster && character.classId
+      ? await Promise.all([
+          getCharacterSpells(id),
+          Promise.all(
+            [0, 1, 2, 3, 4, 5, 6].map((lvl) =>
+              getSpellsByClassAndLevel(character.classId!, lvl).then((spells) => [lvl, spells] as const)
+            )
+          ).then((entries) => Object.fromEntries(entries)),
+          getSpellsKnownLimits(character.classId, character.level),
+        ])
+      : [[], {}, {}] as [Awaited<ReturnType<typeof getCharacterSpells>>, Record<number, Awaited<ReturnType<typeof getSpellsByClassAndLevel>>>, Record<number, number>];
 
   return (
     <div className="p-6">
@@ -156,7 +171,18 @@ export default async function CharacterDetailPage({
         />
       )}
 
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      {character.isSpellcaster && character.classId && (
+        <SpellsSection
+          characterId={id}
+          classId={character.classId!}
+          isOwner={isOwner}
+          knownSpells={characterKnownSpells}
+          spellCatalog={spellCatalog}
+          spellsKnownLimits={spellsKnownLimits}
+        />
+      )}
+
+      <h2 className="mb-3 mt-8 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
         Campaigns
       </h2>
 
