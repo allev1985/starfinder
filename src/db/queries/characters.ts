@@ -16,6 +16,9 @@ import {
   characterSkills,
   characterWeapons,
   characterEquipment,
+  characterClassChoices,
+  characterFeats,
+  feats,
   equipment,
   skills,
   type NewCharacter,
@@ -26,6 +29,9 @@ import {
   type CharacterSkill,
   type Armor,
   type Equipment,
+  type CharacterClassChoice,
+  type NewCharacterClassChoice,
+  type NewCharacterFeat,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -604,4 +610,71 @@ export async function removeCharacterWeapon(characterId: string, weaponId: strin
   await db
     .delete(characterWeapons)
     .where(and(eq(characterWeapons.characterId, characterId), eq(characterWeapons.weaponId, weaponId)));
+}
+
+export async function getCharacterClassChoices(characterId: string): Promise<CharacterClassChoice[]> {
+  return db
+    .select()
+    .from(characterClassChoices)
+    .where(eq(characterClassChoices.characterId, characterId))
+    .orderBy(asc(characterClassChoices.acquiredAtLevel));
+}
+
+export async function upsertCharacterClassChoice(data: NewCharacterClassChoice): Promise<void> {
+  await db
+    .insert(characterClassChoices)
+    .values(data)
+    .onConflictDoUpdate({
+      target: [characterClassChoices.characterId, characterClassChoices.classAbilityId, characterClassChoices.acquiredAtLevel],
+      set: { optionId: data.optionId, customValue: data.customValue },
+    });
+}
+
+export type CharacterFeatWithName = {
+  id: string;
+  characterId: string;
+  featId: string | null;
+  customName: string | null;
+  notes: string | null;
+  name: string;
+  description: string | null;
+  prerequisites: string | null;
+  isCombatFeat: boolean;
+};
+
+export async function getCharacterFeats(characterId: string): Promise<CharacterFeatWithName[]> {
+  const rows = await db
+    .select({
+      id: characterFeats.id,
+      characterId: characterFeats.characterId,
+      featId: characterFeats.featId,
+      customName: characterFeats.customName,
+      notes: characterFeats.notes,
+      name: feats.name,
+      description: feats.description,
+      prerequisites: feats.prerequisites,
+      isCombatFeat: feats.isCombatFeat,
+    })
+    .from(characterFeats)
+    .leftJoin(feats, eq(characterFeats.featId, feats.id))
+    .where(eq(characterFeats.characterId, characterId))
+    .orderBy(asc(feats.name));
+
+  return rows.map((r) => ({
+    ...r,
+    name: r.name ?? r.customName ?? "",
+    description: r.description ?? null,
+    prerequisites: r.prerequisites ?? null,
+    isCombatFeat: r.isCombatFeat ?? false,
+  }));
+}
+
+export async function addCharacterFeat(data: NewCharacterFeat): Promise<void> {
+  await db.insert(characterFeats).values(data);
+}
+
+export async function removeCharacterFeat(id: string, characterId: string): Promise<void> {
+  await db
+    .delete(characterFeats)
+    .where(and(eq(characterFeats.id, id), eq(characterFeats.characterId, characterId)));
 }

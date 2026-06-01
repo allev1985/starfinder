@@ -308,6 +308,67 @@ export const classSpellProgression = pgTable("class_spell_progression", {
   spellsKnown: integer("spells_known").notNull(),
 }, (t) => [primaryKey({ columns: [t.classId, t.characterLevel, t.spellLevel] })]);
 
+export const classAbilities = pgTable("class_abilities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  level: integer("level").notNull(),
+  repeatable: boolean("repeatable").notNull().default(false),
+  choicePool: text("choice_pool"),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
+
+export const classAbilityOptions = pgTable("class_ability_options", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  poolName: text("pool_name").notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  prerequisites: text("prerequisites"),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
+
+export const themeAbilities = pgTable("theme_abilities", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  themeId: uuid("theme_id").notNull().references(() => themes.id),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  level: integer("level").notNull(),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
+
+export const feats = pgTable("feats", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  prerequisites: text("prerequisites"),
+  isCombatFeat: boolean("is_combat_feat").notNull().default(false),
+  sourceBook: text("source_book").notNull().default("crb"),
+});
+
+export const classWeaponProficiency = pgTable("class_weapon_proficiency", {
+  classId: uuid("class_id").notNull().references(() => classes.id),
+  weaponCategory: weaponCategory("weapon_category").notNull(),
+}, (t) => [primaryKey({ columns: [t.classId, t.weaponCategory] })]);
+
+export const characterClassChoices = pgTable("character_class_choices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  classAbilityId: uuid("class_ability_id").notNull().references(() => classAbilities.id),
+  optionId: uuid("option_id").references(() => classAbilityOptions.id),
+  customValue: text("custom_value"),
+  acquiredAtLevel: integer("acquired_at_level").notNull(),
+});
+
+export const characterFeats = pgTable("character_feats", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  featId: uuid("feat_id").references(() => feats.id),
+  customName: text("custom_name"),
+  notes: text("notes"),
+});
+
 export type Weapon = typeof weapons.$inferSelect;
 export type NewWeapon = typeof weapons.$inferInsert;
 export type WeaponCategory = typeof weaponCategory.enumValues[number];
@@ -351,3 +412,16 @@ export type SpellClass = typeof spellClass.$inferSelect;
 export type CharacterSpell = typeof characterSpells.$inferSelect;
 export type NewCharacterSpell = typeof characterSpells.$inferInsert;
 export type ClassSpellProgression = typeof classSpellProgression.$inferSelect;
+export type ClassAbility = typeof classAbilities.$inferSelect;
+export type NewClassAbility = typeof classAbilities.$inferInsert;
+export type ClassAbilityOption = typeof classAbilityOptions.$inferSelect;
+export type NewClassAbilityOption = typeof classAbilityOptions.$inferInsert;
+export type ThemeAbility = typeof themeAbilities.$inferSelect;
+export type NewThemeAbility = typeof themeAbilities.$inferInsert;
+export type Feat = typeof feats.$inferSelect;
+export type NewFeat = typeof feats.$inferInsert;
+export type ClassWeaponProficiency = typeof classWeaponProficiency.$inferSelect;
+export type CharacterClassChoice = typeof characterClassChoices.$inferSelect;
+export type NewCharacterClassChoice = typeof characterClassChoices.$inferInsert;
+export type CharacterFeat = typeof characterFeats.$inferSelect;
+export type NewCharacterFeat = typeof characterFeats.$inferInsert;

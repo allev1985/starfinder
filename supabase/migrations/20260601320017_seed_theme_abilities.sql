@@ -1,0 +1,147 @@
+-- Theme abilities for all 10 CRB themes
+-- Theme IDs: c1000000-0000-0000-0000-0000000000xx
+-- Ace Pilot: 001, Bounty Hunter: 002, Icon: 003, Mercenary: 004, Outlaw: 005
+-- Priest: 006, Scholar: 007, Spacefarer: 008, Street Rat: 009, Themeless: 010
+-- All themes grant abilities at levels 1, 6, 12, 18
+
+INSERT INTO "theme_abilities" ("theme_id", "name", "description", "level") VALUES
+
+-- Ace Pilot
+('c1000000-0000-0000-0000-000000000001', 'Theme Knowledge',
+ 'You are obsessed with starships and vehicles of all kinds and keep up to date on the latest tech. Reduce the DC of Piloting checks to pilot a starship by 5. Additionally, Piloting is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Piloting checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000001', 'Lone Wolf',
+ 'You''ve learned to watch your own back in the cockpit. You don''t need to rest a single function in the copilot seat when it is empty, and when you are the only one acting in a role during a starship combat encounter, reduce the multiple-crew-role DC penalty for that role by 2 (to a minimum of 0).',
+ 6),
+('c1000000-0000-0000-0000-000000000001', 'Master Pilot',
+ 'You are an unmatched pilot. Once per combat, as a pilot during the helm phase of starship combat, you can fly your starship as if its maneuverability were one step better. When not in starship combat, you can always take 10 on Piloting checks even in adverse conditions.',
+ 12),
+('c1000000-0000-0000-0000-000000000001', 'Ace Pilot''s Edge',
+ 'When you act as a pilot during the helm phase, you can take two pilot actions instead of one (but the second uses an additional Piloting check at a cumulative –4 penalty).',
+ 18),
+
+-- Bounty Hunter
+('c1000000-0000-0000-0000-000000000002', 'Theme Knowledge',
+ 'You track down criminals and other marks for money or notoriety. Reduce the DC of Survival checks to track your designated mark by 5, and reduce the DC of Culture or Profession (bounty hunter) checks to recall knowledge about the mark by 5. Survival is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Survival checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000002', 'Hunter''s Determination',
+ 'When you designate a mark as a move action, you gain a +1 insight bonus to Perception checks to notice your mark, to initiative checks when entering combat against your mark, and to the first attack roll you make against your mark each turn.',
+ 6),
+('c1000000-0000-0000-0000-000000000002', 'Master Tracker',
+ 'You can designate a mark as a swift action. Additionally, once per day when you roll a Survival check to track, you can roll twice and take the better result.',
+ 12),
+('c1000000-0000-0000-0000-000000000002', 'True Grit',
+ 'Once per day, when you would be reduced to 0 Hit Points or fewer, you can spend 1 Resolve Point as a reaction to instead be reduced to 1 Hit Point.',
+ 18),
+
+-- Icon
+('c1000000-0000-0000-0000-000000000003', 'Theme Knowledge',
+ 'You are famous throughout the Pact Worlds for your talent. You gain a +1 bonus to Culture checks to recognize famous works of art, music, or other cultural touchstones in your field. Culture is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Culture checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000003', 'Celebrity',
+ 'Once per day, you can cause your reputation to precede you in positive ways. When you do so, you gain a +4 circumstance bonus to Diplomacy and Intimidate checks for 1 hour, or a +4 circumstance bonus to Bluff checks to pass yourself off as a legitimate member of society.',
+ 6),
+('c1000000-0000-0000-0000-000000000003', 'Master Celebrity',
+ 'People recognize you everywhere. You and your allies get free room and board at any place that might benefit from having you as a patron. Creatures with a friendly or helpful attitude toward you are always considered to be friendly toward your companions as well.',
+ 12),
+('c1000000-0000-0000-0000-000000000003', 'Adoring Fans',
+ 'Your fans and followers assist you in many ways. Once per week, you can call in a favor from your network of fans for assistance equivalent to a single casting of a spell of 5th level or lower.',
+ 18),
+
+-- Mercenary
+('c1000000-0000-0000-0000-000000000004', 'Theme Knowledge',
+ 'You''ve spent your career as a hired soldier, mercenary, or military officer. Reduce the DC of Profession (mercenary) or Culture checks to recall knowledge about mercenary crews, notable military conflicts, or famous soldiers of the Pact Worlds by 5. Profession (mercenary) is a class skill for you, though if you already have it as a class skill, you instead gain a +1 bonus to checks with it.',
+ 1),
+('c1000000-0000-0000-0000-000000000004', 'Team Tactics',
+ 'You have led or fought alongside many groups and know how to coordinate in combat. Once per round as a move action, you can indicate a target for your allies. Until the start of your next turn, the first ally to attack that target gains a +1 circumstance bonus to that attack roll.',
+ 6),
+('c1000000-0000-0000-0000-000000000004', 'Superior Tactics',
+ 'You are a veteran combatant who can read the battlefield intuitively. You can use Team Tactics as a swift action. You also gain a +1 circumstance bonus to initiative checks.',
+ 12),
+('c1000000-0000-0000-0000-000000000004', 'Squad Commander',
+ 'As a standard action once per day, you can issue an inspiring tactical order to your allies within 60 feet. Each ally gains a +2 morale bonus to attack rolls, saving throws, and skill checks for 1 minute.',
+ 18),
+
+-- Outlaw
+('c1000000-0000-0000-0000-000000000005', 'Theme Knowledge',
+ 'You live outside the law, whether by choice or necessity. Reduce the DC of Sleight of Hand checks and Stealth checks to avoid notice in urban environments by 5. Sleight of Hand is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Sleight of Hand checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000005', 'Danger Sense',
+ 'Life on the run has given you sharper instincts for danger. You are never surprised, and you gain a +1 insight bonus to Reflex saving throws and Perception checks.',
+ 6),
+('c1000000-0000-0000-0000-000000000005', 'Black Market Connections',
+ 'You have contacts in the criminal underworld. Once per week, you can use these contacts to purchase illegal or hard-to-find items at standard prices, or sell items without license or hassle. You also gain a +4 circumstance bonus to Culture checks to identify criminal organizations and operations.',
+ 12),
+('c1000000-0000-0000-0000-000000000005', 'Wanted (in a Good Way)',
+ 'Your criminal reputation has become an asset. Once per day, you can spend a Resolve Point to call in a favor from your underworld connections. The favor can be equivalent to a service costing up to 5,000 credits or a casting of a spell of up to 5th level.',
+ 18),
+
+-- Priest
+('c1000000-0000-0000-0000-000000000006', 'Theme Knowledge',
+ 'You are deeply connected to your god''s teachings. Reduce the DC of Mysticism checks to recall knowledge about religious topics, divine beings, and planar geography by 5. Mysticism is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Mysticism checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000006', 'Divine Boon',
+ 'Your deity rewards your devotion. Once per day, you can call upon your deity for minor divine assistance in a skill check, adding a +4 insight bonus to one Mysticism check as a free action. Additionally, you can cast one 0-level divine spell from any divine spell list without expending a spell slot.',
+ 6),
+('c1000000-0000-0000-0000-000000000006', 'Divine Locus',
+ 'You have become a conduit for divine power. Once per day, as a standard action you can produce the effect of any 1st-level divine spell as a spell-like ability (using your character level as your caster level and your Wisdom modifier for the save DC). You also gain a +1 sacred (or profane) bonus to AC.',
+ 12),
+('c1000000-0000-0000-0000-000000000006', 'Aspect of the Deity',
+ 'Your god''s power flows through you. You gain immunity to one energy type or condition associated with your deity. Additionally, once per day as a full action, you can manifest a brief aspect of your deity, gaining the benefits of a 5th-level divine spell for 1 minute.',
+ 18),
+
+-- Scholar
+('c1000000-0000-0000-0000-000000000007', 'Theme Knowledge',
+ 'You have studied extensively in a specific scientific or cultural field. Choose a field of study (life science, physical science, an engineering specialty, history, etc.). Reduce the DC of skill checks to recall knowledge in your field of study by 5. The relevant skill is a class skill for you, though if it is already a class skill, you instead gain a +1 bonus to checks with it.',
+ 1),
+('c1000000-0000-0000-0000-000000000007', 'Research',
+ 'You have streamlined methods for conducting research. You can perform research in one-quarter the normal time. Additionally, once per day you can attempt to recall information about a topic in your field of study without access to any tools, data, or source material, treating it as if you had access to a standard library.',
+ 6),
+('c1000000-0000-0000-0000-000000000007', 'Scientific Paragon',
+ 'You are a leading expert in your field. When attempting knowledge checks related to your field of study, you can always take 20, even under stress or adverse conditions. You also gain a +2 competence bonus to all skill checks related to your field.',
+ 12),
+('c1000000-0000-0000-0000-000000000007', 'Piercing Intellect',
+ 'Your exceptional mind gives you an edge in solving complex problems. You can attempt INT-based skill checks to solve problems that would normally require special equipment or magical aid. Additionally, once per day, you can gain the effect of the comprehend languages spell as a spell-like ability.',
+ 18),
+
+-- Spacefarer
+('c1000000-0000-0000-0000-000000000008', 'Theme Knowledge',
+ 'You have a deep love for exploration and travel. Reduce the DC of Physical Science and Piloting checks to navigate in space or identify planets, stars, and stellar phenomena by 5. Piloting is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Piloting checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000008', 'Eager Dabbler',
+ 'Your wide-ranging experiences have given you a broad base of knowledge. You gain a +1 insight bonus to Engineering, Life Science, Physical Science, and Survival checks. You can use these skills untrained.',
+ 6),
+('c1000000-0000-0000-0000-000000000008', 'Master Explorer',
+ 'You excel at survival in the harshest environments in the universe. You gain a +4 bonus to Fortitude saves against environmental effects, and you are treated as though you have an environmental outfit when determining the effects of extreme environments. You can also hold your breath for twice as long as normal.',
+ 12),
+('c1000000-0000-0000-0000-000000000008', 'Pathfinder',
+ 'Your travels have made you extraordinarily resilient and adaptable. You are immune to the effects of vacuum exposure (you still need air), and you gain a +2 bonus to all saving throws against natural environmental hazards. Once per day, you can designate a location you have previously visited and find your way there unerringly.',
+ 18),
+
+-- Street Rat
+('c1000000-0000-0000-0000-000000000009', 'Theme Knowledge',
+ 'You grew up surviving on the streets of an urban settlement. Reduce the DC of Stealth and Sleight of Hand checks in urban environments by 5. Sleight of Hand is a class skill for you, though if it is a class skill from the class you take at 1st level, you instead gain a +1 bonus to Sleight of Hand checks.',
+ 1),
+('c1000000-0000-0000-0000-000000000009', 'Draw Fire',
+ 'You know how to make yourself a tempting target to redirect enemies. Once per encounter, as a move action you can attempt to draw enemy fire, granting a +2 circumstance bonus to ranged attacks against you for 1 round but granting allies cover from those same attackers for that round.',
+ 6),
+('c1000000-0000-0000-0000-000000000009', 'Skulk',
+ 'You have become a master of urban stealth and evasion. You can move at your full speed while using Stealth without penalty. You can also attempt Stealth checks while being observed.',
+ 12),
+('c1000000-0000-0000-0000-000000000009', 'Survivor''s Grit',
+ 'Living on the edge has hardened you against hardship. You gain a +2 bonus to saves against effects that would cause the dying or staggered condition. Once per day, when you spend Resolve Points to stabilize, you spend 1 fewer Resolve Point (minimum 0).',
+ 18),
+
+-- Themeless
+('c1000000-0000-0000-0000-000000000010', 'Theme Knowledge',
+ 'You have a past life whose knowledge is not easily categorized. Choose a single skill. Reduce the DC to recall knowledge using that skill by 5 and treat it as a class skill for you. If it is already a class skill from your class, you instead gain a +1 bonus to checks with that skill.',
+ 1),
+('c1000000-0000-0000-0000-000000000010', 'Nothing to Prove',
+ 'You have no preconceived notions holding you back. Once per day, you can reroll a skill check you just failed. You must take the second result.',
+ 6),
+('c1000000-0000-0000-0000-000000000010', 'Themeless Boon',
+ 'Your freedom from a defined background has allowed you to develop exceptional general resilience. You gain a +1 bonus to all saving throws. Additionally, once per day when you would fail a saving throw, you can spend 1 Resolve Point to succeed instead (this does not apply to saving throws that require spending a Resolve Point).',
+ 12),
+('c1000000-0000-0000-0000-000000000010', 'Undefined Potential',
+ 'Your lack of a defined theme means your potential is unlimited. You gain one feat of your choice for which you meet the prerequisites. Additionally, once per day you can apply a +4 insight bonus to any ability score check or skill check.',
+ 18);

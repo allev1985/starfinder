@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, ilike, inArray } from "drizzle-orm";
 import { DRONE_SKILL_NAMES } from "@/lib/drone";
 import { db } from "@/db";
 import {
@@ -12,6 +12,11 @@ import {
   chassis,
   armor,
   classArmorProficiency,
+  classWeaponProficiency,
+  classAbilities,
+  classAbilityOptions,
+  themeAbilities,
+  feats,
   equipment,
   type Race,
   type Class,
@@ -22,6 +27,11 @@ import {
   type Chassis,
   type Armor,
   type Equipment,
+  type ClassAbility,
+  type ClassAbilityOption,
+  type ThemeAbility,
+  type Feat,
+  type WeaponCategory,
 } from "@/db/schema";
 
 export type SkillWithClassFlag = Skill & { isClassSkill: boolean };
@@ -102,3 +112,55 @@ export async function getDescriptionsForType(raceType: RaceType): Promise<RaceDe
     .where(eq(raceDescriptions.raceType, raceType))
     .orderBy(asc(raceDescriptions.sortOrder));
 }
+
+export async function getClassAbilities(classId: string): Promise<ClassAbility[]> {
+  return db
+    .select()
+    .from(classAbilities)
+    .where(eq(classAbilities.classId, classId))
+    .orderBy(asc(classAbilities.level), asc(classAbilities.name));
+}
+
+export async function getClassAbilityOptions(classId: string, poolName: string): Promise<ClassAbilityOption[]> {
+  return db
+    .select()
+    .from(classAbilityOptions)
+    .where(and(eq(classAbilityOptions.classId, classId), eq(classAbilityOptions.poolName, poolName)))
+    .orderBy(asc(classAbilityOptions.name));
+}
+
+export async function getAllClassAbilityOptions(classId: string): Promise<ClassAbilityOption[]> {
+  return db
+    .select()
+    .from(classAbilityOptions)
+    .where(eq(classAbilityOptions.classId, classId))
+    .orderBy(asc(classAbilityOptions.poolName), asc(classAbilityOptions.name));
+}
+
+export async function getThemeAbilities(themeId: string): Promise<ThemeAbility[]> {
+  return db
+    .select()
+    .from(themeAbilities)
+    .where(eq(themeAbilities.themeId, themeId))
+    .orderBy(asc(themeAbilities.level));
+}
+
+export async function searchFeats(query: string): Promise<Feat[]> {
+  const rows = await db
+    .select()
+    .from(feats)
+    .where(query.trim() ? ilike(feats.name, `%${query.trim()}%`) : undefined)
+    .orderBy(asc(feats.name))
+    .limit(20);
+  return rows;
+}
+
+export async function getWeaponProficienciesForClass(classId: string): Promise<WeaponCategory[]> {
+  const rows = await db
+    .select({ weaponCategory: classWeaponProficiency.weaponCategory })
+    .from(classWeaponProficiency)
+    .where(eq(classWeaponProficiency.classId, classId));
+  return rows.map((r) => r.weaponCategory);
+}
+
+export { type ClassAbility, type ClassAbilityOption, type ThemeAbility, type Feat };

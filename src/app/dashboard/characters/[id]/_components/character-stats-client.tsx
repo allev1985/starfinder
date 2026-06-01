@@ -6,10 +6,13 @@ import CombatStatsSection from "./combat-stats-section";
 import InventorySection from "./inventory-section";
 import LevelControl from "./level-control";
 import SkillsSection from "./skills-section";
-import type { AbilityScores } from "@/db/queries/characters";
+import ClassFeaturesSection from "./class-features-section";
+import ThemeFeaturesSection from "./theme-features-section";
+import FeatsSection from "./feats-section";
+import type { AbilityScores, CharacterFeatWithName } from "@/db/queries/characters";
 import type { CharacterArmorEntry } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { Armor, Weapon, Equipment, CharacterSkill, RaceType } from "@/db/schema";
+import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory } from "@/db/schema";
 import type { CharacterEquipmentEntry } from "@/db/queries/characters";
 
 type Props = {
@@ -41,6 +44,14 @@ type Props = {
   initialCarriedWeapons: Weapon[];
   allEquipment: Equipment[];
   initialCharacterEquipment: CharacterEquipmentEntry[];
+  classAbilities: ClassAbility[];
+  allAbilityOptions: ClassAbilityOption[];
+  themeAbilities: ThemeAbility[];
+  weaponProficiencies: WeaponCategory[];
+  savedChoices: CharacterClassChoice[];
+  initialFeats: CharacterFeatWithName[];
+  hasClass: boolean;
+  hasTheme: boolean;
   isOwner: boolean;
 };
 
@@ -73,6 +84,14 @@ export default function CharacterStatsClient({
   initialCarriedWeapons,
   allEquipment,
   initialCharacterEquipment,
+  classAbilities,
+  allAbilityOptions,
+  themeAbilities,
+  weaponProficiencies,
+  savedChoices,
+  initialFeats,
+  hasClass,
+  hasTheme,
   isOwner,
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
@@ -145,6 +164,28 @@ export default function CharacterStatsClient({
         initialCarriedWeapons={initialCarriedWeapons}
         allEquipment={allEquipment}
         initialCharacterEquipment={initialCharacterEquipment}
+      />
+      {hasClass && (
+        <ClassFeaturesSection
+          characterId={characterId}
+          characterLevel={level}
+          classAbilities={classAbilities}
+          allAbilityOptions={allAbilityOptions}
+          savedChoices={savedChoices}
+          weaponProficiencies={weaponProficiencies}
+          isOwner={isOwner}
+        />
+      )}
+      {hasTheme && (
+        <ThemeFeaturesSection
+          themeAbilities={themeAbilities}
+          characterLevel={level}
+        />
+      )}
+      <FeatsSection
+        characterId={characterId}
+        initialFeats={initialFeats}
+        isOwner={isOwner}
       />
     </>
   );

@@ -1,6 +1,7 @@
 "use server";
 
 import { getUser } from "@/lib/session";
+import { isCharacterOwner } from "@/lib/authorization";
 import {
   deleteCharacterForOwner,
   joinCampaignForOwner,
@@ -41,7 +42,14 @@ import {
   removeCharacterSpellForOwner,
 } from "@/services/characters";
 import { getSpellsKnownLimits } from "@/db/queries/spells";
+import { searchFeats } from "@/db/queries/reference";
+import {
+  upsertCharacterClassChoice,
+  addCharacterFeat,
+  removeCharacterFeat,
+} from "@/db/queries/characters";
 import type { AbilityScores, HealthResolveValues, SkillEntry } from "@/db/queries/characters";
+import type { Feat } from "@/db/schema";
 
 type Result = { success: true } | { success: false; error: string };
 
@@ -535,5 +543,59 @@ export async function fetchSpellsKnownLimitsAction(
   level: number
 ): Promise<Record<number, number>> {
   return getSpellsKnownLimits(classId, level);
+}
+
+export async function saveClassChoiceAction(
+  characterId: string,
+  classAbilityId: string,
+  acquiredAtLevel: number,
+  optionId: string | null,
+  customValue: string | null
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owned = await isCharacterOwner(characterId, user.id);
+  if (!owned) return { success: false, error: "Not authorised." };
+  try {
+    await upsertCharacterClassChoice({ characterId, classAbilityId, acquiredAtLevel, optionId, customValue });
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to save choice." };
+  }
+}
+
+export async function addFeatAction(
+  characterId: string,
+  featId: string | null,
+  customName: string | null
+): Promise<Result> {
+  if (!featId && !customName?.trim()) return { success: false, error: "Feat name required." };
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owned = await isCharacterOwner(characterId, user.id);
+  if (!owned) return { success: false, error: "Not authorised." };
+  try {
+    await addCharacterFeat({ characterId, featId, customName: customName?.trim() ?? null });
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to add feat." };
+  }
+}
+
+export async function removeFeatAction(characterId: string, id: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owned = await isCharacterOwner(characterId, user.id);
+  if (!owned) return { success: false, error: "Not authorised." };
+  try {
+    await removeCharacterFeat(id, characterId);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to remove feat." };
+  }
+}
+
+export async function searchFeatsAction(query: string): Promise<Feat[]> {
+  return searchFeats(query);
 }
 

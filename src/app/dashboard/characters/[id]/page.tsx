@@ -2,8 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker, getCharacterArmor, getCharacterEquipment } from "@/db/queries/characters";
-import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass, getAllEquipment } from "@/db/queries/reference";
+import { getCharacterWithCampaigns, getCharacterDescriptionValues, getCharacterCombatStats, getCharacterSkills, getCharactersForMechanicPicker, getCharacterArmor, getCharacterEquipment, getCharacterClassChoices, getCharacterFeats } from "@/db/queries/characters";
+import { getDescriptionsForType, getAllSkillsWithClassFlag, getArmorForClass, getAllEquipment, getClassAbilities, getAllClassAbilityOptions, getThemeAbilities, getWeaponProficienciesForClass } from "@/db/queries/reference";
 import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
 import { getCharacterSpells, getSpellsByClassAndLevel, getSpellsKnownLimits } from "@/db/queries/spells";
 import CharacterActions from "./_components/character-actions";
@@ -79,6 +79,16 @@ export default async function CharacterDetailPage({
         ])
       : [[], {}, {}] as [Awaited<ReturnType<typeof getCharacterSpells>>, Record<number, Awaited<ReturnType<typeof getSpellsByClassAndLevel>>>, Record<number, number>];
 
+  const [classFeatureAbilities, classAbilityOptionsList, themeFeatureAbilities, weaponProficiencies, classChoices, characterFeatsList] =
+    await Promise.all([
+      character.classId ? getClassAbilities(character.classId) : Promise.resolve([]),
+      character.classId ? getAllClassAbilityOptions(character.classId) : Promise.resolve([]),
+      character.themeId ? getThemeAbilities(character.themeId) : Promise.resolve([]),
+      character.classId ? getWeaponProficienciesForClass(character.classId) : Promise.resolve([]),
+      getCharacterClassChoices(id),
+      getCharacterFeats(id),
+    ]);
+
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center justify-between">
@@ -135,6 +145,14 @@ export default async function CharacterDetailPage({
         initialCarriedWeapons={carriedWeapons}
         allEquipment={allEquipment}
         initialCharacterEquipment={characterEquipmentInventory}
+        classAbilities={classFeatureAbilities}
+        allAbilityOptions={classAbilityOptionsList}
+        themeAbilities={themeFeatureAbilities}
+        weaponProficiencies={weaponProficiencies}
+        savedChoices={classChoices}
+        initialFeats={characterFeatsList}
+        hasClass={!!character.classId}
+        hasTheme={!!character.themeId}
         isOwner={isOwner}
       />
 
