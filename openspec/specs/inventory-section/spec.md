@@ -1,15 +1,19 @@
 ## ADDED Requirements
 
 ### Requirement: Inventory section on the character sheet
-The character sheet SHALL have an Inventory section rendered below the combat stats section. The Inventory section SHALL contain three subsections in order: Armor (top), Weapons (middle), and Equipment (bottom). The section SHALL use the heading "Inventory".
+The character sheet inventory SHALL be split across two tabs. The Weapons subsection SHALL appear in the Stats tab right column, below Attack Bonuses. The Armour and Equipment subsections SHALL appear in the Abilities & Gear tab right column. The standalone "Inventory" section wrapper and heading are removed; each subsection uses its own section header label.
 
-#### Scenario: Inventory section is visible on the character sheet
-- **WHEN** a user navigates to any character's sheet
-- **THEN** an "Inventory" section is present below the combat stats section
+#### Scenario: Weapons appear in Stats tab
+- **WHEN** the Stats tab is active
+- **THEN** the Weapons subsection is visible in the right column below Attack Bonuses
 
-#### Scenario: Subsections appear in correct order
-- **WHEN** the Inventory section is rendered
-- **THEN** the Armor subsection appears first, Weapons second, and Equipment third
+#### Scenario: Armour and Equipment appear in Abilities & Gear tab
+- **WHEN** the Abilities & Gear tab is active
+- **THEN** the Armour subsection and Equipment subsection are visible in the right column
+
+#### Scenario: Inventory wrapper removed
+- **WHEN** either tab renders
+- **THEN** there is no top-level "Inventory" heading wrapping all three subsections together
 
 ### Requirement: Armor subsection within Inventory
 The Inventory section SHALL contain the armor picker as its Armor subsection. The armor picker behavior and display SHALL be unchanged — only its location on the page changes (moved from combat section to Inventory).
