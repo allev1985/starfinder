@@ -5,9 +5,11 @@ import {
   spells,
   spellClass,
   characterSpells,
+  characterSpellSlots,
   classSpellProgression,
   type Spell,
   type CharacterSpell,
+  type CharacterSpellSlot,
 } from "@/db/schema";
 
 export async function getSpellsByClassAndLevel(
@@ -75,4 +77,51 @@ export async function getSpellsKnownLimits(
       )
     );
   return Object.fromEntries(rows.map((r) => [r.spellLevel, r.spellsKnown]));
+}
+
+export async function getSpellsPerDay(
+  classId: string,
+  characterLevel: number
+): Promise<Record<number, number>> {
+  const rows = await db
+    .select()
+    .from(classSpellProgression)
+    .where(
+      and(
+        eq(classSpellProgression.classId, classId),
+        eq(classSpellProgression.characterLevel, characterLevel)
+      )
+    );
+  return Object.fromEntries(rows.map((r) => [r.spellLevel, r.spellsPerDay]));
+}
+
+export async function getCharacterSpellSlots(
+  characterId: string
+): Promise<CharacterSpellSlot[]> {
+  return db
+    .select()
+    .from(characterSpellSlots)
+    .where(eq(characterSpellSlots.characterId, characterId));
+}
+
+export async function upsertCharacterSpellSlot(
+  characterId: string,
+  spellLevel: number,
+  totalSlots: number,
+  usedSlots: number
+): Promise<void> {
+  await db
+    .insert(characterSpellSlots)
+    .values({ characterId, spellLevel, totalSlots, usedSlots })
+    .onConflictDoUpdate({
+      target: [characterSpellSlots.characterId, characterSpellSlots.spellLevel],
+      set: { totalSlots, usedSlots },
+    });
+}
+
+export async function longRestCharacter(characterId: string): Promise<void> {
+  await db
+    .update(characterSpellSlots)
+    .set({ usedSlots: 0 })
+    .where(eq(characterSpellSlots.characterId, characterId));
 }

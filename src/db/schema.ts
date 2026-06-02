@@ -312,7 +312,15 @@ export const classSpellProgression = pgTable("class_spell_progression", {
   characterLevel: integer("character_level").notNull(),
   spellLevel: integer("spell_level").notNull(),
   spellsKnown: integer("spells_known").notNull(),
+  spellsPerDay: integer("spells_per_day").notNull().default(0),
 }, (t) => [primaryKey({ columns: [t.classId, t.characterLevel, t.spellLevel] })]);
+
+export const characterSpellSlots = pgTable("character_spell_slots", {
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  spellLevel: integer("spell_level").notNull(),
+  totalSlots: integer("total_slots").notNull().default(0),
+  usedSlots: integer("used_slots").notNull().default(0),
+}, (t) => [primaryKey({ columns: [t.characterId, t.spellLevel] })]);
 
 export const classAbilities = pgTable("class_abilities", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -418,6 +426,8 @@ export type SpellClass = typeof spellClass.$inferSelect;
 export type CharacterSpell = typeof characterSpells.$inferSelect;
 export type NewCharacterSpell = typeof characterSpells.$inferInsert;
 export type ClassSpellProgression = typeof classSpellProgression.$inferSelect;
+export type CharacterSpellSlot = typeof characterSpellSlots.$inferSelect;
+export type NewCharacterSpellSlot = typeof characterSpellSlots.$inferInsert;
 export type ClassAbility = typeof classAbilities.$inferSelect;
 export type NewClassAbility = typeof classAbilities.$inferInsert;
 export type ClassAbilityOption = typeof classAbilityOptions.$inferSelect;

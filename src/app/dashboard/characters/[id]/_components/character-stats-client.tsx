@@ -22,7 +22,7 @@ import { CharacterProvider, useCharacter } from "./character-context";
 import type { CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription } from "@/db/schema";
+import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription, CharacterSpellSlot } from "@/db/schema";
 import type { CombatMods } from "./character-context";
 
 type CharacterSpellWithSpell = CharacterSpell & { spell: Spell };
@@ -76,6 +76,8 @@ type Props = {
   knownSpells: CharacterSpellWithSpell[];
   spellCatalog: Record<number, Spell[]>;
   spellsKnownLimits: Record<number, number>;
+  characterSpellSlots: CharacterSpellSlot[];
+  spellsPerDay: Record<number, number>;
   descriptions: RaceDescription[];
   savedDescriptionValues: Record<string, string>;
   mechanicCharacterId: string | null;
@@ -136,6 +138,8 @@ export default function CharacterStatsClient({
   knownSpells,
   spellCatalog,
   spellsKnownLimits,
+  characterSpellSlots,
+  spellsPerDay,
   descriptions,
   savedDescriptionValues,
   mechanicCharacterId,
@@ -209,6 +213,8 @@ export default function CharacterStatsClient({
         knownSpells={knownSpells}
         spellCatalog={spellCatalog}
         spellsKnownLimits={spellsKnownLimits}
+        characterSpellSlots={characterSpellSlots}
+        spellsPerDay={spellsPerDay}
         descriptions={descriptions}
         savedDescriptionValues={savedDescriptionValues}
         mechanicCharacterId={mechanicCharacterId}
@@ -239,6 +245,8 @@ type SheetProps = {
   knownSpells: CharacterSpellWithSpell[];
   spellCatalog: Record<number, Spell[]>;
   spellsKnownLimits: Record<number, number>;
+  characterSpellSlots: CharacterSpellSlot[];
+  spellsPerDay: Record<number, number>;
   descriptions: RaceDescription[];
   savedDescriptionValues: Record<string, string>;
   mechanicCharacterId: string | null;
@@ -266,6 +274,8 @@ function CharacterSheet({
   knownSpells,
   spellCatalog,
   spellsKnownLimits,
+  characterSpellSlots,
+  spellsPerDay,
   descriptions,
   savedDescriptionValues,
   mechanicCharacterId,
@@ -387,6 +397,8 @@ function CharacterSheet({
                 knownSpells={knownSpells}
                 spellCatalog={spellCatalog}
                 spellsKnownLimits={spellsKnownLimits}
+                characterSpellSlots={characterSpellSlots}
+                spellsPerDay={spellsPerDay}
               />
             </div>
           </TabsContent>

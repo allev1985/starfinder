@@ -46,7 +46,12 @@ import {
   addLanguageForOwner,
   removeLanguageForOwner,
 } from "@/services/characters";
-import { getSpellsKnownLimits } from "@/db/queries/spells";
+import {
+  getSpellsKnownLimits,
+  getSpellsPerDay,
+  upsertCharacterSpellSlot,
+  longRestCharacter,
+} from "@/db/queries/spells";
 import { searchFeats } from "@/db/queries/reference";
 import {
   upsertCharacterClassChoice,
@@ -560,6 +565,44 @@ export async function fetchSpellsKnownLimitsAction(
   level: number
 ): Promise<Record<number, number>> {
   return getSpellsKnownLimits(classId, level);
+}
+
+export async function fetchSpellsPerDayAction(
+  classId: string,
+  level: number
+): Promise<Record<number, number>> {
+  return getSpellsPerDay(classId, level);
+}
+
+export async function upsertSpellSlotsAction(
+  characterId: string,
+  spellLevel: number,
+  totalSlots: number,
+  usedSlots: number
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owned = await isCharacterOwner(characterId, user.id);
+  if (!owned) return { success: false, error: "Not authorised." };
+  try {
+    await upsertCharacterSpellSlot(characterId, spellLevel, totalSlots, usedSlots);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to save spell slots." };
+  }
+}
+
+export async function longRestAction(characterId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owned = await isCharacterOwner(characterId, user.id);
+  if (!owned) return { success: false, error: "Not authorised." };
+  try {
+    await longRestCharacter(characterId);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to reset spell slots." };
+  }
 }
 
 export async function saveClassChoiceAction(

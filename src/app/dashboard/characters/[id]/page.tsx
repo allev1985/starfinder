@@ -41,6 +41,8 @@ export default async function CharacterDetailPage({
     characterKnownSpells,
     spellCatalog,
     spellsKnownLimits,
+    characterSpellSlotRows,
+    spellsPerDay,
     classFeatureAbilities,
     classAbilityOptionsList,
     themeFeatureAbilities,
@@ -142,6 +144,8 @@ export default async function CharacterDetailPage({
         knownSpells={characterKnownSpells}
         spellCatalog={spellCatalog}
         spellsKnownLimits={spellsKnownLimits}
+        characterSpellSlots={characterSpellSlotRows}
+        spellsPerDay={spellsPerDay}
         descriptions={descriptions}
         savedDescriptionValues={savedValuesMap}
         mechanicCharacterId={character.mechanicCharacterId ?? null}

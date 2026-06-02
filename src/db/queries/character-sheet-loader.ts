@@ -25,6 +25,8 @@ import {
   getCharacterSpells,
   getSpellsByClassAndLevel,
   getSpellsKnownLimits,
+  getCharacterSpellSlots,
+  getSpellsPerDay,
 } from "@/db/queries/spells";
 
 export async function loadCharacterSheetData(
@@ -86,7 +88,7 @@ export async function loadCharacterSheetData(
     savedDescriptionValues.map((v) => [v.descriptionId, v.value])
   );
 
-  const [characterKnownSpells, spellCatalog, spellsKnownLimits] =
+  const [characterKnownSpells, spellCatalog, spellsKnownLimits, characterSpellSlotRows, spellsPerDay] =
     character.isSpellcaster && character.classId
       ? await Promise.all([
           getCharacterSpells(characterId),
@@ -98,10 +100,14 @@ export async function loadCharacterSheetData(
             )
           ).then((entries) => Object.fromEntries(entries)),
           getSpellsKnownLimits(character.classId, character.level),
+          getCharacterSpellSlots(characterId),
+          getSpellsPerDay(character.classId, character.level),
         ])
-      : ([[], {}, {}] as [
+      : ([[], {}, {}, [], {}] as [
           Awaited<ReturnType<typeof getCharacterSpells>>,
           Record<number, Awaited<ReturnType<typeof getSpellsByClassAndLevel>>>,
+          Record<number, number>,
+          Awaited<ReturnType<typeof getCharacterSpellSlots>>,
           Record<number, number>,
         ]);
 
@@ -145,6 +151,8 @@ export async function loadCharacterSheetData(
     characterKnownSpells,
     spellCatalog,
     spellsKnownLimits,
+    characterSpellSlotRows,
+    spellsPerDay,
     classFeatureAbilities,
     classAbilityOptionsList,
     themeFeatureAbilities,

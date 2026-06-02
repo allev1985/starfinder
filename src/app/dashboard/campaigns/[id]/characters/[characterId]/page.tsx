@@ -44,6 +44,8 @@ export default async function CampaignCharacterPage({
     characterKnownSpells,
     spellCatalog,
     spellsKnownLimits,
+    characterSpellSlotRows,
+    spellsPerDay,
     classFeatureAbilities,
     classAbilityOptionsList,
     themeFeatureAbilities,
@@ -131,6 +133,8 @@ export default async function CampaignCharacterPage({
         knownSpells={characterKnownSpells}
         spellCatalog={spellCatalog}
         spellsKnownLimits={spellsKnownLimits}
+        characterSpellSlots={characterSpellSlotRows}
+        spellsPerDay={spellsPerDay}
         descriptions={descriptions}
         savedDescriptionValues={savedValuesMap}
         mechanicCharacterId={character.mechanicCharacterId ?? null}
