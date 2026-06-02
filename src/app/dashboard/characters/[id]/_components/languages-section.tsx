@@ -6,15 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { addLanguageAction, removeLanguageAction } from "../actions";
+import { useCharacter } from "./character-context";
 
-type Props = {
-  characterId: string;
-  languages: string[];
-  onLanguagesChange: (languages: string[]) => void;
-  isOwner: boolean;
-};
-
-export default function LanguagesSection({ characterId, languages, onLanguagesChange, isOwner }: Props) {
+export default function LanguagesSection() {
+  const { characterId, isOwner, languages, setLanguages } = useCharacter();
+  const onLanguagesChange = setLanguages;
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 

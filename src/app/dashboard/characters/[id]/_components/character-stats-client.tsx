@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AbilityScoresSection from "./ability-scores-section";
 import CombatStatsSection from "./combat-stats-section";
@@ -19,10 +18,12 @@ import DescriptionSection from "./description-section";
 import MechanicPanel from "./mechanic-panel";
 import CreditsXpSection from "./credits-xp-section";
 import LanguagesSection from "./languages-section";
-import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
+import { CharacterProvider, useCharacter } from "./character-context";
+import type { CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
+import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
 import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription } from "@/db/schema";
-import type { CombatMods } from "./combat-stats-section";
+import type { CombatMods } from "./character-context";
 
 type CharacterSpellWithSpell = CharacterSpell & { spell: Spell };
 
@@ -90,7 +91,7 @@ export default function CharacterStatsClient({
   characterId,
   raceType,
   mechanicLevel,
-  scores: initialScores,
+  scores,
   initialLevel,
   initiativeMiscMod,
   baseAttackBonus,
@@ -145,25 +146,7 @@ export default function CharacterStatsClient({
   initialXpEarned,
   initialLanguages,
 }: Props) {
-  const [scores, setScores] = useState<AbilityScores>(initialScores);
-  const [level, setLevel] = useState(initialLevel);
-  const [currentArmor, setCurrentArmor] = useState<Armor | null>(initialEquippedArmor);
-  const [armorInventory, setArmorInventory] = useState(initialCharacterArmor);
-  const [equipmentInventory, setEquipmentInventory] = useState(initialCharacterEquipment);
-  const [carriedWeapons, setCarriedWeapons] = useState<Weapon[]>(initialCarriedWeapons);
-  const [feats, setFeats] = useState<CharacterFeatWithName[]>(initialFeats);
-  const [credits, setCredits] = useState(initialCredits);
-  const [xpEarned, setXpEarned] = useState(initialXpEarned);
-  const [languages, setLanguages] = useState<string[]>(initialLanguages);
-  const [healthValues, setHealthValues] = useState<HealthResolveValues>({
-    staminaPointsTotal,
-    staminaPointsCurrent,
-    hitPointsTotal,
-    hitPointsCurrent,
-    resolvePointsTotal,
-    resolvePointsCurrent,
-  });
-  const [combatMods, setCombatMods] = useState<CombatMods>({
+  const initialCombatMods: CombatMods = {
     initiativeMiscMod,
     baseAttackBonus,
     eacMiscMod,
@@ -177,27 +160,126 @@ export default function CharacterStatsClient({
     meleeAttackMiscMod,
     rangedAttackMiscMod,
     thrownAttackMiscMod,
-  });
+  };
 
-  function handleWeaponAdded(weapon: Weapon) {
-    setCarriedWeapons((prev) => [...prev, weapon]);
-  }
+  const initialHealthValues: HealthResolveValues = {
+    staminaPointsTotal,
+    staminaPointsCurrent,
+    hitPointsTotal,
+    hitPointsCurrent,
+    resolvePointsTotal,
+    resolvePointsCurrent,
+  };
 
-  function handleWeaponRemoved(weaponId: string) {
-    setCarriedWeapons((prev) => prev.filter((w) => w.id !== weaponId));
-  }
+  return (
+    <CharacterProvider
+      characterId={characterId}
+      isOwner={isOwner}
+      raceType={raceType}
+      mechanicLevel={mechanicLevel}
+      initialScores={scores}
+      initialLevel={initialLevel}
+      initialEquippedArmor={initialEquippedArmor}
+      initialArmorInventory={initialCharacterArmor}
+      initialCarriedWeapons={initialCarriedWeapons}
+      initialEquipmentInventory={initialCharacterEquipment}
+      initialFeats={initialFeats}
+      initialLanguages={initialLanguages}
+      initialCredits={initialCredits}
+      initialXpEarned={initialXpEarned}
+      initialHealthValues={initialHealthValues}
+      initialCombatMods={initialCombatMods}
+    >
+      <CharacterSheet
+        initialSkills={initialSkills}
+        allSkills={allSkills}
+        skillRanksPerLevel={skillRanksPerLevel}
+        allWeapons={allWeapons}
+        allEquipment={allEquipment}
+        availableArmor={availableArmor}
+        classAbilities={classAbilities}
+        allAbilityOptions={allAbilityOptions}
+        themeAbilities={themeAbilities}
+        weaponProficiencies={weaponProficiencies}
+        savedChoices={savedChoices}
+        hasClass={hasClass}
+        hasTheme={hasTheme}
+        isSpellcaster={isSpellcaster}
+        classId={classId}
+        knownSpells={knownSpells}
+        spellCatalog={spellCatalog}
+        spellsKnownLimits={spellsKnownLimits}
+        descriptions={descriptions}
+        savedDescriptionValues={savedDescriptionValues}
+        mechanicCharacterId={mechanicCharacterId}
+        mechanicName={mechanicName}
+        mechanicIntScore={mechanicIntScore}
+        pickerOptions={pickerOptions}
+      />
+    </CharacterProvider>
+  );
+}
 
-  const carriedWeaponIds = new Set(carriedWeapons.map((w) => w.id));
+type SheetProps = {
+  initialSkills: CharacterSkill[];
+  allSkills: SkillWithClassFlag[];
+  skillRanksPerLevel: number;
+  allWeapons: Weapon[];
+  allEquipment: Equipment[];
+  availableArmor: Armor[];
+  classAbilities: ClassAbility[];
+  allAbilityOptions: ClassAbilityOption[];
+  themeAbilities: ThemeAbility[];
+  weaponProficiencies: WeaponCategory[];
+  savedChoices: CharacterClassChoice[];
+  hasClass: boolean;
+  hasTheme: boolean;
+  isSpellcaster: boolean;
+  classId: string | null;
+  knownSpells: CharacterSpellWithSpell[];
+  spellCatalog: Record<number, Spell[]>;
+  spellsKnownLimits: Record<number, number>;
+  descriptions: RaceDescription[];
+  savedDescriptionValues: Record<string, string>;
+  mechanicCharacterId: string | null;
+  mechanicName: string | null;
+  mechanicIntScore: number | null;
+  pickerOptions: MechanicPickerEntry[];
+};
+
+function CharacterSheet({
+  initialSkills,
+  allSkills,
+  skillRanksPerLevel,
+  allWeapons,
+  allEquipment,
+  availableArmor,
+  classAbilities,
+  allAbilityOptions,
+  themeAbilities,
+  weaponProficiencies,
+  savedChoices,
+  hasClass,
+  hasTheme,
+  isSpellcaster,
+  classId,
+  knownSpells,
+  spellCatalog,
+  spellsKnownLimits,
+  descriptions,
+  savedDescriptionValues,
+  mechanicCharacterId,
+  mechanicName,
+  mechanicIntScore,
+  pickerOptions,
+}: SheetProps) {
+  const { isOwner, raceType, mechanicLevel, level, carriedWeapons } = useCharacter();
 
   return (
     <>
       {isOwner ? (
         <div className="mb-6">
-          <LevelControl
-            characterId={characterId}
-            initialLevel={initialLevel}
-            onLevelChange={setLevel}
-          />
+          <LevelControl />
         </div>
       ) : (
         <p className="mb-6 text-sm text-muted-foreground">
@@ -217,7 +299,6 @@ export default function CharacterStatsClient({
             <div>
               {raceType === "drone" && (
                 <MechanicPanel
-                  characterId={characterId}
                   isOwner={isOwner}
                   mechanicCharacterId={mechanicCharacterId}
                   mechanicName={mechanicName}
@@ -228,53 +309,20 @@ export default function CharacterStatsClient({
               )}
               {descriptions.length > 0 && (
                 <DescriptionSection
-                  characterId={characterId}
                   descriptions={descriptions}
                   savedValues={savedDescriptionValues}
-                  isOwner={isOwner}
                 />
               )}
-              <AbilityScoresSection
-                characterId={characterId}
-                scores={scores}
-                raceType={raceType}
-                isOwner={isOwner}
-                onScoreChange={setScores}
-              />
+              <AbilityScoresSection />
               <SkillsSection
-                characterId={characterId}
                 initialSkills={initialSkills}
                 allSkills={allSkills}
-                scores={scores}
                 skillRanksPerLevel={skillRanksPerLevel}
-                level={level}
-                raceType={raceType}
-                mechanicLevel={mechanicLevel}
-                armorCheckPenalty={currentArmor?.armorCheckPenalty ?? 0}
-                isOwner={isOwner}
               />
             </div>
             <div>
-              <HealthResolveSection
-                characterId={characterId}
-                isOwner={isOwner}
-                raceType={raceType}
-                values={healthValues}
-                onValuesChange={setHealthValues}
-              />
-              <CombatStatsSection
-                characterId={characterId}
-                strScore={scores.strScore}
-                dexScore={scores.dexScore}
-                conScore={scores.conScore}
-                wisScore={scores.wisScore}
-                mods={combatMods}
-                onModsChange={setCombatMods}
-                equippedArmor={currentArmor}
-                equippedArmorDr={currentArmor?.dr ?? null}
-                equippedArmorResistances={currentArmor?.resistances ?? null}
-                isOwner={isOwner}
-              />
+              <HealthResolveSection />
+              <CombatStatsSection />
               <section className="mb-8">
                 <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">
                   Weapons
@@ -287,20 +335,12 @@ export default function CharacterStatsClient({
                       <WeaponCard
                         key={weapon.id}
                         weapon={weapon}
-                        characterId={characterId}
-                        isOwner={isOwner}
-                        onWeaponRemoved={handleWeaponRemoved}
                       />
                     ))}
                   </div>
                 )}
                 {isOwner && (
-                  <WeaponPicker
-                    allWeapons={allWeapons}
-                    carriedWeaponIds={carriedWeaponIds}
-                    characterId={characterId}
-                    onWeaponAdded={handleWeaponAdded}
-                  />
+                  <WeaponPicker allWeapons={allWeapons} />
                 )}
               </section>
             </div>
@@ -312,13 +352,10 @@ export default function CharacterStatsClient({
             <div>
               {hasClass && (
                 <ClassFeaturesSection
-                  characterId={characterId}
-                  characterLevel={level}
                   classAbilities={classAbilities}
                   allAbilityOptions={allAbilityOptions}
                   savedChoices={savedChoices}
                   weaponProficiencies={weaponProficiencies}
-                  isOwner={isOwner}
                 />
               )}
               {hasTheme && (
@@ -327,42 +364,16 @@ export default function CharacterStatsClient({
                   characterLevel={level}
                 />
               )}
-              <FeatsSection
-                characterId={characterId}
-                feats={feats}
-                onFeatsChange={setFeats}
-                isOwner={isOwner}
-              />
-              <LanguagesSection
-                characterId={characterId}
-                languages={languages}
-                onLanguagesChange={setLanguages}
-                isOwner={isOwner}
-              />
+              <FeatsSection />
+              <LanguagesSection />
             </div>
             <div>
-              <CreditsXpSection
-                characterId={characterId}
-                credits={credits}
-                xpEarned={xpEarned}
-                onCreditsChange={setCredits}
-                onXpChange={setXpEarned}
-                isOwner={isOwner}
-              />
+              <CreditsXpSection />
               <ArmorInventory
-                characterId={characterId}
-                isOwner={isOwner}
-                inventory={armorInventory}
-                onInventoryChange={setArmorInventory}
                 availableArmor={availableArmor}
-                onWornArmorChange={setCurrentArmor}
               />
               <EquipmentInventory
-                characterId={characterId}
-                isOwner={isOwner}
                 allEquipment={allEquipment}
-                inventory={equipmentInventory}
-                onInventoryChange={setEquipmentInventory}
               />
             </div>
           </div>
@@ -372,9 +383,7 @@ export default function CharacterStatsClient({
           <TabsContent value="spells">
             <div className="mt-4">
               <SpellsSection
-                characterId={characterId}
                 classId={classId}
-                isOwner={isOwner}
                 knownSpells={knownSpells}
                 spellCatalog={spellCatalog}
                 spellsKnownLimits={spellsKnownLimits}

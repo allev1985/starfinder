@@ -105,6 +105,7 @@ export async function updateCharacterLevel(
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
+  await db.update(characters).set({ mechanicCharacterId: null }).where(eq(characters.mechanicCharacterId, id));
   await db.delete(campaignCharacters).where(eq(campaignCharacters.characterId, id));
   await db.delete(characters).where(eq(characters.id, id));
 }

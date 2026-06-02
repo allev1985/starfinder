@@ -4,16 +4,8 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { updateHealthResolveAction } from "../actions";
 import type { HealthResolveValues } from "@/db/queries/characters";
-import type { RaceType } from "@/db/schema";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
-
-type Props = {
-  characterId: string;
-  isOwner: boolean;
-  raceType: RaceType | null;
-  values: HealthResolveValues;
-  onValuesChange: (next: HealthResolveValues) => void;
-};
+import { useCharacter } from "./character-context";
 
 const BIOLOGICAL_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
   { label: "Stamina Points", totalKey: "staminaPointsTotal", currentKey: "staminaPointsCurrent" },
@@ -25,13 +17,8 @@ const DRONE_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentK
   { label: "Hit Points", totalKey: "hitPointsTotal", currentKey: "hitPointsCurrent" },
 ];
 
-export default function HealthResolveSection({
-  characterId,
-  isOwner,
-  raceType,
-  values,
-  onValuesChange,
-}: Props) {
+export default function HealthResolveSection() {
+  const { characterId, isOwner, raceType, healthValues: values, setHealthValues: onValuesChange } = useCharacter();
   const isDrone = raceType === "drone";
   const rows = isDrone ? DRONE_ROWS : BIOLOGICAL_ROWS;
 

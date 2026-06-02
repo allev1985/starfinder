@@ -19,13 +19,17 @@ import {
 export default function CharacterActions({ characterId }: { characterId: string }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function handleDelete() {
     setDeleting(true);
+    setDeleteError(null);
     const result = await deleteCharacterAction(characterId);
     setDeleting(false);
     if (result.success) {
       router.push("/dashboard/characters");
+    } else {
+      setDeleteError(result.error);
     }
   }
 
@@ -53,6 +57,9 @@ export default function CharacterActions({ characterId }: { characterId: string 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteError && (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={deleting}>

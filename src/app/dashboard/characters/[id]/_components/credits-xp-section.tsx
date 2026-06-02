@@ -3,17 +3,10 @@
 import { Input } from "@/components/ui/input";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
 import { updateCreditsAction, updateXpAction } from "../actions";
+import { useCharacter } from "./character-context";
 
-type Props = {
-  characterId: string;
-  credits: number;
-  xpEarned: number;
-  onCreditsChange: (v: number) => void;
-  onXpChange: (v: number) => void;
-  isOwner: boolean;
-};
-
-export default function CreditsXpSection({ characterId, credits, xpEarned, onCreditsChange, onXpChange, isOwner }: Props) {
+export default function CreditsXpSection() {
+  const { characterId, isOwner, credits, setCredits, xpEarned, setXpEarned } = useCharacter();
   const scheduleCreditsSave = useDebouncedSave((v: number) => updateCreditsAction(characterId, v));
   const scheduleXpSave = useDebouncedSave((v: number) => updateXpAction(characterId, v));
 
@@ -34,7 +27,7 @@ export default function CreditsXpSection({ characterId, credits, xpEarned, onCre
             <Input
               type="number"
               value={credits}
-              onChange={(e) => { const v = parseInput(e.target.value); onCreditsChange(v); scheduleCreditsSave(v); }}
+              onChange={(e) => { const v = parseInput(e.target.value); setCredits(v); scheduleCreditsSave(v); }}
               className="h-8 text-sm"
             />
           ) : (
@@ -47,7 +40,7 @@ export default function CreditsXpSection({ characterId, credits, xpEarned, onCre
             <Input
               type="number"
               value={xpEarned}
-              onChange={(e) => { const v = parseInput(e.target.value); onXpChange(v); scheduleXpSave(v); }}
+              onChange={(e) => { const v = parseInput(e.target.value); setXpEarned(v); scheduleXpSave(v); }}
               className="h-8 text-sm"
             />
           ) : (

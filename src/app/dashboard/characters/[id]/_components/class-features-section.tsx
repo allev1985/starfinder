@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/command";
 import { saveClassChoiceAction } from "../actions";
 import type { ClassAbility, ClassAbilityOption, CharacterClassChoice, WeaponCategory } from "@/db/schema";
+import { useCharacter } from "./character-context";
 
 const WEAPON_CATEGORY_LABELS: Record<WeaponCategory, string> = {
   small_arms: "Small Arms",
@@ -33,13 +34,10 @@ const WEAPON_CATEGORY_LABELS: Record<WeaponCategory, string> = {
 };
 
 type Props = {
-  characterId: string;
-  characterLevel: number;
   classAbilities: ClassAbility[];
   allAbilityOptions: ClassAbilityOption[];
   savedChoices: CharacterClassChoice[];
   weaponProficiencies: WeaponCategory[];
-  isOwner: boolean;
 };
 
 function FeatureDescription({ description }: { description: string }) {
@@ -133,14 +131,12 @@ function ChoicePicker({
 }
 
 export default function ClassFeaturesSection({
-  characterId,
-  characterLevel,
   classAbilities,
   allAbilityOptions,
   savedChoices,
   weaponProficiencies,
-  isOwner,
 }: Props) {
+  const { characterId, isOwner, level: characterLevel } = useCharacter();
   const abilityOptions = allAbilityOptions.reduce<Record<string, ClassAbilityOption[]>>((acc, opt) => {
     (acc[opt.poolName] ??= []).push(opt);
     return acc;

@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction } from "../actions";
 import type { Equipment, EquipmentCategory } from "@/db/schema";
 import type { CharacterEquipmentEntry } from "@/db/queries/characters";
+import { useCharacter } from "./character-context";
 
 const SYSTEM_LABELS: Record<string, string> = {
   brain: "Brain",
@@ -175,14 +176,11 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
 type FilterTab = "all" | "augmentations" | "ammunition";
 
 type Props = {
-  characterId: string;
-  isOwner: boolean;
   allEquipment: Equipment[];
-  inventory: CharacterEquipmentEntry[];
-  onInventoryChange: (inventory: CharacterEquipmentEntry[]) => void;
 };
 
-export default function EquipmentInventory({ characterId, isOwner, allEquipment, inventory, onInventoryChange }: Props) {
+export default function EquipmentInventory({ allEquipment }: Props) {
+  const { characterId, isOwner, equipmentInventory: inventory, setEquipmentInventory: onInventoryChange } = useCharacter();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerFilter, setPickerFilter] = useState<FilterTab>("all");
   const [, startTransition] = useTransition();

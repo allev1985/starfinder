@@ -18,37 +18,8 @@ import {
   updateRangedAttackMiscModAction,
   updateThrownAttackMiscModAction,
 } from "../actions";
-import type { Armor } from "@/db/schema";
-
-export type CombatMods = {
-  initiativeMiscMod: number;
-  baseAttackBonus: number;
-  eacMiscMod: number;
-  kacMiscMod: number;
-  fortBaseSave: number;
-  fortMiscMod: number;
-  refBaseSave: number;
-  refMiscMod: number;
-  willBaseSave: number;
-  willMiscMod: number;
-  meleeAttackMiscMod: number;
-  rangedAttackMiscMod: number;
-  thrownAttackMiscMod: number;
-};
-
-type Props = {
-  characterId: string;
-  strScore: number;
-  dexScore: number;
-  conScore: number;
-  wisScore: number;
-  mods: CombatMods;
-  onModsChange: (next: CombatMods) => void;
-  equippedArmor: Armor | null;
-  equippedArmorDr: string | null;
-  equippedArmorResistances: string | null;
-  isOwner: boolean;
-};
+import { useCharacter } from "./character-context";
+import type { CombatMods } from "./character-context";
 
 function formatModifier(value: number): string {
   return value >= 0 ? `+${value}` : `${value}`;
@@ -73,19 +44,11 @@ function Op({ children }: { children: string }) {
   );
 }
 
-export default function CombatStatsSection({
-  characterId,
-  strScore,
-  dexScore,
-  conScore,
-  wisScore,
-  mods,
-  onModsChange,
-  equippedArmor,
-  equippedArmorDr,
-  equippedArmorResistances,
-  isOwner,
-}: Props) {
+export default function CombatStatsSection() {
+  const { characterId, scores, equippedArmor, combatMods: mods, setCombatMods: onModsChange, isOwner } = useCharacter();
+  const { strScore, dexScore, conScore, wisScore } = scores;
+  const equippedArmorDr = equippedArmor?.dr ?? null;
+  const equippedArmorResistances = equippedArmor?.resistances ?? null;
   const scheduleMiscModSave = useDebouncedSave((v: number) => updateInitiativeMiscModAction(characterId, v));
   const scheduleBabSave = useDebouncedSave((v: number) => updateBaseAttackBonusAction(characterId, v));
   const scheduleEacMiscSave = useDebouncedSave((v: number) => updateEacMiscModAction(characterId, v));

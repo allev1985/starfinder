@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/command";
 import { addSpellAction, removeSpellAction, fetchSpellsKnownLimitsAction } from "../actions";
 import type { Spell, CharacterSpell } from "@/db/schema";
+import { useCharacter } from "./character-context";
 
 type CharacterSpellWithSpell = CharacterSpell & { spell: Spell };
 
@@ -232,20 +233,17 @@ function SpellLevelPanel({
 }
 
 export default function SpellsSection({
-  characterId,
   classId,
-  isOwner,
   knownSpells,
   spellCatalog,
   spellsKnownLimits,
 }: {
-  characterId: string;
   classId: string;
-  isOwner: boolean;
   knownSpells: CharacterSpellWithSpell[];
   spellCatalog: Record<number, Spell[]>;
   spellsKnownLimits: Record<number, number>;
 }) {
+  const { characterId, isOwner } = useCharacter();
   const LEVELS = [0, 1, 2, 3, 4, 5, 6] as const;
   const [limits, setLimits] = useState(spellsKnownLimits);
 

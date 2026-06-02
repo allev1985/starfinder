@@ -14,21 +14,15 @@ import {
 } from "../actions";
 import AddSkillsDialog from "./add-skills-dialog";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { CharacterSkill, RaceType } from "@/db/schema";
+import type { CharacterSkill } from "@/db/schema";
 import type { AbilityScores } from "@/db/queries/characters";
 import { DRONE_SKILL_NAMES } from "@/lib/drone";
+import { useCharacter } from "./character-context";
 
 type Props = {
-  characterId: string;
   initialSkills: CharacterSkill[];
   allSkills: SkillWithClassFlag[];
-  scores: AbilityScores;
   skillRanksPerLevel: number;
-  level: number;
-  raceType: RaceType | null;
-  mechanicLevel: number | null;
-  armorCheckPenalty: number;
-  isOwner: boolean;
 };
 
 const ABILITY_KEY_MAP: Record<string, keyof AbilityScores> = {
@@ -250,17 +244,12 @@ function DroneSkillRow({
 }
 
 export default function SkillsSection({
-  characterId,
   initialSkills,
   allSkills,
-  scores,
   skillRanksPerLevel,
-  level,
-  raceType,
-  mechanicLevel,
-  armorCheckPenalty,
-  isOwner,
 }: Props) {
+  const { characterId, scores, level, raceType, mechanicLevel, equippedArmor, isOwner } = useCharacter();
+  const armorCheckPenalty = equippedArmor?.armorCheckPenalty ?? 0;
   const router = useRouter();
   const isDrone = raceType === "drone";
   const droneAllowedSkillIds = isDrone

@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { updateMechanicLinkAction } from "../actions";
 import { modifier } from "@/lib/ability";
 import type { MechanicPickerEntry } from "@/db/queries/characters";
+import { useCharacter } from "./character-context";
 
 const SELECT_CLASS = "border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50";
 
 type Props = {
-  characterId: string;
   isOwner: boolean;
   mechanicCharacterId: string | null;
   mechanicName: string | null;
@@ -23,7 +23,6 @@ function formatMod(n: number): string {
 }
 
 export default function MechanicPanel({
-  characterId,
   isOwner,
   mechanicCharacterId: initialMechanicId,
   mechanicName: initialMechanicName,
@@ -31,6 +30,7 @@ export default function MechanicPanel({
   mechanicIntScore: initialMechanicIntScore,
   pickerOptions,
 }: Props) {
+  const { characterId } = useCharacter();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selectedId, setSelectedId] = useState<string>(initialMechanicId ?? "");

@@ -22,13 +22,7 @@ import {
 import { addFeatAction, removeFeatAction, searchFeatsAction } from "../actions";
 import type { CharacterFeatWithName } from "@/db/queries/characters";
 import type { Feat } from "@/db/schema";
-
-type Props = {
-  characterId: string;
-  feats: CharacterFeatWithName[];
-  onFeatsChange: (feats: CharacterFeatWithName[]) => void;
-  isOwner: boolean;
-};
+import { useCharacter } from "./character-context";
 
 function FeatRow({
   feat,
@@ -228,13 +222,15 @@ function AddFeatDialog({
   );
 }
 
-export default function FeatsSection({ characterId, feats, onFeatsChange, isOwner }: Props) {
+export default function FeatsSection() {
+  const { characterId, isOwner, feats, setFeats } = useCharacter();
+
   function handleAdd(feat: CharacterFeatWithName) {
-    onFeatsChange([...feats, feat]);
+    setFeats([...feats, feat]);
   }
 
   function handleRemove(id: string) {
-    onFeatsChange(feats.filter((f) => f.id !== id));
+    setFeats(feats.filter((f) => f.id !== id));
   }
 
   return (

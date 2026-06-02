@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { addArmorAction, removeArmorAction, toggleArmorWornAction } from "../actions";
 import type { Armor } from "@/db/schema";
 import type { CharacterArmorEntry } from "@/db/queries/characters";
+import { useCharacter } from "./character-context";
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
@@ -128,15 +129,11 @@ function ArmorCard({ entry, characterId, isOwner, onWornToggle, onRemoved }: Arm
 }
 
 type Props = {
-  characterId: string;
-  isOwner: boolean;
-  inventory: CharacterArmorEntry[];
-  onInventoryChange: (inventory: CharacterArmorEntry[]) => void;
   availableArmor: Armor[];
-  onWornArmorChange: (armor: Armor | null) => void;
 };
 
-export default function ArmorInventory({ characterId, isOwner, inventory, onInventoryChange, availableArmor, onWornArmorChange }: Props) {
+export default function ArmorInventory({ availableArmor }: Props) {
+  const { characterId, isOwner, armorInventory: inventory, setArmorInventory: onInventoryChange, setEquippedArmor: onWornArmorChange } = useCharacter();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [, startTransition] = useTransition();
   const optimisticCounter = useRef(0);

@@ -4,15 +4,15 @@ import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { upsertDescriptionValueAction } from "../actions";
 import type { RaceDescription } from "@/db/schema";
+import { useCharacter } from "./character-context";
 
 type Props = {
-  characterId: string;
   descriptions: RaceDescription[];
   savedValues: Record<string, string>;
-  isOwner: boolean;
 };
 
-export default function DescriptionSection({ characterId, descriptions, savedValues, isOwner }: Props) {
+export default function DescriptionSection({ descriptions, savedValues }: Props) {
+  const { characterId, isOwner } = useCharacter();
   const pendingRef = useRef<Record<string, string>>({});
 
   async function handleBlur(descriptionId: string, value: string) {

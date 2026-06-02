@@ -8,6 +8,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addWeaponAction } from "../actions";
 import type { Weapon } from "@/db/schema";
+import { useCharacter } from "./character-context";
 
 const CATEGORY_LABELS: Record<string, string> = {
   small_arms: "Small Arms",
@@ -22,20 +23,19 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 type Props = {
   allWeapons: Weapon[];
-  carriedWeaponIds: Set<string>;
-  characterId: string;
-  onWeaponAdded: (weapon: Weapon) => void;
 };
 
-export default function WeaponPicker({ allWeapons, carriedWeaponIds, characterId, onWeaponAdded }: Props) {
+export default function WeaponPicker({ allWeapons }: Props) {
+  const { characterId, carriedWeapons, setCarriedWeapons } = useCharacter();
   const [open, setOpen] = useState(false);
   const [, startTransition] = useTransition();
 
+  const carriedWeaponIds = new Set(carriedWeapons.map((w) => w.id));
   const available = allWeapons.filter((w) => !carriedWeaponIds.has(w.id));
 
   function handleSelect(weapon: Weapon) {
     setOpen(false);
-    onWeaponAdded(weapon);
+    setCarriedWeapons([...carriedWeapons, weapon]);
     startTransition(() => {
       addWeaponAction(characterId, weapon.id);
     });

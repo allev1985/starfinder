@@ -1,12 +1,12 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { Input } from "@/components/ui/input";
 import { updateAbilityScoresAction } from "../actions";
 import type { AbilityScores } from "@/db/queries/characters";
-import type { RaceType } from "@/db/schema";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
+import { useCharacter } from "./character-context";
 
 const ABILITIES: { key: keyof AbilityScores; label: string }[] = [
   { key: "strScore", label: "Strength (STR)" },
@@ -22,28 +22,19 @@ function formatModifier(score: number): string {
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
-type Props = {
-  characterId: string;
-  scores: AbilityScores;
-  raceType: RaceType | null;
-  isOwner: boolean;
-  onScoreChange?: (scores: AbilityScores) => void;
-};
-
-export default function AbilityScoresSection({ characterId, scores, raceType, isOwner, onScoreChange }: Props) {
+export default function AbilityScoresSection() {
+  const { characterId, scores, setScores, raceType, isOwner } = useCharacter();
   const visibleAbilities = raceType === "drone"
     ? ABILITIES.filter((a) => a.key !== "conScore")
     : ABILITIES;
-  const [current, setCurrent] = useState<AbilityScores>({ ...scores });
   const scheduleSave = useDebouncedSave((next: AbilityScores) =>
     updateAbilityScoresAction(characterId, next)
   );
 
   function handleChange(key: keyof AbilityScores, raw: string) {
     const value = parseInt(raw, 10);
-    const next = { ...current, [key]: isNaN(value) ? 10 : value };
-    setCurrent(next);
-    onScoreChange?.(next);
+    const next = { ...scores, [key]: isNaN(value) ? 10 : value };
+    setScores(next);
     scheduleSave(next);
   }
 
@@ -62,14 +53,14 @@ export default function AbilityScoresSection({ characterId, scores, raceType, is
             {isOwner ? (
               <Input
                 type="number"
-                value={current[key]}
+                value={scores[key]}
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="h-7 text-sm text-center"
               />
             ) : (
-              <span className="text-sm text-center">{current[key]}</span>
+              <span className="text-sm text-center">{scores[key]}</span>
             )}
-            <span className="text-sm text-muted-foreground">{formatModifier(current[key])}</span>
+            <span className="text-sm text-muted-foreground">{formatModifier(scores[key])}</span>
           </Fragment>
         ))}
       </div>

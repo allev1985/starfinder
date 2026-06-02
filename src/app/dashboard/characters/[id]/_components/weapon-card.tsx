@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { removeWeaponAction } from "../actions";
 import type { Weapon } from "@/db/schema";
+import { useCharacter } from "./character-context";
 
 const AMMO_TYPE_LABELS: Record<string, string> = {
   battery: "Battery",
@@ -61,18 +62,16 @@ function formatCritical(weapon: Weapon): string {
 
 type Props = {
   weapon: Weapon;
-  characterId: string;
-  isOwner: boolean;
-  onWeaponRemoved: (weaponId: string) => void;
 };
 
-export default function WeaponCard({ weapon, characterId, isOwner, onWeaponRemoved }: Props) {
+export default function WeaponCard({ weapon }: Props) {
+  const { characterId, isOwner, carriedWeapons, setCarriedWeapons } = useCharacter();
   const [, startTransition] = useTransition();
   const [removing, setRemoving] = useState(false);
 
   function handleRemove() {
     setRemoving(true);
-    onWeaponRemoved(weapon.id);
+    setCarriedWeapons(carriedWeapons.filter((w) => w.id !== weapon.id));
     startTransition(() => {
       removeWeaponAction(characterId, weapon.id);
     });
