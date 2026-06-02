@@ -1,30 +1,19 @@
 ## Requirements
 
 ### Requirement: Campaign detail page access control
-The system SHALL only render the campaign detail page for users who are campaign members (DM or player with a character in the campaign). Non-members SHALL be redirected to `/dashboard/campaigns`.
+The campaign detail page SHALL only render for users who are campaign members (DM or player with a character in the campaign). Non-members SHALL be redirected to `/dashboard/campaigns`. This check is enforced by the parent `campaigns/[id]/layout.tsx` and SHALL NOT be duplicated in the page component itself.
 
 #### Scenario: Member accesses campaign page
 - **WHEN** an authenticated campaign member navigates to `/dashboard/campaigns/[id]`
-- **THEN** the campaign detail page is rendered
+- **THEN** the campaign detail page is rendered inside the two-panel layout
 
 #### Scenario: Non-member is redirected
 - **WHEN** an authenticated user who is not a campaign member navigates to `/dashboard/campaigns/[id]`
-- **THEN** they are redirected to `/dashboard/campaigns`
+- **THEN** they are redirected to `/dashboard/campaigns` (handled by the layout)
 
 #### Scenario: Non-existent campaign redirects
 - **WHEN** an authenticated user navigates to `/dashboard/campaigns/[id]` for a campaign that does not exist
-- **THEN** they are redirected to `/dashboard/campaigns`
-
-### Requirement: Campaign detail page roster
-The campaign detail page SHALL display the campaign name and a list of all characters joined to the campaign, each linking to their character detail page.
-
-#### Scenario: Character roster is shown
-- **WHEN** a campaign member views the campaign detail page
-- **THEN** all characters in `campaign_characters` for that campaign are listed by name
-
-#### Scenario: Each character links to their detail page
-- **WHEN** a campaign member clicks a character name
-- **THEN** they are navigated to `/dashboard/campaigns/[id]/characters/[characterId]`
+- **THEN** they are redirected to `/dashboard/campaigns` (handled by the layout)
 
 ### Requirement: Join code visible to DM only
 The campaign join code SHALL be displayed on the campaign detail page only when the viewing user is the DM.
