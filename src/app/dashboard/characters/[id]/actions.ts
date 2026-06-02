@@ -35,6 +35,7 @@ import {
   addCharacterEquipmentForOwner,
   removeCharacterEquipmentForOwner,
   updateCharacterEquipmentQuantityForOwner,
+  updateCharacterEquipmentChargesForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -52,7 +53,7 @@ import {
   addCharacterFeat,
   removeCharacterFeat,
 } from "@/db/queries/characters";
-import type { AbilityScores, HealthResolveValues, SkillEntry } from "@/db/queries/characters";
+import type { AbilityScores, HealthResolveValues, SkillEntry, CharacterEquipmentEntry } from "@/db/queries/characters";
 import type { Feat } from "@/db/schema";
 
 type Result = { success: true } | { success: false; error: string };
@@ -452,12 +453,12 @@ export async function removeWeaponAction(characterId: string, weaponId: string):
   }
 }
 
-export async function addEquipmentAction(characterId: string, equipmentId: string): Promise<Result> {
+export async function addEquipmentAction(characterId: string, equipmentId: string): Promise<Result & { entry?: CharacterEquipmentEntry }> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
   try {
-    await addCharacterEquipmentForOwner(characterId, user.id, equipmentId);
-    return { success: true };
+    const entry = await addCharacterEquipmentForOwner(characterId, user.id, equipmentId);
+    return { success: true, entry };
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to add equipment." };
@@ -485,6 +486,18 @@ export async function updateEquipmentQuantityAction(characterEquipmentId: string
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to update quantity." };
+  }
+}
+
+export async function updateAmmoChargesAction(characterEquipmentId: string, characterId: string, currentCharges: number | null): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateCharacterEquipmentChargesForOwner(characterEquipmentId, user.id, characterId, currentCharges);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to update ammo charges." };
   }
 }
 

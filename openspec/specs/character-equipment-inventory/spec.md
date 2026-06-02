@@ -46,11 +46,15 @@ The system SHALL allow the owner to remove an equipment item from the character'
 - **THEN** no remove control is visible on equipment cards
 
 ### Requirement: Quantity editing for ammunition
-The system SHALL allow the owner to edit the quantity of an ammunition item in inventory. The quantity SHALL be a positive integer. Non-ammunition items SHALL NOT show a quantity control.
+The system SHALL display the unit count (`quantity`) on ammunition inventory cards with a +/− stepper for the owner. The owner SHALL increment or decrement unit count via the stepper buttons. The − button SHALL be disabled when `quantity = 1`. Non-ammunition items SHALL NOT show a unit quantity control. Non-owners SHALL see the unit count as read-only text.
 
-#### Scenario: Owner updates battery quantity
-- **WHEN** the owner changes the quantity field on a battery card to 3
-- **THEN** the `character_equipment` row is updated with quantity 3
+#### Scenario: Owner adjusts unit count via stepper
+- **WHEN** the owner presses + or − on the unit stepper of an ammo card
+- **THEN** `quantity` is updated accordingly and the total charge display reflects the new unit count
+
+#### Scenario: Unit − button disabled at one unit
+- **WHEN** `quantity = 1`
+- **THEN** the − button on the unit stepper is disabled
 
 #### Scenario: Augmentation card shows no quantity control
 - **WHEN** an augmentation item card is rendered

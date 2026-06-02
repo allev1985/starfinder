@@ -274,6 +274,7 @@ export const characterEquipment = pgTable("character_equipment", {
     .notNull()
     .references(() => equipment.id),
   quantity: integer("quantity").notNull().default(1),
+  currentCharges: integer("current_charges"),
 });
 
 export const spells = pgTable("spells", {

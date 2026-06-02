@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { Plus, Trash2, TriangleAlert } from "lucide-react";
+import { Plus, Trash2, TriangleAlert, Minus, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { buttonVariants, Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction } from "../actions";
+import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction, updateAmmoChargesAction } from "../actions";
 import type { Equipment, EquipmentCategory } from "@/db/schema";
 import type { CharacterEquipmentEntry } from "@/db/queries/characters";
 import { useCharacter } from "./character-context";
@@ -66,14 +65,22 @@ type EquipmentCardProps = {
   isOwner: boolean;
   onRemoved: (id: string) => void;
   onQuantityChange: (id: string, quantity: number) => void;
+  onChargesChange: (id: string, currentCharges: number | null) => void;
 };
 
-function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChange }: EquipmentCardProps) {
+function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChange, onChargesChange }: EquipmentCardProps) {
   const [, startTransition] = useTransition();
   const [removing, setRemoving] = useState(false);
   const [quantity, setQuantity] = useState(entry.quantity);
+  const [currentCharges, setCurrentCharges] = useState<number | null>(entry.currentCharges);
   const e = entry.equipment;
   const isAmmo = e.category === "ammunition";
+  const capacity = e.ammoCapacity ?? 0;
+  const activeCharges = currentCharges ?? capacity;
+  const totalCharges = activeCharges + (quantity - 1) * capacity;
+  const totalCapacity = quantity * capacity;
+  const isFull = currentCharges === null || currentCharges >= capacity;
+  const isEmpty = currentCharges !== null && currentCharges <= 0;
 
   function handleRemove() {
     setRemoving(true);
@@ -83,13 +90,40 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
     });
   }
 
-  function handleQuantityChange(raw: string) {
-    const val = parseInt(raw, 10);
-    if (isNaN(val) || val < 1) return;
-    setQuantity(val);
-    onQuantityChange(entry.id, val);
+  function handleDecrement() {
+    const next = currentCharges === null ? capacity - 1 : currentCharges - 1;
+    setCurrentCharges(next);
+    onChargesChange(entry.id, next);
     startTransition(() => {
-      updateEquipmentQuantityAction(entry.id, characterId, val);
+      updateAmmoChargesAction(entry.id, characterId, next);
+    });
+  }
+
+  function handleIncrement() {
+    const next = currentCharges === null ? capacity : currentCharges + 1;
+    const clamped = Math.min(next, capacity);
+    const value = clamped >= capacity ? null : clamped;
+    setCurrentCharges(value);
+    onChargesChange(entry.id, value);
+    startTransition(() => {
+      updateAmmoChargesAction(entry.id, characterId, value);
+    });
+  }
+
+  function handleUnitChange(delta: number) {
+    const newQty = Math.max(1, quantity + delta);
+    setQuantity(newQty);
+    onQuantityChange(entry.id, newQty);
+    startTransition(() => {
+      updateEquipmentQuantityAction(entry.id, characterId, newQty);
+    });
+  }
+
+  function handleReload() {
+    setCurrentCharges(null);
+    onChargesChange(entry.id, null);
+    startTransition(() => {
+      updateAmmoChargesAction(entry.id, characterId, null);
     });
   }
 
@@ -146,26 +180,65 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
 
         <div className="flex flex-wrap gap-x-6 gap-y-1">
           <StatCell label="Bulk" value={e.bulk} />
-          {isAmmo && e.ammoCapacity != null && (
-            <StatCell label="Capacity" value={e.ammoCapacity} />
-          )}
           {isAmmo && e.ammoType && (
             <StatCell label="Type" value={AMMO_TYPE_LABELS[e.ammoType] ?? e.ammoType} />
           )}
           {isAmmo && isOwner && (
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Qty</span>
-              <Input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                className="h-7 w-16 text-sm"
-              />
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Units</span>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="icon" className="h-7 w-7" disabled={quantity <= 1} onClick={() => handleUnitChange(-1)}>
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="w-6 text-center text-sm font-medium tabular-nums">{quantity}</span>
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleUnitChange(1)}>
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
           )}
           {isAmmo && !isOwner && (
-            <StatCell label="Qty" value={quantity} />
+            <StatCell label="Units" value={quantity} />
+          )}
+          {isAmmo && capacity > 0 && isOwner && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Charges</span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={isEmpty}
+                  onClick={handleDecrement}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="w-14 text-center text-sm font-medium tabular-nums">
+                  {totalCharges} / {totalCapacity}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  disabled={isFull}
+                  onClick={handleIncrement}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handleReload}
+                  title="Reload — resets charges to full, uses 1 unit if you have spares"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
+          {isAmmo && capacity > 0 && !isOwner && (
+            <StatCell label="Charges" value={`${totalCharges} / ${totalCapacity}`} />
           )}
         </div>
       </CardContent>
@@ -199,6 +272,10 @@ export default function EquipmentInventory({ allEquipment }: Props) {
     onInventoryChange(inventory.map((e) => e.id === id ? { ...e, quantity } : e));
   }
 
+  function handleChargesChange(id: string, currentCharges: number | null) {
+    onInventoryChange(inventory.map((e) => e.id === id ? { ...e, currentCharges } : e));
+  }
+
   function handleAdd(item: Equipment) {
     setPickerOpen(false);
     const optimisticId = `optimistic-${item.id}-${++optimisticCounter.current}`;
@@ -206,13 +283,16 @@ export default function EquipmentInventory({ allEquipment }: Props) {
       id: optimisticId,
       equipmentId: item.id,
       quantity: 1,
+      currentCharges: null,
       equipment: item,
     };
     onInventoryChange([...inventory, optimistic]);
     startTransition(async () => {
       const result = await addEquipmentAction(characterId, item.id);
-      if (!result.success) {
+      if (!result.success || !result.entry) {
         onInventoryChange(inventory.filter((e) => e.id !== optimisticId));
+      } else {
+        onInventoryChange(inventory.map((e) => e.id === optimisticId ? result.entry! : e));
       }
     });
   }
@@ -242,6 +322,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
                 isOwner={isOwner}
                 onRemoved={handleRemoved}
                 onQuantityChange={handleQuantityChange}
+                onChargesChange={handleChargesChange}
               />
             ))}
           </div>
@@ -260,6 +341,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
                 isOwner={isOwner}
                 onRemoved={handleRemoved}
                 onQuantityChange={handleQuantityChange}
+                onChargesChange={handleChargesChange}
               />
             ))}
           </div>

@@ -40,6 +40,7 @@ import {
   addCharacterEquipment,
   removeCharacterEquipment,
   updateCharacterEquipmentQuantity,
+  updateCharacterEquipmentCharges,
   updateCharacterCredits,
   updateCharacterXpEarned,
   addCharacterLanguage,
@@ -326,6 +327,11 @@ export async function removeCharacterEquipmentForOwner(characterEquipmentId: str
 export async function updateCharacterEquipmentQuantityForOwner(characterEquipmentId: string, userId: string, characterId: string, quantity: number): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateCharacterEquipmentQuantity(characterEquipmentId, quantity);
+}
+
+export async function updateCharacterEquipmentChargesForOwner(characterEquipmentId: string, userId: string, characterId: string, currentCharges: number | null): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterEquipmentCharges(characterEquipmentId, currentCharges);
 }
 
 export async function addCharacterSpellForOwner(
