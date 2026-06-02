@@ -65,6 +65,8 @@ export const armor = pgTable("armor", {
   bulk: text("bulk").notNull(),
   upgradeSlots: integer("upgrade_slots").notNull().default(0),
   sourceBook: text("source_book").notNull().default("crb"),
+  dr: text("dr"),
+  resistances: text("resistances"),
 });
 
 export const skills = pgTable("skills", {
@@ -158,6 +160,9 @@ export const characters = pgTable("characters", {
   intScore: integer("int_score").notNull().default(10),
   wisScore: integer("wis_score").notNull().default(10),
   chaScore: integer("cha_score").notNull().default(10),
+  credits: integer("credits").notNull().default(0),
+  xpEarned: integer("xp_earned").notNull().default(0),
+  languages: text("languages").array().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

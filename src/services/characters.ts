@@ -40,6 +40,10 @@ import {
   addCharacterEquipment,
   removeCharacterEquipment,
   updateCharacterEquipmentQuantity,
+  updateCharacterCredits,
+  updateCharacterXpEarned,
+  addCharacterLanguage,
+  removeCharacterLanguage,
   type AbilityScores,
   type HealthResolveValues,
   type SkillEntry,
@@ -343,6 +347,26 @@ export async function removeCharacterSpellForOwner(
   await removeCharacterSpell(characterId, spellId);
 }
 
+
+export async function updateCreditsForOwner(characterId: string, userId: string, credits: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterCredits(characterId, credits);
+}
+
+export async function updateXpEarnedForOwner(characterId: string, userId: string, xpEarned: number): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await updateCharacterXpEarned(characterId, xpEarned);
+}
+
+export async function addLanguageForOwner(characterId: string, userId: string, language: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await addCharacterLanguage(characterId, language);
+}
+
+export async function removeLanguageForOwner(characterId: string, userId: string, language: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await removeCharacterLanguage(characterId, language);
+}
 
 export async function joinCampaignForOwner(
   characterId: string,

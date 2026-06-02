@@ -184,6 +184,9 @@ export default async function CharacterDetailPage({
         mechanicName={character.mechanicName}
         mechanicIntScore={character.mechanicIntScore}
         pickerOptions={mechanicPickerOptions}
+        initialCredits={character.credits}
+        initialXpEarned={character.xpEarned}
+        initialLanguages={character.languages}
       />
 
     </div>

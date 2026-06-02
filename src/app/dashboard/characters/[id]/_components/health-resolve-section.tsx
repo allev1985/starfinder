@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { updateHealthResolveAction } from "../actions";
 import type { HealthResolveValues } from "@/db/queries/characters";
@@ -11,7 +11,9 @@ type Props = {
   characterId: string;
   isOwner: boolean;
   raceType: RaceType | null;
-} & HealthResolveValues;
+  values: HealthResolveValues;
+  onValuesChange: (next: HealthResolveValues) => void;
+};
 
 const BIOLOGICAL_ROWS: { label: string; totalKey: keyof HealthResolveValues; currentKey: keyof HealthResolveValues }[] = [
   { label: "Stamina Points", totalKey: "staminaPointsTotal", currentKey: "staminaPointsCurrent" },
@@ -27,24 +29,11 @@ export default function HealthResolveSection({
   characterId,
   isOwner,
   raceType,
-  staminaPointsTotal,
-  staminaPointsCurrent,
-  hitPointsTotal,
-  hitPointsCurrent,
-  resolvePointsTotal,
-  resolvePointsCurrent,
+  values,
+  onValuesChange,
 }: Props) {
   const isDrone = raceType === "drone";
   const rows = isDrone ? DRONE_ROWS : BIOLOGICAL_ROWS;
-
-  const [values, setValues] = useState<HealthResolveValues>({
-    staminaPointsTotal,
-    staminaPointsCurrent,
-    hitPointsTotal,
-    hitPointsCurrent,
-    resolvePointsTotal,
-    resolvePointsCurrent,
-  });
 
   const scheduleSave = useDebouncedSave((next: HealthResolveValues) =>
     updateHealthResolveAction(characterId, next)
@@ -60,7 +49,7 @@ export default function HealthResolveSection({
       if (key === currentKey) next[currentKey] = Math.min(clamped, next[totalKey]);
     }
 
-    setValues(next);
+    onValuesChange(next);
     scheduleSave(next);
   }
 

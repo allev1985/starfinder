@@ -109,7 +109,7 @@ export async function deleteCharacter(id: string): Promise<void> {
   await db.delete(characters).where(eq(characters.id, id));
 }
 
-export type CharacterWithMeta = Omit<Character, "equippedArmorId"> & {
+export type CharacterWithMeta = Character & {
   raceName: string | null;
   raceType: import("@/db/schema").RaceType | null;
   className: string | null;
@@ -148,6 +148,9 @@ export async function getCharacterWithCampaigns(
       intScore: characters.intScore,
       wisScore: characters.wisScore,
       chaScore: characters.chaScore,
+      credits: characters.credits,
+      xpEarned: characters.xpEarned,
+      languages: characters.languages,
       createdAt: characters.createdAt,
       raceName: races.name,
       raceType: races.type,
@@ -189,6 +192,9 @@ export async function getCharacterWithCampaigns(
     intScore: row.intScore,
     wisScore: row.wisScore,
     chaScore: row.chaScore,
+    credits: row.credits,
+    xpEarned: row.xpEarned,
+    languages: row.languages,
     createdAt: row.createdAt,
     raceName: row.raceName ?? null,
     raceType: row.raceType ?? null,
@@ -677,4 +683,41 @@ export async function removeCharacterFeat(id: string, characterId: string): Prom
   await db
     .delete(characterFeats)
     .where(and(eq(characterFeats.id, id), eq(characterFeats.characterId, characterId)));
+}
+
+export type CharacterMiscFields = {
+  credits: number;
+  xpEarned: number;
+  languages: string[];
+};
+
+export async function getCharacterMiscFields(characterId: string): Promise<CharacterMiscFields | null> {
+  const [row] = await db
+    .select({ credits: characters.credits, xpEarned: characters.xpEarned, languages: characters.languages })
+    .from(characters)
+    .where(eq(characters.id, characterId))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function updateCharacterCredits(characterId: string, credits: number): Promise<void> {
+  await db.update(characters).set({ credits }).where(eq(characters.id, characterId));
+}
+
+export async function updateCharacterXpEarned(characterId: string, xpEarned: number): Promise<void> {
+  await db.update(characters).set({ xpEarned }).where(eq(characters.id, characterId));
+}
+
+export async function addCharacterLanguage(characterId: string, language: string): Promise<void> {
+  const row = await getCharacterMiscFields(characterId);
+  if (!row) return;
+  const updated = [...row.languages, language];
+  await db.update(characters).set({ languages: updated }).where(eq(characters.id, characterId));
+}
+
+export async function removeCharacterLanguage(characterId: string, language: string): Promise<void> {
+  const row = await getCharacterMiscFields(characterId);
+  if (!row) return;
+  const updated = row.languages.filter((l) => l !== language);
+  await db.update(characters).set({ languages: updated }).where(eq(characters.id, characterId));
 }

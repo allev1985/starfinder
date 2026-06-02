@@ -25,7 +25,8 @@ import type { Feat } from "@/db/schema";
 
 type Props = {
   characterId: string;
-  initialFeats: CharacterFeatWithName[];
+  feats: CharacterFeatWithName[];
+  onFeatsChange: (feats: CharacterFeatWithName[]) => void;
   isOwner: boolean;
 };
 
@@ -227,15 +228,13 @@ function AddFeatDialog({
   );
 }
 
-export default function FeatsSection({ characterId, initialFeats, isOwner }: Props) {
-  const [feats, setFeats] = useState(initialFeats);
-
+export default function FeatsSection({ characterId, feats, onFeatsChange, isOwner }: Props) {
   function handleAdd(feat: CharacterFeatWithName) {
-    setFeats((prev) => [...prev, feat]);
+    onFeatsChange([...feats, feat]);
   }
 
   function handleRemove(id: string) {
-    setFeats((prev) => prev.filter((f) => f.id !== id));
+    onFeatsChange(feats.filter((f) => f.id !== id));
   }
 
   return (

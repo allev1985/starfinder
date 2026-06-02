@@ -130,13 +130,13 @@ function ArmorCard({ entry, characterId, isOwner, onWornToggle, onRemoved }: Arm
 type Props = {
   characterId: string;
   isOwner: boolean;
-  initialCharacterArmor: CharacterArmorEntry[];
+  inventory: CharacterArmorEntry[];
+  onInventoryChange: (inventory: CharacterArmorEntry[]) => void;
   availableArmor: Armor[];
   onWornArmorChange: (armor: Armor | null) => void;
 };
 
-export default function ArmorInventory({ characterId, isOwner, initialCharacterArmor, availableArmor, onWornArmorChange }: Props) {
-  const [inventory, setInventory] = useState<CharacterArmorEntry[]>(initialCharacterArmor);
+export default function ArmorInventory({ characterId, isOwner, inventory, onInventoryChange, availableArmor, onWornArmorChange }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [, startTransition] = useTransition();
   const optimisticCounter = useRef(0);
@@ -145,14 +145,14 @@ export default function ArmorInventory({ characterId, isOwner, initialCharacterA
     const updated = inventory.map((e) =>
       e.id === id ? { ...e, worn } : worn ? { ...e, worn: false } : e
     );
-    setInventory(updated);
+    onInventoryChange(updated);
     const wornEntry = updated.find((e) => e.worn);
     onWornArmorChange(wornEntry?.armor ?? null);
   }
 
   function handleRemoved(id: string) {
     const updated = inventory.filter((e) => e.id !== id);
-    setInventory(updated);
+    onInventoryChange(updated);
     const wornEntry = updated.find((e) => e.worn);
     onWornArmorChange(wornEntry?.armor ?? null);
   }
@@ -166,11 +166,11 @@ export default function ArmorInventory({ characterId, isOwner, initialCharacterA
       worn: false,
       armor: armorItem,
     };
-    setInventory((prev) => [...prev, optimistic]);
+    onInventoryChange([...inventory, optimistic]);
     startTransition(async () => {
       const result = await addArmorAction(characterId, armorItem.id);
       if (!result.success) {
-        setInventory((prev) => prev.filter((e) => e.id !== optimisticId));
+        onInventoryChange(inventory.filter((e) => e.id !== optimisticId));
       }
     });
   }

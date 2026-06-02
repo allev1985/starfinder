@@ -178,11 +178,11 @@ type Props = {
   characterId: string;
   isOwner: boolean;
   allEquipment: Equipment[];
-  initialCharacterEquipment: CharacterEquipmentEntry[];
+  inventory: CharacterEquipmentEntry[];
+  onInventoryChange: (inventory: CharacterEquipmentEntry[]) => void;
 };
 
-export default function EquipmentInventory({ characterId, isOwner, allEquipment, initialCharacterEquipment }: Props) {
-  const [inventory, setInventory] = useState<CharacterEquipmentEntry[]>(initialCharacterEquipment);
+export default function EquipmentInventory({ characterId, isOwner, allEquipment, inventory, onInventoryChange }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerFilter, setPickerFilter] = useState<FilterTab>("all");
   const [, startTransition] = useTransition();
@@ -194,11 +194,11 @@ export default function EquipmentInventory({ characterId, isOwner, allEquipment,
   const ammunition = inventory.filter((e) => e.equipment.category === "ammunition");
 
   function handleRemoved(id: string) {
-    setInventory((prev) => prev.filter((e) => e.id !== id));
+    onInventoryChange(inventory.filter((e) => e.id !== id));
   }
 
   function handleQuantityChange(id: string, quantity: number) {
-    setInventory((prev) => prev.map((e) => e.id === id ? { ...e, quantity } : e));
+    onInventoryChange(inventory.map((e) => e.id === id ? { ...e, quantity } : e));
   }
 
   function handleAdd(item: Equipment) {
@@ -210,11 +210,11 @@ export default function EquipmentInventory({ characterId, isOwner, allEquipment,
       quantity: 1,
       equipment: item,
     };
-    setInventory((prev) => [...prev, optimistic]);
+    onInventoryChange([...inventory, optimistic]);
     startTransition(async () => {
       const result = await addEquipmentAction(characterId, item.id);
       if (!result.success) {
-        setInventory((prev) => prev.filter((e) => e.id !== optimisticId));
+        onInventoryChange(inventory.filter((e) => e.id !== optimisticId));
       }
     });
   }

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
@@ -21,15 +20,9 @@ import {
 } from "../actions";
 import type { Armor } from "@/db/schema";
 
-type Props = {
-  characterId: string;
-  strScore: number;
-  dexScore: number;
-  conScore: number;
-  wisScore: number;
+export type CombatMods = {
   initiativeMiscMod: number;
   baseAttackBonus: number;
-  equippedArmor: Armor | null;
   eacMiscMod: number;
   kacMiscMod: number;
   fortBaseSave: number;
@@ -41,6 +34,19 @@ type Props = {
   meleeAttackMiscMod: number;
   rangedAttackMiscMod: number;
   thrownAttackMiscMod: number;
+};
+
+type Props = {
+  characterId: string;
+  strScore: number;
+  dexScore: number;
+  conScore: number;
+  wisScore: number;
+  mods: CombatMods;
+  onModsChange: (next: CombatMods) => void;
+  equippedArmor: Armor | null;
+  equippedArmorDr: string | null;
+  equippedArmorResistances: string | null;
   isOwner: boolean;
 };
 
@@ -73,36 +79,13 @@ export default function CombatStatsSection({
   dexScore,
   conScore,
   wisScore,
-  initiativeMiscMod,
-  baseAttackBonus,
+  mods,
+  onModsChange,
   equippedArmor,
-  eacMiscMod,
-  kacMiscMod,
-  fortBaseSave,
-  fortMiscMod,
-  refBaseSave,
-  refMiscMod,
-  willBaseSave,
-  willMiscMod,
-  meleeAttackMiscMod,
-  rangedAttackMiscMod,
-  thrownAttackMiscMod,
+  equippedArmorDr,
+  equippedArmorResistances,
   isOwner,
 }: Props) {
-  const [miscMod, setMiscMod] = useState(initiativeMiscMod);
-  const [bab, setBab] = useState(baseAttackBonus);
-  const [eacMisc, setEacMisc] = useState(eacMiscMod);
-  const [kacMisc, setKacMisc] = useState(kacMiscMod);
-  const [fortBase, setFortBase] = useState(fortBaseSave);
-  const [fortMisc, setFortMisc] = useState(fortMiscMod);
-  const [refBase, setRefBase] = useState(refBaseSave);
-  const [refMisc, setRefMisc] = useState(refMiscMod);
-  const [willBase, setWillBase] = useState(willBaseSave);
-  const [willMisc, setWillMisc] = useState(willMiscMod);
-  const [meleeMisc, setMeleeMisc] = useState(meleeAttackMiscMod);
-  const [rangedMisc, setRangedMisc] = useState(rangedAttackMiscMod);
-  const [thrownMisc, setThrownMisc] = useState(thrownAttackMiscMod);
-
   const scheduleMiscModSave = useDebouncedSave((v: number) => updateInitiativeMiscModAction(characterId, v));
   const scheduleBabSave = useDebouncedSave((v: number) => updateBaseAttackBonusAction(characterId, v));
   const scheduleEacMiscSave = useDebouncedSave((v: number) => updateEacMiscModAction(characterId, v));
@@ -116,6 +99,15 @@ export default function CombatStatsSection({
   const scheduleMeleeMiscSave = useDebouncedSave((v: number) => updateMeleeAttackMiscModAction(characterId, v));
   const scheduleRangedMiscSave = useDebouncedSave((v: number) => updateRangedAttackMiscModAction(characterId, v));
   const scheduleThrownMiscSave = useDebouncedSave((v: number) => updateThrownAttackMiscModAction(characterId, v));
+
+  function set(key: keyof CombatMods, value: number) {
+    onModsChange({ ...mods, [key]: value });
+  }
+
+  const { initiativeMiscMod: miscMod, baseAttackBonus: bab, eacMiscMod: eacMisc, kacMiscMod: kacMisc,
+          fortBaseSave: fortBase, fortMiscMod: fortMisc, refBaseSave: refBase, refMiscMod: refMisc,
+          willBaseSave: willBase, willMiscMod: willMisc, meleeAttackMiscMod: meleeMisc,
+          rangedAttackMiscMod: rangedMisc, thrownAttackMiscMod: thrownMisc } = mods;
 
   const strMod = modifier(strScore);
   const dexMod = modifier(dexScore);
@@ -177,7 +169,7 @@ export default function CombatStatsSection({
           <Op>=</Op>
           <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
           <Op>+</Op>
-          {editableCell("Misc Mod", miscMod, (v) => { setMiscMod(v); scheduleMiscModSave(v); })}
+          {editableCell("Misc Mod", miscMod, (v) => { set("initiativeMiscMod", v); scheduleMiscModSave(v); })}
         </div>
       </section>
 
@@ -197,7 +189,7 @@ export default function CombatStatsSection({
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(effectiveDex)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", eacMisc, (v) => { setEacMisc(v); scheduleEacMiscSave(v); })}
+            {editableCell("Misc Mod", eacMisc, (v) => { set("eacMiscMod", v); scheduleEacMiscSave(v); })}
           </div>
         </div>
         <div className="mb-3">
@@ -211,7 +203,7 @@ export default function CombatStatsSection({
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(effectiveDex)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", kacMisc, (v) => { setKacMisc(v); scheduleKacMiscSave(v); })}
+            {editableCell("Misc Mod", kacMisc, (v) => { set("kacMiscMod", v); scheduleKacMiscSave(v); })}
           </div>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -220,6 +212,16 @@ export default function CombatStatsSection({
           <Cell label="8">8</Cell>
           <Op>+</Op>
           <Cell label="KAC">{kacTotal}</Cell>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-6">
+          <div className="flex flex-col gap-0.5">
+            <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">DR</span>
+            <span className="text-sm font-medium">{equippedArmorDr || "—"}</span>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">Resistances</span>
+            <span className="text-sm font-medium">{equippedArmorResistances || "—"}</span>
+          </div>
         </div>
       </section>
 
@@ -233,11 +235,11 @@ export default function CombatStatsSection({
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(fortTotal)}</Cell>
             <Op>=</Op>
-            {editableCell("Base Save", fortBase, (v) => { setFortBase(v); scheduleFortBaseSave(v); })}
+            {editableCell("Base Save", fortBase, (v) => { set("fortBaseSave", v); scheduleFortBaseSave(v); })}
             <Op>+</Op>
             <Cell label="CON Mod">{formatModifier(conMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", fortMisc, (v) => { setFortMisc(v); scheduleFortMiscSave(v); })}
+            {editableCell("Misc Mod", fortMisc, (v) => { set("fortMiscMod", v); scheduleFortMiscSave(v); })}
           </div>
         </div>
         <div className="mb-3">
@@ -245,11 +247,11 @@ export default function CombatStatsSection({
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(refTotal)}</Cell>
             <Op>=</Op>
-            {editableCell("Base Save", refBase, (v) => { setRefBase(v); scheduleRefBaseSave(v); })}
+            {editableCell("Base Save", refBase, (v) => { set("refBaseSave", v); scheduleRefBaseSave(v); })}
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", refMisc, (v) => { setRefMisc(v); scheduleRefMiscSave(v); })}
+            {editableCell("Misc Mod", refMisc, (v) => { set("refMiscMod", v); scheduleRefMiscSave(v); })}
           </div>
         </div>
         <div>
@@ -257,11 +259,11 @@ export default function CombatStatsSection({
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(willTotal)}</Cell>
             <Op>=</Op>
-            {editableCell("Base Save", willBase, (v) => { setWillBase(v); scheduleWillBaseSave(v); })}
+            {editableCell("Base Save", willBase, (v) => { set("willBaseSave", v); scheduleWillBaseSave(v); })}
             <Op>+</Op>
             <Cell label="WIS Mod">{formatModifier(wisMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", willMisc, (v) => { setWillMisc(v); scheduleWillMiscSave(v); })}
+            {editableCell("Misc Mod", willMisc, (v) => { set("willMiscMod", v); scheduleWillMiscSave(v); })}
           </div>
         </div>
       </section>
@@ -283,7 +285,7 @@ export default function CombatStatsSection({
                 <Input
                   type="number"
                   value={bab}
-                  onChange={(e) => { const v = parseInput(e.target.value); setBab(v); scheduleBabSave(v); }}
+                  onChange={(e) => { const v = parseInput(e.target.value); set("baseAttackBonus", v); scheduleBabSave(v); }}
                   className="h-9 w-16 text-center text-sm"
                 />
               </div>
@@ -299,7 +301,7 @@ export default function CombatStatsSection({
             <Op>+</Op>
             <Cell label="STR Mod">{formatModifier(strMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", meleeMisc, (v) => { setMeleeMisc(v); scheduleMeleeMiscSave(v); })}
+            {editableCell("Misc Mod", meleeMisc, (v) => { set("meleeAttackMiscMod", v); scheduleMeleeMiscSave(v); })}
           </div>
         </div>
         <div className="mb-3">
@@ -311,7 +313,7 @@ export default function CombatStatsSection({
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", rangedMisc, (v) => { setRangedMisc(v); scheduleRangedMiscSave(v); })}
+            {editableCell("Misc Mod", rangedMisc, (v) => { set("rangedAttackMiscMod", v); scheduleRangedMiscSave(v); })}
           </div>
         </div>
         <div>
@@ -323,7 +325,7 @@ export default function CombatStatsSection({
             <Op>+</Op>
             <Cell label="STR Mod">{formatModifier(strMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", thrownMisc, (v) => { setThrownMisc(v); scheduleThrownMiscSave(v); })}
+            {editableCell("Misc Mod", thrownMisc, (v) => { set("thrownAttackMiscMod", v); scheduleThrownMiscSave(v); })}
           </div>
         </div>
       </section>

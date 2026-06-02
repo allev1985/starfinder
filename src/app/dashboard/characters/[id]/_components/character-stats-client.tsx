@@ -17,9 +17,12 @@ import FeatsSection from "./feats-section";
 import SpellsSection from "./spells-section";
 import DescriptionSection from "./description-section";
 import MechanicPanel from "./mechanic-panel";
-import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry } from "@/db/queries/characters";
+import CreditsXpSection from "./credits-xp-section";
+import LanguagesSection from "./languages-section";
+import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
 import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription } from "@/db/schema";
+import type { CombatMods } from "./combat-stats-section";
 
 type CharacterSpellWithSpell = CharacterSpell & { spell: Spell };
 
@@ -78,6 +81,9 @@ type Props = {
   mechanicName: string | null;
   mechanicIntScore: number | null;
   pickerOptions: MechanicPickerEntry[];
+  initialCredits: number;
+  initialXpEarned: number;
+  initialLanguages: string[];
 };
 
 export default function CharacterStatsClient({
@@ -135,11 +141,43 @@ export default function CharacterStatsClient({
   mechanicName,
   mechanicIntScore,
   pickerOptions,
+  initialCredits,
+  initialXpEarned,
+  initialLanguages,
 }: Props) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
   const [level, setLevel] = useState(initialLevel);
   const [currentArmor, setCurrentArmor] = useState<Armor | null>(initialEquippedArmor);
+  const [armorInventory, setArmorInventory] = useState(initialCharacterArmor);
+  const [equipmentInventory, setEquipmentInventory] = useState(initialCharacterEquipment);
   const [carriedWeapons, setCarriedWeapons] = useState<Weapon[]>(initialCarriedWeapons);
+  const [feats, setFeats] = useState<CharacterFeatWithName[]>(initialFeats);
+  const [credits, setCredits] = useState(initialCredits);
+  const [xpEarned, setXpEarned] = useState(initialXpEarned);
+  const [languages, setLanguages] = useState<string[]>(initialLanguages);
+  const [healthValues, setHealthValues] = useState<HealthResolveValues>({
+    staminaPointsTotal,
+    staminaPointsCurrent,
+    hitPointsTotal,
+    hitPointsCurrent,
+    resolvePointsTotal,
+    resolvePointsCurrent,
+  });
+  const [combatMods, setCombatMods] = useState<CombatMods>({
+    initiativeMiscMod,
+    baseAttackBonus,
+    eacMiscMod,
+    kacMiscMod,
+    fortBaseSave,
+    fortMiscMod,
+    refBaseSave,
+    refMiscMod,
+    willBaseSave,
+    willMiscMod,
+    meleeAttackMiscMod,
+    rangedAttackMiscMod,
+    thrownAttackMiscMod,
+  });
 
   function handleWeaponAdded(weapon: Weapon) {
     setCarriedWeapons((prev) => [...prev, weapon]);
@@ -221,12 +259,8 @@ export default function CharacterStatsClient({
                 characterId={characterId}
                 isOwner={isOwner}
                 raceType={raceType}
-                staminaPointsTotal={staminaPointsTotal}
-                staminaPointsCurrent={staminaPointsCurrent}
-                hitPointsTotal={hitPointsTotal}
-                hitPointsCurrent={hitPointsCurrent}
-                resolvePointsTotal={resolvePointsTotal}
-                resolvePointsCurrent={resolvePointsCurrent}
+                values={healthValues}
+                onValuesChange={setHealthValues}
               />
               <CombatStatsSection
                 characterId={characterId}
@@ -234,20 +268,11 @@ export default function CharacterStatsClient({
                 dexScore={scores.dexScore}
                 conScore={scores.conScore}
                 wisScore={scores.wisScore}
-                initiativeMiscMod={initiativeMiscMod}
-                baseAttackBonus={baseAttackBonus}
+                mods={combatMods}
+                onModsChange={setCombatMods}
                 equippedArmor={currentArmor}
-                eacMiscMod={eacMiscMod}
-                kacMiscMod={kacMiscMod}
-                fortBaseSave={fortBaseSave}
-                fortMiscMod={fortMiscMod}
-                refBaseSave={refBaseSave}
-                refMiscMod={refMiscMod}
-                willBaseSave={willBaseSave}
-                willMiscMod={willMiscMod}
-                meleeAttackMiscMod={meleeAttackMiscMod}
-                rangedAttackMiscMod={rangedAttackMiscMod}
-                thrownAttackMiscMod={thrownAttackMiscMod}
+                equippedArmorDr={currentArmor?.dr ?? null}
+                equippedArmorResistances={currentArmor?.resistances ?? null}
                 isOwner={isOwner}
               />
               <section className="mb-8">
@@ -304,15 +329,31 @@ export default function CharacterStatsClient({
               )}
               <FeatsSection
                 characterId={characterId}
-                initialFeats={initialFeats}
+                feats={feats}
+                onFeatsChange={setFeats}
+                isOwner={isOwner}
+              />
+              <LanguagesSection
+                characterId={characterId}
+                languages={languages}
+                onLanguagesChange={setLanguages}
                 isOwner={isOwner}
               />
             </div>
             <div>
+              <CreditsXpSection
+                characterId={characterId}
+                credits={credits}
+                xpEarned={xpEarned}
+                onCreditsChange={setCredits}
+                onXpChange={setXpEarned}
+                isOwner={isOwner}
+              />
               <ArmorInventory
                 characterId={characterId}
                 isOwner={isOwner}
-                initialCharacterArmor={initialCharacterArmor}
+                inventory={armorInventory}
+                onInventoryChange={setArmorInventory}
                 availableArmor={availableArmor}
                 onWornArmorChange={setCurrentArmor}
               />
@@ -320,7 +361,8 @@ export default function CharacterStatsClient({
                 characterId={characterId}
                 isOwner={isOwner}
                 allEquipment={allEquipment}
-                initialCharacterEquipment={initialCharacterEquipment}
+                inventory={equipmentInventory}
+                onInventoryChange={setEquipmentInventory}
               />
             </div>
           </div>

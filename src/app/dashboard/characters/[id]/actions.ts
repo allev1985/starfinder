@@ -40,6 +40,10 @@ import {
   AlreadyInCampaignError,
   addCharacterSpellForOwner,
   removeCharacterSpellForOwner,
+  updateCreditsForOwner,
+  updateXpEarnedForOwner,
+  addLanguageForOwner,
+  removeLanguageForOwner,
 } from "@/services/characters";
 import { getSpellsKnownLimits } from "@/db/queries/spells";
 import { searchFeats } from "@/db/queries/reference";
@@ -597,5 +601,53 @@ export async function removeFeatAction(characterId: string, id: string): Promise
 
 export async function searchFeatsAction(query: string): Promise<Feat[]> {
   return searchFeats(query);
+}
+
+export async function updateCreditsAction(characterId: string, credits: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateCreditsForOwner(characterId, user.id, credits);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save credits." };
+  }
+}
+
+export async function updateXpAction(characterId: string, xpEarned: number): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await updateXpEarnedForOwner(characterId, user.id, xpEarned);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to save XP." };
+  }
+}
+
+export async function addLanguageAction(characterId: string, language: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await addLanguageForOwner(characterId, user.id, language);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to add language." };
+  }
+}
+
+export async function removeLanguageAction(characterId: string, language: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await removeLanguageForOwner(characterId, user.id, language);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to remove language." };
+  }
 }
 
