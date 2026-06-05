@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { campaigns, characters, campaignCharacters, type NewCampaign, type Campaign, type Character } from "@/db/schema";
+import { campaigns, characters, campaignCharacters, spaceships, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship } from "@/db/schema";
 
 export async function createCampaign(data: NewCampaign): Promise<Campaign> {
   const [campaign] = await db.insert(campaigns).values(data).returning();
@@ -118,4 +118,33 @@ export async function checkHasCharacterOwnerInCampaign(
     )
     .limit(1);
   return !!row;
+}
+
+export async function createSpaceship(data: NewSpaceship): Promise<Spaceship> {
+  const [ship] = await db.insert(spaceships).values(data).returning();
+  return ship;
+}
+
+export async function getSpaceshipByCampaign(campaignId: string): Promise<Spaceship | null> {
+  const [ship] = await db
+    .select()
+    .from(spaceships)
+    .where(eq(spaceships.campaignId, campaignId));
+  return ship ?? null;
+}
+
+export async function updateSpaceship(
+  spaceshipId: string,
+  data: Partial<Pick<Spaceship, "name" | "makeAndModel" | "speed" | "size" | "frame" | "driftRating">>
+): Promise<Spaceship> {
+  const [ship] = await db
+    .update(spaceships)
+    .set(data)
+    .where(eq(spaceships.id, spaceshipId))
+    .returning();
+  return ship;
+}
+
+export async function deleteSpaceship(spaceshipId: string): Promise<void> {
+  await db.delete(spaceships).where(eq(spaceships.id, spaceshipId));
 }

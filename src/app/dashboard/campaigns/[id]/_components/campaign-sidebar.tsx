@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Character } from "@/db/schema";
+import type { Character, Spaceship } from "@/db/schema";
 
 type Props = {
   campaignId: string;
@@ -10,6 +10,7 @@ type Props = {
   isDm: boolean;
   joinCode: string;
   characters: Character[];
+  spaceship: Spaceship | null;
 };
 
 export default function CampaignSidebar({
@@ -18,6 +19,7 @@ export default function CampaignSidebar({
   isDm,
   joinCode,
   characters,
+  spaceship,
 }: Props) {
   const pathname = usePathname();
 
@@ -65,6 +67,26 @@ export default function CampaignSidebar({
             })}
           </ul>
         )}
+
+        <p className="mt-4 mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Spaceship
+        </p>
+        {(() => {
+          const href = `/dashboard/campaigns/${campaignId}/spaceship`;
+          const isActive = pathname === href;
+          return (
+            <Link
+              href={href}
+              className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
+                isActive
+                  ? "bg-accent font-medium text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+              }`}
+            >
+              {spaceship ? spaceship.name : "Create spaceship"}
+            </Link>
+          );
+        })()}
       </nav>
     </aside>
   );

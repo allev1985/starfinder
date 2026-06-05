@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { isCampaignParticipant } from "@/lib/authorization";
-import { getCampaignWithCharacters } from "@/db/queries/campaigns";
+import { getCampaignWithCharacters, getSpaceshipByCampaign } from "@/db/queries/campaigns";
 import CampaignSidebar from "./_components/campaign-sidebar";
 
 export default async function CampaignLayout({
@@ -18,7 +18,10 @@ export default async function CampaignLayout({
   const allowed = await isCampaignParticipant(id, user.id);
   if (!allowed) redirect("/dashboard/campaigns");
 
-  const { campaign, characters } = await getCampaignWithCharacters(id);
+  const [{ campaign, characters }, spaceship] = await Promise.all([
+    getCampaignWithCharacters(id),
+    getSpaceshipByCampaign(id),
+  ]);
   if (!campaign) redirect("/dashboard/campaigns");
 
   const isDm = campaign.dmId === user.id;
@@ -31,6 +34,7 @@ export default async function CampaignLayout({
         isDm={isDm}
         joinCode={campaign.joinCode}
         characters={characters}
+        spaceship={spaceship}
       />
       <div className="flex-1 overflow-auto">{children}</div>
     </div>

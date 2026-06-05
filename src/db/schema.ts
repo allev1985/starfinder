@@ -180,6 +180,21 @@ export const campaignCharacters = pgTable(
   (t) => [primaryKey({ columns: [t.campaignId, t.characterId] })]
 );
 
+export const spaceships = pgTable("spaceships", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .unique()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  makeAndModel: text("make_and_model"),
+  speed: text("speed"),
+  size: text("size"),
+  frame: text("frame"),
+  driftRating: integer("drift_rating").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const characterCombatStats = pgTable("character_combat_stats", {
   characterId: uuid("character_id").primaryKey().references(() => characters.id, { onDelete: "cascade" }),
   initiativeMiscMod: integer("initiative_misc_mod").notNull().default(0),
@@ -441,3 +456,5 @@ export type CharacterClassChoice = typeof characterClassChoices.$inferSelect;
 export type NewCharacterClassChoice = typeof characterClassChoices.$inferInsert;
 export type CharacterFeat = typeof characterFeats.$inferSelect;
 export type NewCharacterFeat = typeof characterFeats.$inferInsert;
+export type Spaceship = typeof spaceships.$inferSelect;
+export type NewSpaceship = typeof spaceships.$inferInsert;

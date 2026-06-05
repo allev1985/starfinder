@@ -139,3 +139,33 @@ The system SHALL provide `src/db/queries/characters.ts` with typed Drizzle query
 #### Scenario: joinCampaign inserts campaign_characters row
 - **WHEN** `joinCampaign(campaignId, characterId)` is called
 - **THEN** a new `campaign_characters` row is inserted
+
+### Requirement: Spaceships table
+The system SHALL define a `spaceships` table with columns: `id` (uuid PK, default `gen_random_uuid()`), `campaign_id` (uuid, not null, unique, FK → campaigns.id), `frame_tier` (integer, not null), `speed` (integer, not null), `maneuverability` (text, not null), `hull_points` (integer, not null), `shield_fore` (integer, not null, default 0), `shield_aft` (integer, not null, default 0), `shield_port` (integer, not null, default 0), `shield_starboard` (integer, not null, default 0), `power_core_pcu` (integer, not null), `drift_engine_rating` (integer, not null, default 0), `expansion_bays` (jsonb, not null, default `'[]'`), `crew` (jsonb, not null, default `'{}'`), `created_at` (timestamptz, default now()). The `campaign_id` column SHALL have a unique constraint ensuring at most one spaceship per campaign.
+
+#### Scenario: Spaceship row is created
+- **WHEN** a valid spaceship insert is executed
+- **THEN** a row exists in `spaceships` linked to the campaign with all required fields populated and a generated uuid
+
+#### Scenario: Second spaceship for same campaign is rejected
+- **WHEN** an insert is attempted with a `campaign_id` that already has a spaceship row
+- **THEN** the database rejects the insert with a unique constraint violation
+
+### Requirement: Spaceship query functions
+The system SHALL provide spaceship query functions in `src/db/queries/spaceships.ts`. No business logic SHALL exist in query files.
+
+#### Scenario: getSpaceshipByCampaign returns the spaceship for a campaign
+- **WHEN** `getSpaceshipByCampaign(campaignId)` is called with a valid campaign id
+- **THEN** the matching spaceship row is returned, or null if none exists
+
+#### Scenario: createSpaceship inserts a row
+- **WHEN** `createSpaceship(data)` is called with valid spaceship data
+- **THEN** a new spaceship row is inserted and returned
+
+#### Scenario: updateSpaceship updates fields
+- **WHEN** `updateSpaceship(spaceshipId, data)` is called with a partial update
+- **THEN** the specified fields are updated and the updated row is returned
+
+#### Scenario: deleteSpaceship removes the row
+- **WHEN** `deleteSpaceship(spaceshipId)` is called
+- **THEN** the spaceship row is deleted

@@ -32,3 +32,18 @@ The two-panel layout SHALL verify that the authenticated user is a campaign part
 #### Scenario: Unauthenticated user is redirected
 - **WHEN** an unauthenticated user navigates to any route under `/dashboard/campaigns/[id]/`
 - **THEN** they are redirected to `/`
+
+### Requirement: Sidebar shows Spaceship section
+The campaign sidebar SHALL include a Spaceship navigation entry below the character list. The entry SHALL link to the campaign spaceship route and SHALL be visually distinguished when that route is active.
+
+#### Scenario: Participant navigates to spaceship via sidebar
+- **WHEN** any campaign participant clicks the Spaceship entry in the sidebar
+- **THEN** the spaceship panel loads in the main content area and the sidebar remains mounted
+
+#### Scenario: Spaceship entry is highlighted when active
+- **WHEN** the current URL matches the campaign spaceship route
+- **THEN** the Spaceship sidebar entry is rendered in an active/highlighted state
+
+#### Scenario: Spaceship entry is not highlighted on other routes
+- **WHEN** the current URL does not match the campaign spaceship route
+- **THEN** the Spaceship sidebar entry is rendered in its default (non-highlighted) state
