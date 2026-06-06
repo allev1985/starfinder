@@ -217,6 +217,14 @@ export const spaceships = pgTable("spaceships", {
   shieldAftCurrent: integer("shield_aft_current"),
   shieldRegenPerMin: integer("shield_regen_per_min").notNull().default(0),
   shieldMiscMod: integer("shield_misc_mod").notNull().default(0),
+  lifeSupportDamage: text("life_support_damage"),
+  sensorsDamage: text("sensors_damage"),
+  enginesDamage: text("engines_damage"),
+  powerCoreDamage: text("power_core_damage"),
+  weaponsForwardDamage: text("weapons_forward_damage"),
+  weaponsPortDamage: text("weapons_port_damage"),
+  weaponsStarboardDamage: text("weapons_starboard_damage"),
+  weaponsAftDamage: text("weapons_aft_damage"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

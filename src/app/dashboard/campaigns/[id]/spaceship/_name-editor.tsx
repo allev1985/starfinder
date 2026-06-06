@@ -8,6 +8,35 @@ import type { Spaceship, SpaceshipWeapon, SpaceshipNote, Character, SpaceshipCre
 import { updateSpaceshipAction, createWeaponAction, deleteWeaponAction, createSpaceshipNoteAction, updateSpaceshipNoteAction, deleteSpaceshipNoteAction } from "./actions";
 import CrewSection from "./_crew-section";
 
+type DamageState = "glitching" | "malfunctioning" | "wrecked" | null;
+const DAMAGE_STATES: { value: Exclude<DamageState, null>; label: string }[] = [
+  { value: "glitching", label: "Glitching" },
+  { value: "malfunctioning", label: "Malfunctioning" },
+  { value: "wrecked", label: "Wrecked" },
+];
+
+function DamageStatus({ value, onChange }: { value: DamageState; onChange: (v: DamageState) => void }) {
+  return (
+    <div className="flex gap-1 flex-wrap">
+      {DAMAGE_STATES.map(({ value: v, label }) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => onChange(value === v ? null : v)}
+          className={[
+            "px-2 py-0.5 rounded text-xs border transition-colors",
+            value === v
+              ? "bg-destructive text-destructive-foreground border-destructive"
+              : "bg-background text-muted-foreground border-border hover:border-foreground",
+          ].join(" ")}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const SECTIONS = [
   { key: "systems", label: "Systems" },
   { key: "expansion_bays", label: "Expansion Bays" },
@@ -65,6 +94,10 @@ const ARC_LABELS: Record<Arc, string> = {
   turret: "Turret",
 };
 
+type DamageField =
+  | "lifeSupportDamage" | "sensorsDamage" | "enginesDamage" | "powerCoreDamage"
+  | "weaponsForwardDamage" | "weaponsPortDamage" | "weaponsStarboardDamage" | "weaponsAftDamage";
+
 type WeaponForm = { name: string; damage: string; range: string; special: string };
 const EMPTY_FORM: WeaponForm = { name: "", damage: "", range: "", special: "" };
 
@@ -106,6 +139,17 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
   const [shieldAftCurrent, setShieldAftCurrent] = useState<number | null>(spaceship.shieldAftCurrent);
   const [shieldRegenPerMin, setShieldRegenPerMin] = useState(spaceship.shieldRegenPerMin);
   const [shieldMiscMod, setShieldMiscMod] = useState(spaceship.shieldMiscMod);
+
+  const [damageValues, setDamageValues] = useState<Record<DamageField, DamageState>>({
+    lifeSupportDamage: (spaceship.lifeSupportDamage as DamageState) ?? null,
+    sensorsDamage: (spaceship.sensorsDamage as DamageState) ?? null,
+    enginesDamage: (spaceship.enginesDamage as DamageState) ?? null,
+    powerCoreDamage: (spaceship.powerCoreDamage as DamageState) ?? null,
+    weaponsForwardDamage: (spaceship.weaponsForwardDamage as DamageState) ?? null,
+    weaponsPortDamage: (spaceship.weaponsPortDamage as DamageState) ?? null,
+    weaponsStarboardDamage: (spaceship.weaponsStarboardDamage as DamageState) ?? null,
+    weaponsAftDamage: (spaceship.weaponsAftDamage as DamageState) ?? null,
+  });
 
   const [weapons, setWeapons] = useState<SpaceshipWeapon[]>(initialWeapons);
   const [notes, setNotes] = useState<SpaceshipNote[]>(initialNotes);
@@ -231,6 +275,11 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     pcuTimer.current = setTimeout(() => {
       updateSpaceshipAction(campaignId, spaceship.id, { powerCorePcu: val });
     }, 600);
+  }
+
+  async function handleDamageChange(field: DamageField, value: DamageState) {
+    setDamageValues((prev) => ({ ...prev, [field]: value }));
+    await updateSpaceshipAction(campaignId, spaceship.id, { [field]: value });
   }
 
   function startEditingNote(note: SpaceshipNote) {
@@ -557,7 +606,44 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
       </div>
 
       <div className="border-t pt-5">
+        <h2 className="text-sm font-semibold mb-4">Critical Damage</h2>
+        <div className="flex flex-col gap-3">
+          {(
+            [
+              { field: "lifeSupportDamage", label: "Life Support" },
+              { field: "sensorsDamage", label: "Sensors" },
+            ] as { field: DamageField; label: string }[]
+          ).map(({ field, label }) => (
+            <div key={field} className="flex items-center gap-4">
+              <span className="text-sm w-28 shrink-0">{label}</span>
+              <DamageStatus
+                value={damageValues[field]}
+                onChange={(v) => handleDamageChange(field, v)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t pt-5">
         <h2 className="text-sm font-semibold mb-4">Weapons</h2>
+        <div className="flex flex-col gap-3 mb-6">
+          {(
+            [
+              { field: "enginesDamage", label: "Engines" },
+              { field: "powerCoreDamage", label: "Power Core" },
+            ] as { field: DamageField; label: string }[]
+          ).map(({ field, label }) => (
+            <div key={field} className="flex items-center gap-4">
+              <span className="text-sm w-28 shrink-0">{label}</span>
+              <DamageStatus
+                value={damageValues[field]}
+                onChange={(v) => handleDamageChange(field, v)}
+              />
+            </div>
+          ))}
+        </div>
+
         <div className="flex flex-col gap-6">
           {ARCS.map((arc) => {
             const arcWeapons = weapons.filter((w) => w.arc === arc);
@@ -590,6 +676,18 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
                     ))}
                   </div>
                 )}
+                {arc !== "turret" && (() => {
+                  const arcDamageField: DamageField = `weapons${arc.charAt(0).toUpperCase() + arc.slice(1)}Damage` as DamageField;
+                  return (
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xs text-muted-foreground w-20 shrink-0">Arc damage</span>
+                      <DamageStatus
+                        value={damageValues[arcDamageField]}
+                        onChange={(v) => handleDamageChange(arcDamageField, v)}
+                      />
+                    </div>
+                  );
+                })()}
                 <div className="flex flex-wrap gap-2 items-end">
                   <div className="flex flex-col gap-1">
                     <Label className="text-xs">Name</Label>
