@@ -202,6 +202,7 @@ export default function CharacterStatsClient({
       initialArmorInventory={initialCharacterArmor}
       initialCarriedWeapons={initialCarriedWeapons}
       initialEquipmentInventory={initialCharacterEquipment}
+      initialSkills={initialSkills}
       initialFeats={initialFeats}
       initialLanguages={initialLanguages}
       initialCredits={initialCredits}
@@ -217,7 +218,6 @@ export default function CharacterStatsClient({
       />
       <VitalsStrip />
       <CharacterSheet
-        initialSkills={initialSkills}
         allSkills={allSkills}
         skillRanksPerLevel={skillRanksPerLevel}
         allWeapons={allWeapons}
@@ -249,7 +249,6 @@ export default function CharacterStatsClient({
 }
 
 type SheetProps = {
-  initialSkills: CharacterSkill[];
   allSkills: SkillWithClassFlag[];
   skillRanksPerLevel: number;
   allWeapons: Weapon[];
@@ -316,7 +315,6 @@ function PillTabs({
 }
 
 function CharacterSheet({
-  initialSkills,
   allSkills,
   skillRanksPerLevel,
   allWeapons,
@@ -343,7 +341,7 @@ function CharacterSheet({
   mechanicIntScore,
   pickerOptions,
 }: SheetProps) {
-  const { isOwner, raceType, mechanicLevel, level, carriedWeapons, scores, healthValues, combatMods } = useCharacter();
+  const { isOwner, raceType, mechanicLevel, level, skills, carriedWeapons, scores, healthValues, combatMods } = useCharacter();
   const [desktopTab, setDesktopTab] = useState("stats");
 
   const dexMod = modifier(scores.dexScore);
@@ -414,8 +412,8 @@ function CharacterSheet({
           <AbilityScoresSection />
         </AccordionBlock>
 
-        <AccordionBlock icon={<List size={16} />} title="Skills" summary={`${initialSkills.length} skills`}>
-          <SkillsSection initialSkills={initialSkills} allSkills={allSkills} skillRanksPerLevel={skillRanksPerLevel} />
+        <AccordionBlock icon={<List size={16} />} title="Skills" summary={`${skills.length} skills`}>
+          <SkillsSection allSkills={allSkills} skillRanksPerLevel={skillRanksPerLevel} />
         </AccordionBlock>
 
         <AccordionBlock icon={<Shield size={16} />} title="Combat Stats" summary={saveSummary}>
@@ -490,8 +488,8 @@ function CharacterSheet({
               <AccordionBlock icon={<Zap size={16} />} title="Ability Scores" summary={abilitySummary} defaultOpen>
                 <AbilityScoresSection />
               </AccordionBlock>
-              <AccordionBlock icon={<List size={16} />} title="Skills" summary={`${initialSkills.length} skills`} defaultOpen>
-                <SkillsSection initialSkills={initialSkills} allSkills={allSkills} skillRanksPerLevel={skillRanksPerLevel} />
+              <AccordionBlock icon={<List size={16} />} title="Skills" summary={`${skills.length} skills`} defaultOpen>
+                <SkillsSection allSkills={allSkills} skillRanksPerLevel={skillRanksPerLevel} />
               </AccordionBlock>
             </div>
             <div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +19,6 @@ import { DRONE_SKILL_NAMES } from "@/lib/drone";
 import { useCharacter } from "./character-context";
 
 type Props = {
-  initialSkills: CharacterSkill[];
   allSkills: SkillWithClassFlag[];
   skillRanksPerLevel: number;
 };
@@ -357,13 +355,11 @@ function MobileSkillRow({
 }
 
 export default function SkillsSection({
-  initialSkills,
   allSkills,
   skillRanksPerLevel,
 }: Props) {
-  const { characterId, scores, level, raceType, mechanicLevel, equippedArmor, isOwner } = useCharacter();
+  const { characterId, scores, level, raceType, mechanicLevel, equippedArmor, isOwner, skills: initialSkills, setSkills } = useCharacter();
   const armorCheckPenalty = equippedArmor?.armorCheckPenalty ?? 0;
-  const router = useRouter();
   const isDrone = raceType === "drone";
   const droneAllowedSkillIds = isDrone
     ? new Set(allSkills.filter((s) => (DRONE_SKILL_NAMES as readonly string[]).includes(s.name)).map((s) => s.id))
@@ -406,10 +402,10 @@ export default function SkillsSection({
     });
   }
 
-  function handleSaved() {
+  function handleSaved(updatedSkills: CharacterSkill[]) {
+    setSkills(updatedSkills);
     setRemovedIds(new Set());
     setRankOverrides(new Map());
-    router.refresh();
   }
 
   function openDialog() {

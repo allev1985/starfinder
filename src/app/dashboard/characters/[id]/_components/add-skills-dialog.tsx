@@ -29,7 +29,7 @@ type Props = {
   characterId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: () => void;
+  onSaved: (skills: CharacterSkill[]) => void;
   allowedSkillIds?: Set<string>;
 };
 
@@ -146,7 +146,7 @@ export default function AddSkillsDialog({
     setSaving(false);
     if (result.success) {
       onOpenChange(false);
-      onSaved();
+      onSaved(result.skills);
     }
   }
 

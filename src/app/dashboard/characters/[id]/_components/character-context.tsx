@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, HealthResolveValues } from "@/db/queries/characters";
-import type { Armor, Weapon, RaceType } from "@/db/schema";
+import type { Armor, Weapon, RaceType, CharacterSkill } from "@/db/schema";
 
 export type CombatMods = {
   initiativeMiscMod: number;
@@ -37,6 +37,8 @@ type CharacterContextValue = {
   setCarriedWeapons: (weapons: Weapon[]) => void;
   equipmentInventory: CharacterEquipmentEntry[];
   setEquipmentInventory: (inventory: CharacterEquipmentEntry[]) => void;
+  skills: CharacterSkill[];
+  setSkills: (skills: CharacterSkill[]) => void;
   feats: CharacterFeatWithName[];
   setFeats: (feats: CharacterFeatWithName[]) => void;
   languages: string[];
@@ -70,6 +72,7 @@ type ProviderProps = {
   initialArmorInventory: CharacterArmorEntry[];
   initialCarriedWeapons: Weapon[];
   initialEquipmentInventory: CharacterEquipmentEntry[];
+  initialSkills: CharacterSkill[];
   initialFeats: CharacterFeatWithName[];
   initialLanguages: string[];
   initialCredits: number;
@@ -90,6 +93,7 @@ export function CharacterProvider({
   initialArmorInventory,
   initialCarriedWeapons,
   initialEquipmentInventory,
+  initialSkills,
   initialFeats,
   initialLanguages,
   initialCredits,
@@ -104,6 +108,7 @@ export function CharacterProvider({
   const [armorInventory, setArmorInventory] = useState(initialArmorInventory);
   const [carriedWeapons, setCarriedWeapons] = useState<Weapon[]>(initialCarriedWeapons);
   const [equipmentInventory, setEquipmentInventory] = useState(initialEquipmentInventory);
+  const [skills, setSkills] = useState<CharacterSkill[]>(initialSkills);
   const [feats, setFeats] = useState<CharacterFeatWithName[]>(initialFeats);
   const [languages, setLanguages] = useState<string[]>(initialLanguages);
   const [credits, setCredits] = useState(initialCredits);
@@ -120,6 +125,7 @@ export function CharacterProvider({
       armorInventory, setArmorInventory,
       carriedWeapons, setCarriedWeapons,
       equipmentInventory, setEquipmentInventory,
+      skills, setSkills,
       feats, setFeats,
       languages, setLanguages,
       credits, setCredits,

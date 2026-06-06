@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/session";
 import { isCharacterOwner } from "@/lib/authorization";
 import {
@@ -58,8 +57,10 @@ import {
   upsertCharacterClassChoice,
   addCharacterFeat,
   removeCharacterFeat,
+  getCharacterSkills,
 } from "@/db/queries/characters";
 import type { AbilityScores, HealthResolveValues, SkillEntry, CharacterEquipmentEntry } from "@/db/queries/characters";
+import type { CharacterSkill } from "@/db/schema";
 import type { Feat } from "@/db/schema";
 
 type Result = { success: true } | { success: false; error: string };
@@ -356,18 +357,20 @@ export async function updateThrownAttackMiscModAction(characterId: string, value
   }
 }
 
+type SkillsResult = { success: true; skills: CharacterSkill[] } | { success: false; error: string };
+
 export async function saveCharacterSkillsAction(
   characterId: string,
   added: SkillEntry[],
   removedIds: string[],
   removedBySkillId: { skillId: string }[]
-): Promise<Result> {
+): Promise<SkillsResult> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
   try {
     await saveCharacterSkillsForOwner(characterId, user.id, added, removedIds, removedBySkillId);
-    revalidatePath(`/dashboard/characters/${characterId}`);
-    return { success: true };
+    const skills = await getCharacterSkills(characterId);
+    return { success: true, skills };
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to save skills." };
