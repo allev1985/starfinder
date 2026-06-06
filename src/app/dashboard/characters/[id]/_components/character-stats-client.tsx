@@ -24,6 +24,7 @@ import MechanicPanel from "./mechanic-panel";
 import CreditsXpSection from "./credits-xp-section";
 import LanguagesSection from "./languages-section";
 import { CharacterProvider, useCharacter } from "./character-context";
+import CharacterRealtimeSync from "./character-realtime-sync";
 import CharacterSheetHeader from "./character-sheet-header";
 import VitalsStrip from "./vitals-strip";
 import type { CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
@@ -210,6 +211,7 @@ export default function CharacterStatsClient({
       initialHealthValues={initialHealthValues}
       initialCombatMods={initialCombatMods}
     >
+      <CharacterRealtimeSync />
       <CharacterSheetHeader
         characterName={characterName}
         raceName={raceName}

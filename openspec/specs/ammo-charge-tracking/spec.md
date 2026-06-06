@@ -14,6 +14,8 @@ The `character_equipment` table SHALL have a `current_charges` column (nullable 
 ### Requirement: Charge stepper on ammo cards
 The system SHALL display a +/− charge stepper on ammunition inventory cards for the owner. The stepper SHALL show total charges across all units as `<totalCharges> / <totalCapacity>`, where `totalCharges = activeCharges + (quantity − 1) × capacity` and `totalCapacity = quantity × capacity`. When `currentCharges` is `null`, the active unit is treated as fully loaded. Non-owners SHALL see the total charge display as read-only text.
 
+`currentCharges` MUST be derived directly from `entry.currentCharges` (from `CharacterContext`) rather than stored in local `useState`. Mutations SHALL be written optimistically through the `onChargesChange` callback to `CharacterContext`.
+
 #### Scenario: Owner sees stepper at full charge
 - **WHEN** an ammo card is rendered with `currentCharges = null` and `quantity = 1`
 - **THEN** the stepper displays `<capacity> / <capacity>` and both +/− buttons are visible
@@ -41,6 +43,10 @@ The system SHALL display a +/− charge stepper on ammunition inventory cards fo
 #### Scenario: Non-owner sees read-only charge display
 - **WHEN** a non-owner views an ammo card
 - **THEN** total charges are displayed as static text with no stepper controls
+
+#### Scenario: Context-driven charge update propagates to card
+- **WHEN** `CharacterContext.equipmentInventory` has a charge value updated externally
+- **THEN** the `EquipmentCard` displays the updated charge value without stale local state
 
 ### Requirement: Reload action on ammo cards
 The system SHALL provide a Reload button on ammunition inventory cards for the owner. Pressing Reload SHALL set `currentCharges` to `null` (reset the active unit to full). Reload SHALL NOT change `quantity`. Unit count is managed separately via the unit stepper.

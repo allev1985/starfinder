@@ -71,16 +71,14 @@ type EquipmentCardProps = {
 function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChange, onChargesChange }: EquipmentCardProps) {
   const [, startTransition] = useTransition();
   const [removing, setRemoving] = useState(false);
-  const [quantity, setQuantity] = useState(entry.quantity);
-  const [currentCharges, setCurrentCharges] = useState<number | null>(entry.currentCharges);
   const e = entry.equipment;
   const isAmmo = e.category === "ammunition";
   const capacity = e.ammoCapacity ?? 0;
-  const activeCharges = currentCharges ?? capacity;
-  const totalCharges = activeCharges + (quantity - 1) * capacity;
-  const totalCapacity = quantity * capacity;
-  const isFull = currentCharges === null || currentCharges >= capacity;
-  const isEmpty = currentCharges !== null && currentCharges <= 0;
+  const activeCharges = entry.currentCharges ?? capacity;
+  const totalCharges = activeCharges + (entry.quantity - 1) * capacity;
+  const totalCapacity = entry.quantity * capacity;
+  const isFull = entry.currentCharges === null || entry.currentCharges >= capacity;
+  const isEmpty = entry.currentCharges !== null && entry.currentCharges <= 0;
 
   function handleRemove() {
     setRemoving(true);
@@ -91,8 +89,7 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
   }
 
   function handleDecrement() {
-    const next = currentCharges === null ? capacity - 1 : currentCharges - 1;
-    setCurrentCharges(next);
+    const next = entry.currentCharges === null ? capacity - 1 : entry.currentCharges - 1;
     onChargesChange(entry.id, next);
     startTransition(() => {
       updateAmmoChargesAction(entry.id, characterId, next);
@@ -100,10 +97,9 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
   }
 
   function handleIncrement() {
-    const next = currentCharges === null ? capacity : currentCharges + 1;
+    const next = entry.currentCharges === null ? capacity : entry.currentCharges + 1;
     const clamped = Math.min(next, capacity);
     const value = clamped >= capacity ? null : clamped;
-    setCurrentCharges(value);
     onChargesChange(entry.id, value);
     startTransition(() => {
       updateAmmoChargesAction(entry.id, characterId, value);
@@ -111,8 +107,7 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
   }
 
   function handleUnitChange(delta: number) {
-    const newQty = Math.max(1, quantity + delta);
-    setQuantity(newQty);
+    const newQty = Math.max(1, entry.quantity + delta);
     onQuantityChange(entry.id, newQty);
     startTransition(() => {
       updateEquipmentQuantityAction(entry.id, characterId, newQty);
@@ -120,7 +115,6 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
   }
 
   function handleReload() {
-    setCurrentCharges(null);
     onChargesChange(entry.id, null);
     startTransition(() => {
       updateAmmoChargesAction(entry.id, characterId, null);
@@ -187,10 +181,10 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
             <div className="flex flex-col gap-0.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Units</span>
               <div className="flex items-center gap-1">
-                <Button variant="outline" size="icon" className="h-7 w-7" disabled={quantity <= 1} onClick={() => handleUnitChange(-1)}>
+                <Button variant="outline" size="icon" className="h-7 w-7" disabled={entry.quantity <= 1} onClick={() => handleUnitChange(-1)}>
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="w-6 text-center text-sm font-medium tabular-nums">{quantity}</span>
+                <span className="w-6 text-center text-sm font-medium tabular-nums">{entry.quantity}</span>
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleUnitChange(1)}>
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -198,7 +192,7 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
             </div>
           )}
           {isAmmo && !isOwner && (
-            <StatCell label="Units" value={quantity} />
+            <StatCell label="Units" value={entry.quantity} />
           )}
           {isAmmo && capacity > 0 && isOwner && (
             <div className="flex flex-col gap-0.5">
@@ -286,13 +280,14 @@ export default function EquipmentInventory({ allEquipment }: Props) {
       currentCharges: null,
       equipment: item,
     };
-    onInventoryChange([...inventory, optimistic]);
+    const withOptimistic = [...inventory, optimistic];
+    onInventoryChange(withOptimistic);
     startTransition(async () => {
       const result = await addEquipmentAction(characterId, item.id);
       if (!result.success || !result.entry) {
         onInventoryChange(inventory.filter((e) => e.id !== optimisticId));
       } else {
-        onInventoryChange(inventory.map((e) => e.id === optimisticId ? result.entry! : e));
+        onInventoryChange(withOptimistic.map((e) => e.id === optimisticId ? result.entry! : e));
       }
     });
   }
