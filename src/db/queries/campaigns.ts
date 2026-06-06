@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { campaigns, characters, campaignCharacters, spaceships, spaceshipWeapons, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon } from "@/db/schema";
+import { campaigns, characters, campaignCharacters, spaceships, spaceshipWeapons, spaceshipNotes, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote } from "@/db/schema";
 
 export async function createCampaign(data: NewCampaign): Promise<Campaign> {
   const [campaign] = await db.insert(campaigns).values(data).returning();
@@ -166,4 +166,25 @@ export async function createSpaceshipWeapon(
 
 export async function deleteSpaceshipWeapon(weaponId: string): Promise<void> {
   await db.delete(spaceshipWeapons).where(eq(spaceshipWeapons.id, weaponId));
+}
+
+export async function getNotesBySpaceship(spaceshipId: string): Promise<SpaceshipNote[]> {
+  return db
+    .select()
+    .from(spaceshipNotes)
+    .where(eq(spaceshipNotes.spaceshipId, spaceshipId))
+    .orderBy(spaceshipNotes.createdAt);
+}
+
+export async function createSpaceshipNote(data: NewSpaceshipNote): Promise<SpaceshipNote> {
+  const [note] = await db.insert(spaceshipNotes).values(data).returning();
+  return note;
+}
+
+export async function updateSpaceshipNote(noteId: string, note: string): Promise<void> {
+  await db.update(spaceshipNotes).set({ note }).where(eq(spaceshipNotes.id, noteId));
+}
+
+export async function deleteSpaceshipNote(noteId: string): Promise<void> {
+  await db.delete(spaceshipNotes).where(eq(spaceshipNotes.id, noteId));
 }

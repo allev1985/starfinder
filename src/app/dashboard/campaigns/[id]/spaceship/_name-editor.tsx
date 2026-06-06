@@ -4,13 +4,22 @@ import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { Spaceship, SpaceshipWeapon } from "@/db/schema";
-import { updateSpaceshipAction, createWeaponAction, deleteWeaponAction } from "./actions";
+import type { Spaceship, SpaceshipWeapon, SpaceshipNote } from "@/db/schema";
+import { updateSpaceshipAction, createWeaponAction, deleteWeaponAction, createSpaceshipNoteAction, updateSpaceshipNoteAction, deleteSpaceshipNoteAction } from "./actions";
+
+const SECTIONS = [
+  { key: "systems", label: "Systems" },
+  { key: "expansion_bays", label: "Expansion Bays" },
+  { key: "cargo_passengers", label: "Cargo / Passengers" },
+  { key: "notes", label: "Notes" },
+] as const;
+type SectionKey = (typeof SECTIONS)[number]["key"];
 
 type Props = {
   campaignId: string;
   spaceship: Spaceship;
   weapons: SpaceshipWeapon[];
+  notes: SpaceshipNote[];
 };
 
 type TextField = "name" | "makeAndModel" | "speed" | "size" | "frame";
@@ -54,7 +63,7 @@ const ARC_LABELS: Record<Arc, string> = {
 type WeaponForm = { name: string; damage: string; range: string; special: string };
 const EMPTY_FORM: WeaponForm = { name: "", damage: "", range: "", special: "" };
 
-export default function SpaceshipEditor({ campaignId, spaceship, weapons: initialWeapons }: Props) {
+export default function SpaceshipEditor({ campaignId, spaceship, weapons: initialWeapons, notes: initialNotes }: Props) {
   const textTimers = useRef<Partial<Record<TextField, ReturnType<typeof setTimeout>>>>({});
   const numTimers = useRef<Partial<Record<NumField, ReturnType<typeof setTimeout>>>>({});
 
@@ -81,6 +90,16 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
   const [shieldMiscMod, setShieldMiscMod] = useState(spaceship.shieldMiscMod);
 
   const [weapons, setWeapons] = useState<SpaceshipWeapon[]>(initialWeapons);
+  const [notes, setNotes] = useState<SpaceshipNote[]>(initialNotes);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState("");
+  const [noteForms, setNoteForms] = useState<Record<SectionKey, string>>({
+    systems: "",
+    expansion_bays: "",
+    cargo_passengers: "",
+    notes: "",
+  });
+
   const [weaponForms, setWeaponForms] = useState<Record<Arc, WeaponForm>>({
     forward: { ...EMPTY_FORM },
     port: { ...EMPTY_FORM },
@@ -183,6 +202,39 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     if (next < 0) return;
     setDriftRating(next);
     await updateSpaceshipAction(campaignId, spaceship.id, { driftRating: next });
+  }
+
+  function startEditingNote(note: SpaceshipNote) {
+    setEditingNoteId(note.id);
+    setEditingNoteText(note.note);
+  }
+
+  async function commitNoteEdit(noteId: string) {
+    const text = editingNoteText.trim();
+    if (!text) return;
+    setNotes((prev) => prev.map((n) => (n.id === noteId ? { ...n, note: text } : n)));
+    setEditingNoteId(null);
+    await updateSpaceshipNoteAction(campaignId, noteId, text);
+  }
+
+  function cancelNoteEdit() {
+    setEditingNoteId(null);
+    setEditingNoteText("");
+  }
+
+  async function handleAddNote(section: SectionKey) {
+    const text = noteForms[section].trim();
+    if (!text) return;
+    const result = await createSpaceshipNoteAction(campaignId, spaceship.id, section, text);
+    if (result.success) {
+      setNotes((prev) => [...prev, result.note]);
+      setNoteForms((prev) => ({ ...prev, [section]: "" }));
+    }
+  }
+
+  async function handleDeleteNote(noteId: string) {
+    setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    await deleteSpaceshipNoteAction(campaignId, noteId);
   }
 
   function updateWeaponForm(arc: Arc, patch: Partial<WeaponForm>) {
@@ -535,6 +587,71 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
           })}
         </div>
       </div>
+
+      {SECTIONS.map(({ key, label }) => {
+        const sectionNotes = notes.filter((n) => n.section === key);
+        const inputValue = noteForms[key];
+        return (
+          <div key={key} className="border-t pt-5">
+            <h2 className="text-sm font-semibold mb-3">{label}</h2>
+            {sectionNotes.length > 0 && (
+              <div className="flex flex-col gap-1 mb-3">
+                {sectionNotes.map((n) => (
+                  <div key={n.id} className="flex items-center gap-2 rounded border px-3 py-2 text-sm">
+                    {editingNoteId === n.id ? (
+                      <Input
+                        autoFocus
+                        value={editingNoteText}
+                        onChange={(e) => setEditingNoteText(e.target.value)}
+                        onBlur={() => commitNoteEdit(n.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitNoteEdit(n.id);
+                          if (e.key === "Escape") cancelNoteEdit();
+                        }}
+                        className="h-6 flex-1 border-0 p-0 text-sm shadow-none focus-visible:ring-0"
+                      />
+                    ) : (
+                      <span
+                        className="flex-1 min-w-0 cursor-text"
+                        onClick={() => startEditingNote(n)}
+                      >
+                        {n.note}
+                      </span>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDeleteNote(n.id)}
+                      aria-label="Delete note"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 items-end">
+              <Input
+                value={inputValue}
+                onChange={(e) => setNoteForms((prev) => ({ ...prev, [key]: e.target.value }))}
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddNote(key); }}
+                placeholder="Add a note…"
+                className="h-8 text-sm"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleAddNote(key)}
+                disabled={!inputValue.trim()}
+                className="h-8 shrink-0"
+              >
+                Add
+              </Button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

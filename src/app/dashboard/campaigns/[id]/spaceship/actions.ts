@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/session";
 import { isCampaignParticipant } from "@/lib/authorization";
-import { createSpaceship, updateSpaceship, deleteSpaceship, createSpaceshipWeapon, deleteSpaceshipWeapon } from "@/db/queries/campaigns";
-import type { Spaceship, SpaceshipWeapon } from "@/db/schema";
+import { createSpaceship, updateSpaceship, deleteSpaceship, createSpaceshipWeapon, deleteSpaceshipWeapon, createSpaceshipNote, updateSpaceshipNote, deleteSpaceshipNote } from "@/db/queries/campaigns";
+import type { Spaceship, SpaceshipWeapon, SpaceshipNote } from "@/db/schema";
 
 type Result = { success: true } | { success: false; error: string };
 
@@ -107,5 +107,62 @@ export async function deleteWeaponAction(
     return { success: true };
   } catch {
     return { success: false, error: "Failed to delete weapon." };
+  }
+}
+
+export async function createSpaceshipNoteAction(
+  campaignId: string,
+  spaceshipId: string,
+  section: string,
+  note: string
+): Promise<{ success: true; note: SpaceshipNote } | { success: false; error: string }> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  const allowed = await isCampaignParticipant(campaignId, user.id);
+  if (!allowed) return { success: false, error: "Not authorized." };
+
+  try {
+    const created = await createSpaceshipNote({ spaceshipId, section, note });
+    return { success: true, note: created };
+  } catch {
+    return { success: false, error: "Failed to create note." };
+  }
+}
+
+export async function updateSpaceshipNoteAction(
+  campaignId: string,
+  noteId: string,
+  note: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  const allowed = await isCampaignParticipant(campaignId, user.id);
+  if (!allowed) return { success: false, error: "Not authorized." };
+
+  try {
+    await updateSpaceshipNote(noteId, note);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to update note." };
+  }
+}
+
+export async function deleteSpaceshipNoteAction(
+  campaignId: string,
+  noteId: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  const allowed = await isCampaignParticipant(campaignId, user.id);
+  if (!allowed) return { success: false, error: "Not authorized." };
+
+  try {
+    await deleteSpaceshipNote(noteId);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to delete note." };
   }
 }
