@@ -192,6 +192,12 @@ export const spaceships = pgTable("spaceships", {
   size: text("size"),
   frame: text("frame"),
   driftRating: integer("drift_rating").notNull().default(0),
+  pilotRank: integer("pilot_rank").notNull().default(0),
+  sizeMod: integer("size_mod").notNull().default(0),
+  armorBonus: integer("armor_bonus").notNull().default(0),
+  acMiscMod: integer("ac_misc_mod").notNull().default(0),
+  countermeasures: integer("countermeasures").notNull().default(0),
+  tlMiscMod: integer("tl_misc_mod").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

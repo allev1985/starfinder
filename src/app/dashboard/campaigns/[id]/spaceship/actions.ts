@@ -28,7 +28,7 @@ export async function createSpaceshipAction(campaignId: string, name: string): P
 export async function updateSpaceshipAction(
   campaignId: string,
   spaceshipId: string,
-  data: Partial<Pick<Spaceship, "name" | "makeAndModel" | "speed" | "size" | "frame" | "driftRating">>
+  data: Partial<Pick<Spaceship, "name" | "makeAndModel" | "speed" | "size" | "frame" | "driftRating" | "pilotRank" | "sizeMod" | "armorBonus" | "acMiscMod" | "countermeasures" | "tlMiscMod">>
 ): Promise<Result> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
