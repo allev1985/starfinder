@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/session";
 import { isCharacterOwner } from "@/lib/authorization";
 import {
@@ -365,6 +366,7 @@ export async function saveCharacterSkillsAction(
   if (!user) return { success: false, error: "Not authenticated." };
   try {
     await saveCharacterSkillsForOwner(characterId, user.id, added, removedIds, removedBySkillId);
+    revalidatePath(`/dashboard/characters/${characterId}`);
     return { success: true };
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
