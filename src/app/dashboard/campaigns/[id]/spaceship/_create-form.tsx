@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,12 +9,20 @@ import { createSpaceshipAction } from "./actions";
 
 export default function CreateSpaceshipForm({ campaignId }: { campaignId: string }) {
   const ref = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(formData: FormData) {
     const name = (formData.get("name") as string).trim();
     if (!name) return;
-    await createSpaceshipAction(campaignId, name);
-    ref.current?.reset();
+    setError(null);
+    const result = await createSpaceshipAction(campaignId, name);
+    if (result.success) {
+      ref.current?.reset();
+      router.push(`/dashboard/campaigns/${campaignId}/spaceship/${result.shipId}`);
+    } else {
+      setError(result.error);
+    }
   }
 
   return (
@@ -28,6 +37,7 @@ export default function CreateSpaceshipForm({ campaignId }: { campaignId: string
           autoFocus
         />
       </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit">Create spaceship</Button>
     </form>
   );

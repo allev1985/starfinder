@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { campaigns, characters, campaignCharacters, spaceships, spaceshipWeapons, spaceshipNotes, spaceshipCrew, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote, type SpaceshipCrew, type CrewRole } from "@/db/schema";
 
@@ -125,11 +125,19 @@ export async function createSpaceship(data: NewSpaceship): Promise<Spaceship> {
   return ship;
 }
 
-export async function getSpaceshipByCampaign(campaignId: string): Promise<Spaceship | null> {
+export async function getSpaceshipsByCampaign(campaignId: string): Promise<Spaceship[]> {
+  return db
+    .select()
+    .from(spaceships)
+    .where(eq(spaceships.campaignId, campaignId))
+    .orderBy(asc(spaceships.createdAt));
+}
+
+export async function getSpaceshipById(spaceshipId: string): Promise<Spaceship | null> {
   const [ship] = await db
     .select()
     .from(spaceships)
-    .where(eq(spaceships.campaignId, campaignId));
+    .where(eq(spaceships.id, spaceshipId));
   return ship ?? null;
 }
 

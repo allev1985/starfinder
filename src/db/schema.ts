@@ -184,7 +184,6 @@ export const spaceships = pgTable("spaceships", {
   id: uuid("id").primaryKey().defaultRandom(),
   campaignId: uuid("campaign_id")
     .notNull()
-    .unique()
     .references(() => campaigns.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   makeAndModel: text("make_and_model"),

@@ -1,11 +1,9 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
-import { getSpaceshipByCampaign, getWeaponsBySpaceship, getNotesBySpaceship, getCampaignWithCharacters, getCrewBySpaceship } from "@/db/queries/campaigns";
+import { getSpaceshipsByCampaign, getCampaignWithCharacters } from "@/db/queries/campaigns";
 import CreateSpaceshipForm from "./_create-form";
-import SpaceshipEditor from "./_name-editor";
-import SpaceshipActions from "./_spaceship-actions";
 
-export default async function SpaceshipPage({
+export default async function SpaceshipRootPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -14,24 +12,23 @@ export default async function SpaceshipPage({
   const user = await getUser();
   if (!user) redirect("/");
 
-  const spaceship = await getSpaceshipByCampaign(id);
-  const { characters } = await getCampaignWithCharacters(id);
-  const [weapons, notes, crew] = spaceship
-    ? await Promise.all([getWeaponsBySpaceship(spaceship.id), getNotesBySpaceship(spaceship.id), getCrewBySpaceship(spaceship.id)])
-    : [[], [], []];
+  const ships = await getSpaceshipsByCampaign(id);
+  if (ships.length > 0) {
+    redirect(`/dashboard/campaigns/${id}/spaceship/${ships[0].id}`);
+  }
+
+  const { campaign } = await getCampaignWithCharacters(id);
+  const isDm = campaign?.dmId === user.id;
 
   return (
     <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Spaceship</h1>
-        {spaceship && (
-          <SpaceshipActions campaignId={id} spaceshipId={spaceship.id} />
-        )}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold">Spaceships</h1>
       </div>
-      {spaceship ? (
-        <SpaceshipEditor campaignId={id} spaceship={spaceship} weapons={weapons} notes={notes} characters={characters} initialCrew={crew} />
-      ) : (
+      {isDm ? (
         <CreateSpaceshipForm campaignId={id} />
+      ) : (
+        <p className="text-muted-foreground text-sm">No ships have been added to this campaign yet.</p>
       )}
     </div>
   );

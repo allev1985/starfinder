@@ -29,7 +29,7 @@ export default function SpaceshipActions({ campaignId, spaceshipId }: Props) {
     const result = await deleteSpaceshipAction(campaignId, spaceshipId);
     setDeleting(false);
     if (result.success) {
-      router.refresh();
+      router.push(`/dashboard/campaigns/${campaignId}/spaceship`);
     } else {
       setError(result.error);
     }

@@ -8,7 +8,10 @@ import type { Spaceship, SpaceshipWeapon, SpaceshipNote, SpaceshipCrew, CrewRole
 
 type Result = { success: true } | { success: false; error: string };
 
-export async function createSpaceshipAction(campaignId: string, name: string): Promise<Result> {
+export async function createSpaceshipAction(
+  campaignId: string,
+  name: string
+): Promise<{ success: true; shipId: string } | { success: false; error: string }> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
 
@@ -16,10 +19,9 @@ export async function createSpaceshipAction(campaignId: string, name: string): P
   if (!allowed) return { success: false, error: "Not authorized." };
 
   try {
-    await createSpaceship({ campaignId, name });
-    revalidatePath(`/dashboard/campaigns/${campaignId}/spaceship`);
+    const ship = await createSpaceship({ campaignId, name });
     revalidatePath(`/dashboard/campaigns/${campaignId}`, "layout");
-    return { success: true };
+    return { success: true, shipId: ship.id };
   } catch {
     return { success: false, error: "Failed to create spaceship." };
   }
@@ -38,7 +40,7 @@ export async function updateSpaceshipAction(
 
   try {
     await updateSpaceship(spaceshipId, data);
-    revalidatePath(`/dashboard/campaigns/${campaignId}/spaceship`);
+    revalidatePath(`/dashboard/campaigns/${campaignId}/spaceship/${spaceshipId}`);
     revalidatePath(`/dashboard/campaigns/${campaignId}`, "layout");
     return { success: true };
   } catch {
@@ -58,7 +60,6 @@ export async function deleteSpaceshipAction(
 
   try {
     await deleteSpaceship(spaceshipId);
-    revalidatePath(`/dashboard/campaigns/${campaignId}/spaceship`);
     revalidatePath(`/dashboard/campaigns/${campaignId}`, "layout");
     return { success: true };
   } catch {

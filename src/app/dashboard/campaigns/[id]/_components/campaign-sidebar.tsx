@@ -10,7 +10,7 @@ type Props = {
   isDm: boolean;
   joinCode: string;
   characters: Character[];
-  spaceship: Spaceship | null;
+  spaceships: Spaceship[];
 };
 
 export default function CampaignSidebar({
@@ -19,7 +19,7 @@ export default function CampaignSidebar({
   isDm,
   joinCode,
   characters,
-  spaceship,
+  spaceships,
 }: Props) {
   const pathname = usePathname();
 
@@ -69,24 +69,42 @@ export default function CampaignSidebar({
         )}
 
         <p className="mt-4 mb-1 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Spaceship
+          Spaceships
         </p>
-        {(() => {
-          const href = `/dashboard/campaigns/${campaignId}/spaceship`;
-          const isActive = pathname === href;
-          return (
-            <Link
-              href={href}
-              className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
-                isActive
-                  ? "bg-accent font-medium text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-              }`}
-            >
-              {spaceship ? spaceship.name : "Create spaceship"}
-            </Link>
-          );
-        })()}
+        {spaceships.length === 0 ? (
+          isDm ? null : (
+            <p className="px-2 text-xs text-muted-foreground">None yet</p>
+          )
+        ) : (
+          <ul className="flex flex-col gap-0.5">
+            {spaceships.map((ship) => {
+              const href = `/dashboard/campaigns/${campaignId}/spaceship/${ship.id}`;
+              const isActive = pathname === href;
+              return (
+                <li key={ship.id}>
+                  <Link
+                    href={href}
+                    className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
+                      isActive
+                        ? "bg-accent font-medium text-accent-foreground"
+                        : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                    }`}
+                  >
+                    {ship.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {isDm && (
+          <Link
+            href={`/dashboard/campaigns/${campaignId}/spaceship/new`}
+            className="mt-0.5 block rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+          >
+            + Add ship
+          </Link>
+        )}
       </nav>
     </aside>
   );
