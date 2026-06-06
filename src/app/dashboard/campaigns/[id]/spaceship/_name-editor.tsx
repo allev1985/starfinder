@@ -25,7 +25,7 @@ type Props = {
   initialCrew: SpaceshipCrew[];
 };
 
-type TextField = "name" | "makeAndModel" | "speed" | "size" | "frame";
+type TextField = "name" | "makeAndModel" | "tier" | "maneuverability" | "speed" | "size" | "frame" | "powerCoreName" | "driftEngine";
 type SimpleNumField =
   | "pilotRank" | "sizeMod" | "armorBonus" | "acMiscMod" | "countermeasures" | "tlMiscMod"
   | "damageThreshold" | "criticalThreshold" | "shieldRegenPerMin" | "shieldMiscMod";
@@ -48,6 +48,8 @@ const PAIRED_FIELDS: FieldPair[] = [
 const TEXT_FIELDS: { field: TextField; label: string }[] = [
   { field: "name", label: "Name" },
   { field: "makeAndModel", label: "Make and Model" },
+  { field: "tier", label: "Tier" },
+  { field: "maneuverability", label: "Maneuverability" },
   { field: "speed", label: "Speed" },
   { field: "size", label: "Size" },
   { field: "frame", label: "Frame" },
@@ -69,7 +71,20 @@ const EMPTY_FORM: WeaponForm = { name: "", damage: "", range: "", special: "" };
 export default function SpaceshipEditor({ campaignId, spaceship, weapons: initialWeapons, notes: initialNotes, characters, initialCrew }: Props) {
   const textTimers = useRef<Partial<Record<TextField, ReturnType<typeof setTimeout>>>>({});
   const numTimers = useRef<Partial<Record<NumField, ReturnType<typeof setTimeout>>>>({});
+  const pcuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [textValues, setTextValues] = useState<Record<TextField, string>>(() => ({
+    name: spaceship.name ?? "",
+    makeAndModel: spaceship.makeAndModel ?? "",
+    tier: spaceship.tier ?? "",
+    maneuverability: spaceship.maneuverability ?? "",
+    speed: spaceship.speed ?? "",
+    size: spaceship.size ?? "",
+    frame: spaceship.frame ?? "",
+    powerCoreName: spaceship.powerCoreName ?? "",
+    driftEngine: spaceship.driftEngine ?? "",
+  }));
+  const [powerCorePcu, setPowerCorePcu] = useState<number | null>(spaceship.powerCorePcu);
   const [driftRating, setDriftRating] = useState(spaceship.driftRating);
   const [pilotRank, setPilotRank] = useState(spaceship.pilotRank);
   const [sizeMod, setSizeMod] = useState(spaceship.sizeMod);
@@ -160,6 +175,7 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
   }
 
   function handleTextChange(field: TextField, value: string) {
+    setTextValues((prev) => ({ ...prev, [field]: value }));
     if (textTimers.current[field]) clearTimeout(textTimers.current[field]);
     textTimers.current[field] = setTimeout(() => {
       updateSpaceshipAction(campaignId, spaceship.id, { [field]: value || null });
@@ -205,6 +221,16 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     if (next < 0) return;
     setDriftRating(next);
     await updateSpaceshipAction(campaignId, spaceship.id, { driftRating: next });
+  }
+
+  function handlePcuChange(raw: string) {
+    const next = parseInt(raw, 10);
+    const val = isNaN(next) ? null : next;
+    setPowerCorePcu(val);
+    if (pcuTimer.current) clearTimeout(pcuTimer.current);
+    pcuTimer.current = setTimeout(() => {
+      updateSpaceshipAction(campaignId, spaceship.id, { powerCorePcu: val });
+    }, 600);
   }
 
   function startEditingNote(note: SpaceshipNote) {
@@ -306,33 +332,63 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
           <Label htmlFor={`ship-${field}`}>{label}</Label>
           <Input
             id={`ship-${field}`}
-            defaultValue={spaceship[field] ?? ""}
+            value={textValues[field]}
             onChange={(e) => handleTextChange(field, e.target.value)}
           />
         </div>
       ))}
 
-      <div className="flex flex-col gap-1.5">
-        <Label>Drift Rating</Label>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => changeDrift(driftRating - 1)}
-            disabled={driftRating <= 0}
-            aria-label="Decrease drift rating"
-          >
-            −
-          </Button>
-          <span className="w-6 text-center text-sm font-medium">{driftRating}</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => changeDrift(driftRating + 1)}
-            aria-label="Increase drift rating"
-          >
-            +
-          </Button>
+      <div className="flex gap-4">
+        <div className="flex flex-col gap-1.5 flex-1">
+          <Label htmlFor="ship-powerCoreName">Power Core</Label>
+          <Input
+            id="ship-powerCoreName"
+            value={textValues.powerCoreName}
+            onChange={(e) => handleTextChange("powerCoreName", e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5 w-24">
+          <Label htmlFor="ship-powerCorePcu">PCU</Label>
+          <Input
+            id="ship-powerCorePcu"
+            type="number"
+            value={powerCorePcu ?? ""}
+            onChange={(e) => handlePcuChange(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-4 items-end">
+        <div className="flex flex-col gap-1.5 flex-1">
+          <Label htmlFor="ship-driftEngine">Drift Engine</Label>
+          <Input
+            id="ship-driftEngine"
+            value={textValues.driftEngine}
+            onChange={(e) => handleTextChange("driftEngine", e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label>Drift Rating</Label>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => changeDrift(driftRating - 1)}
+              disabled={driftRating <= 0}
+              aria-label="Decrease drift rating"
+            >
+              −
+            </Button>
+            <span className="w-6 text-center text-sm font-medium">{driftRating}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => changeDrift(driftRating + 1)}
+              aria-label="Increase drift rating"
+            >
+              +
+            </Button>
+          </div>
         </div>
       </div>
 

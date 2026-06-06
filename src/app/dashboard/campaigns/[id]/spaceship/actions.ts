@@ -28,7 +28,7 @@ export async function createSpaceshipAction(campaignId: string, name: string): P
 export async function updateSpaceshipAction(
   campaignId: string,
   spaceshipId: string,
-  data: Partial<Pick<Spaceship, "name" | "makeAndModel" | "speed" | "size" | "frame" | "driftRating" | "pilotRank" | "sizeMod" | "armorBonus" | "acMiscMod" | "countermeasures" | "tlMiscMod" | "hullTotal" | "hullCurrent" | "damageThreshold" | "criticalThreshold" | "shieldForwardTotal" | "shieldForwardCurrent" | "shieldPortTotal" | "shieldPortCurrent" | "shieldStarboardTotal" | "shieldStarboardCurrent" | "shieldAftTotal" | "shieldAftCurrent" | "shieldRegenPerMin" | "shieldMiscMod">>
+  data: Partial<Pick<Spaceship, "name" | "makeAndModel" | "tier" | "maneuverability" | "speed" | "size" | "frame" | "powerCoreName" | "powerCorePcu" | "driftEngine" | "driftRating" | "pilotRank" | "sizeMod" | "armorBonus" | "acMiscMod" | "countermeasures" | "tlMiscMod" | "hullTotal" | "hullCurrent" | "damageThreshold" | "criticalThreshold" | "shieldForwardTotal" | "shieldForwardCurrent" | "shieldPortTotal" | "shieldPortCurrent" | "shieldStarboardTotal" | "shieldStarboardCurrent" | "shieldAftTotal" | "shieldAftCurrent" | "shieldRegenPerMin" | "shieldMiscMod">>
 ): Promise<Result> {
   const user = await getUser();
   if (!user) return { success: false, error: "Not authenticated." };
