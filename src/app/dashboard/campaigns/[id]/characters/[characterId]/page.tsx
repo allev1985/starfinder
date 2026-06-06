@@ -56,9 +56,9 @@ export default async function CampaignCharacterPage({
 
   return (
     <div className="p-6">
-      <div className="mb-1 text-sm text-muted-foreground">
-        <Link href={`/dashboard/campaigns/${id}`} className="hover:underline">
-          Campaign
+      <div className="mb-1 text-sm" style={{ color: "var(--text-3)" }}>
+        <Link href={`/dashboard/campaigns/${id}`} className="hover:underline" style={{ color: "var(--text-2)" }}>
+          {campaigns.find((c) => c.id === id)?.name ?? "Campaign"}
         </Link>
         {" / "}
         {character.name}
@@ -79,6 +79,10 @@ export default async function CampaignCharacterPage({
 
       <CharacterStatsClient
         characterId={characterId}
+        characterName={character.name}
+        raceName={character.raceName ?? null}
+        characterClassName={character.className ?? null}
+        themeName={character.themeName ?? null}
         raceType={character.raceType}
         mechanicLevel={character.mechanicLevel}
         scores={{

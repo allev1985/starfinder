@@ -3,6 +3,7 @@ import { getUser } from "@/lib/session";
 import { isCampaignParticipant } from "@/lib/authorization";
 import { getCampaignWithCharacters, getSpaceshipsByCampaign } from "@/db/queries/campaigns";
 import CampaignSidebar from "./_components/campaign-sidebar";
+import CampaignContextSetter from "./_components/campaign-context-setter";
 
 export default async function CampaignLayout({
   children,
@@ -28,6 +29,10 @@ export default async function CampaignLayout({
 
   return (
     <div className="flex flex-1">
+      <CampaignContextSetter
+        campaignId={id}
+        hasSpaceships={spaceships.length > 0}
+      />
       <CampaignSidebar
         campaignId={id}
         campaignName={campaign.name}

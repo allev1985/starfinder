@@ -38,6 +38,41 @@ export async function getCharactersByOwner(ownerId: string): Promise<Character[]
   return db.select().from(characters).where(eq(characters.ownerId, ownerId));
 }
 
+export type CharacterListItem = {
+  id: string;
+  name: string;
+  level: number;
+  raceName: string | null;
+  className: string | null;
+  themeName: string | null;
+};
+
+export async function getCharacterListByOwner(ownerId: string): Promise<CharacterListItem[]> {
+  const rows = await db
+    .select({
+      id: characters.id,
+      name: characters.name,
+      level: characters.level,
+      raceName: races.name,
+      className: classes.name,
+      themeName: themes.name,
+    })
+    .from(characters)
+    .leftJoin(races, eq(characters.raceId, races.id))
+    .leftJoin(classes, eq(characters.classId, classes.id))
+    .leftJoin(themes, eq(characters.themeId, themes.id))
+    .where(eq(characters.ownerId, ownerId));
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    level: r.level,
+    raceName: r.raceName ?? null,
+    className: r.className ?? null,
+    themeName: r.themeName ?? null,
+  }));
+}
+
 export async function getCharacterById(id: string): Promise<Character | null> {
   const [character] = await db.select().from(characters).where(eq(characters.id, id)).limit(1);
   return character ?? null;

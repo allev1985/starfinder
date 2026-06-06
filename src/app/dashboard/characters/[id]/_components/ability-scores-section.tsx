@@ -1,25 +1,27 @@
 "use client";
 
-import { Fragment } from "react";
-import { Input } from "@/components/ui/input";
 import { updateAbilityScoresAction } from "../actions";
 import type { AbilityScores } from "@/db/queries/characters";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
 import { useCharacter } from "./character-context";
 
-const ABILITIES: { key: keyof AbilityScores; label: string }[] = [
-  { key: "strScore", label: "Strength (STR)" },
-  { key: "dexScore", label: "Dexterity (DEX)" },
-  { key: "conScore", label: "Constitution (CON)" },
-  { key: "intScore", label: "Intelligence (INT)" },
-  { key: "wisScore", label: "Wisdom (WIS)" },
-  { key: "chaScore", label: "Charisma (CHA)" },
+const ABILITIES: { key: keyof AbilityScores; label: string; short: string }[] = [
+  { key: "strScore", label: "Strength", short: "STR" },
+  { key: "dexScore", label: "Dexterity", short: "DEX" },
+  { key: "conScore", label: "Constitution", short: "CON" },
+  { key: "intScore", label: "Intelligence", short: "INT" },
+  { key: "wisScore", label: "Wisdom", short: "WIS" },
+  { key: "chaScore", label: "Charisma", short: "CHA" },
 ];
 
 function formatModifier(score: number): string {
   const mod = modifier(score);
   return mod >= 0 ? `+${mod}` : `${mod}`;
+}
+
+export function abilitySummary(scores: AbilityScores): string {
+  return `STR ${scores.strScore} / DEX ${scores.dexScore} / INT ${scores.intScore}`;
 }
 
 export default function AbilityScoresSection() {
@@ -31,39 +33,87 @@ export default function AbilityScoresSection() {
     updateAbilityScoresAction(characterId, next)
   );
 
-  function handleChange(key: keyof AbilityScores, raw: string) {
-    const value = parseInt(raw, 10);
-    const next = { ...scores, [key]: isNaN(value) ? 10 : value };
+  function adjust(key: keyof AbilityScores, delta: number) {
+    const current = scores[key];
+    const next = { ...scores, [key]: Math.max(1, current + delta) };
     setScores(next);
     scheduleSave(next);
   }
 
   return (
-    <section className="mb-8">
-      <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">
-        Ability Scores
-      </h2>
-      <div className="grid grid-cols-[12rem_5rem_3rem] items-center gap-x-3 gap-y-2">
-        <span />
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Score</span>
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Modifier</span>
-        {visibleAbilities.map(({ key, label }) => (
-          <Fragment key={key}>
-            <span className="text-sm font-medium">{label}</span>
+    <div className="grid grid-cols-2 gap-3">
+      {visibleAbilities.map(({ key, short }) => {
+        const score = scores[key];
+        const mod = formatModifier(score);
+        return (
+          <div
+            key={key}
+            className="flex flex-col items-center rounded-[9px] border"
+            style={{
+              backgroundColor: "var(--surface-2)",
+              borderColor: "var(--border)",
+              padding: "10px 8px 8px",
+            }}
+          >
+            <span
+              className="uppercase leading-none mb-2"
+              style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-3)", letterSpacing: "0.08em" }}
+            >
+              {short}
+            </span>
             {isOwner ? (
-              <Input
-                type="number"
-                value={scores[key]}
-                onChange={(e) => handleChange(key, e.target.value)}
-                className="h-7 text-sm text-center"
-              />
+              <div className="flex items-center gap-1 w-full justify-center">
+                <button
+                  type="button"
+                  onClick={() => adjust(key, -1)}
+                  className="flex items-center justify-center rounded-[7px] border transition-colors shrink-0 w-10 h-10 md:w-7 md:h-7"
+                  style={{
+                    backgroundColor: "var(--surface)",
+                    borderColor: "var(--border)",
+                    color: "var(--sf-accent)",
+                    fontSize: 18,
+                    fontFamily: "var(--font-mono)",
+                    fontWeight: 600,
+                  }}
+                >
+                  −
+                </button>
+                <span
+                  className="text-center"
+                  style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 24, color: "var(--text-1)", minWidth: 36 }}
+                >
+                  {score}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => adjust(key, 1)}
+                  className="flex items-center justify-center rounded-[7px] border transition-colors shrink-0 w-10 h-10 md:w-7 md:h-7"
+                  style={{
+                    backgroundColor: "var(--surface)",
+                    borderColor: "var(--border)",
+                    color: "var(--sf-accent)",
+                    fontSize: 18,
+                    fontFamily: "var(--font-mono)",
+                    fontWeight: 600,
+                  }}
+                >
+                  +
+                </button>
+              </div>
             ) : (
-              <span className="text-sm text-center">{scores[key]}</span>
+              <span style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 24, color: "var(--text-1)" }}>
+                {score}
+              </span>
             )}
-            <span className="text-sm text-muted-foreground">{formatModifier(scores[key])}</span>
-          </Fragment>
-        ))}
-      </div>
-    </section>
+            <span
+              className="leading-none mt-[5px]"
+              style={{ fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--sf-accent)" }}
+            >
+              {mod}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }

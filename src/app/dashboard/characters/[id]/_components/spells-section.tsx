@@ -486,33 +486,35 @@ export default function SpellsSection({
     <section className="mt-8">
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Spells</h2>
       <Tabs defaultValue="0">
-        <div className="flex items-center gap-2 mb-2">
-        <TabsList>
-          {LEVELS.map((lvl) => {
-            const limit = limits[lvl] ?? 0;
-            const count = knownState[lvl].length;
-            const locked = limit === 0;
-            return (
-              <TabsTrigger key={lvl} value={String(lvl)} disabled={locked}>
-                <span>{lvl === 0 ? "Cantrips" : `Lvl ${lvl}`}</span>
-                {!locked && (
-                  <span className={["ml-1 text-xs tabular-nums", count >= limit ? "text-destructive" : "text-muted-foreground"].join(" ")}>
-                    {count}/{limit}
-                  </span>
-                )}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-        {isOwner && (
-          <button
-            onClick={handleLongRest}
-            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 h-9 text-xs font-medium hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
-          >
-            <Moon className="h-3.5 w-3.5" />
-            New Day
-          </button>
-        )}
+        <div className="flex items-center gap-2 mb-2 min-w-0">
+          <div className="overflow-x-auto min-w-0 flex-1">
+            <TabsList className="min-w-max">
+              {LEVELS.map((lvl) => {
+                const limit = limits[lvl] ?? 0;
+                const count = knownState[lvl].length;
+                const locked = limit === 0;
+                return (
+                  <TabsTrigger key={lvl} value={String(lvl)} disabled={locked}>
+                    <span>{lvl === 0 ? "Cantrips" : `Lvl ${lvl}`}</span>
+                    {!locked && (
+                      <span className={["ml-1 text-xs tabular-nums", count >= limit ? "text-destructive" : "text-muted-foreground"].join(" ")}>
+                        {count}/{limit}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
+          {isOwner && (
+            <button
+              onClick={handleLongRest}
+              className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 h-9 text-xs font-medium hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
+            >
+              <Moon className="h-3.5 w-3.5" />
+              New Day
+            </button>
+          )}
         </div>
         {LEVELS.map((lvl) => {
           const limit = limits[lvl] ?? 0;

@@ -243,6 +243,119 @@ function DroneSkillRow({
   );
 }
 
+function MobileSkillRow({
+  row, skill, ranks, maxRanks, scores, armorCheckPenalty, isOwner, isDrone,
+  mechanicLevel, characterId, onRanksChange,
+}: {
+  row: CharacterSkill;
+  skill: SkillWithClassFlag;
+  ranks: number;
+  maxRanks: number;
+  scores: AbilityScores;
+  armorCheckPenalty: number;
+  isOwner: boolean;
+  isDrone: boolean;
+  mechanicLevel: number | null;
+  characterId: string;
+  onRanksChange: (id: string, value: number) => void;
+}) {
+  const [miscMod, setMiscMod] = useState(row.miscMod);
+  const scheduleMiscSave = useDebouncedSave((v: number) =>
+    updateSkillMiscModAction(row.id, characterId, v)
+  );
+  const scheduleRanksSave = useDebouncedSave((v: number) =>
+    updateSkillRanksAction(row.id, characterId, v)
+  );
+
+  const effectiveAbility = row.abilityOverride ?? skill.ability;
+  const abilityKey = ABILITY_KEY_MAP[effectiveAbility] ?? "intScore";
+  const abilityMod = modifier(scores[abilityKey]);
+  const classBonus = skill.isClassSkill && ranks > 0 ? 3 : 0;
+  const acp = skill.armorCheckPenalty ? armorCheckPenalty : 0;
+  const effectiveRanks = isDrone ? (mechanicLevel ?? 0) : ranks;
+  const total = effectiveRanks + classBonus + abilityMod + miscMod + acp;
+
+  function adjustRanks(delta: number) {
+    const next = Math.min(Math.max(0, ranks + delta), maxRanks);
+    onRanksChange(row.id, next);
+    scheduleRanksSave(next);
+  }
+
+  function handleMiscChange(raw: string) {
+    const v = parseInt(raw, 10);
+    const next = isNaN(v) ? 0 : v;
+    setMiscMod(next);
+    scheduleMiscSave(next);
+  }
+
+  const fmt = (n: number) => n >= 0 ? `+${n}` : `${n}`;
+
+  return (
+    <div className="py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+      {/* Row 1: name + ability badge + total */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 flex items-center gap-1.5 flex-wrap">
+          {skill.isClassSkill && <span style={{ color: "var(--warn)", fontSize: 12 }}>★</span>}
+          <span className="text-sm font-medium" style={{ color: "var(--text-1)" }}>
+            {row.label ? `${skill.name} (${row.label})` : skill.name}
+          </span>
+          <span
+            className="rounded px-1.5 py-0.5"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--text-3)", backgroundColor: "var(--surface-2)", border: "1px solid var(--border)" }}
+          >
+            {row.abilityOverride ?? skill.ability}
+          </span>
+        </div>
+        <span
+          className="shrink-0"
+          style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 16, color: "var(--text-1)", minWidth: 42, textAlign: "right" }}
+        >
+          {fmt(total)}
+        </span>
+      </div>
+      {/* Row 2: ranks stepper + misc mod (owner only) */}
+      {isOwner && !isDrone && (
+        <div className="flex items-center gap-3 mt-2">
+          <div className="flex items-center gap-1">
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Ranks</span>
+            <button
+              type="button"
+              onClick={() => adjustRanks(-1)}
+              disabled={ranks <= 0}
+              className="w-9 h-9 flex items-center justify-center rounded-[7px] border disabled:opacity-30"
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--sf-accent)", fontSize: 16, fontFamily: "var(--font-mono)" }}
+            >−</button>
+            <span className="w-5 text-center text-sm font-semibold" style={{ fontFamily: "var(--font-mono)", color: "var(--text-1)" }}>
+              {ranks}
+            </span>
+            <button
+              type="button"
+              onClick={() => adjustRanks(1)}
+              disabled={ranks >= maxRanks}
+              className="w-9 h-9 flex items-center justify-center rounded-[7px] border disabled:opacity-30"
+              style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)", color: "var(--sf-accent)", fontSize: 16, fontFamily: "var(--font-mono)" }}
+            >+</button>
+          </div>
+          <div className="flex items-center gap-1">
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Misc</span>
+            <input
+              type="number"
+              value={miscMod}
+              onChange={(e) => handleMiscChange(e.target.value)}
+              style={{
+                fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--text-1)",
+                width: 48, textAlign: "center",
+                background: "var(--surface-2)", border: "1px solid var(--border)",
+                borderRadius: "var(--r-xs)", padding: "6px 4px",
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SkillsSection({
   initialSkills,
   allSkills,
@@ -339,7 +452,35 @@ export default function SkillsSection({
           )}
         </p>
       ) : (
-        <div className="grid grid-cols-[1fr_4.5rem_3.5rem_3.5rem_3rem_3.5rem_3rem_3rem_2rem] items-center gap-x-2 gap-y-1.5">
+        <>
+          {/* ── Mobile layout ── */}
+          <div className="md:hidden flex flex-col">
+            {sortedSkills.map((row) => {
+              const skill = allSkills.find((s) => s.id === row.skillId);
+              if (!skill) return null;
+              const currentRanks = isDrone ? (mechanicLevel ?? 0) : (rankOverrides.get(row.id) ?? row.ranks);
+              const maxRanks = currentRanks + Math.max(0, remaining);
+              return (
+                <MobileSkillRow
+                  key={row.id}
+                  row={row}
+                  skill={skill}
+                  ranks={currentRanks}
+                  maxRanks={maxRanks}
+                  scores={scores}
+                  armorCheckPenalty={armorCheckPenalty}
+                  isOwner={isOwner}
+                  isDrone={isDrone}
+                  mechanicLevel={mechanicLevel}
+                  characterId={characterId}
+                  onRanksChange={handleRanksChange}
+                />
+              );
+            })}
+          </div>
+
+          {/* ── Desktop layout (existing grid) ── */}
+          <div className="hidden md:grid grid-cols-[1fr_4.5rem_3.5rem_3.5rem_3rem_3.5rem_3rem_3rem_2rem] items-center gap-x-2 gap-y-1.5">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Skill</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Ability</span>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground text-center">Ranks</span>
@@ -386,7 +527,8 @@ export default function SkillsSection({
               </Fragment>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {isOwner && (

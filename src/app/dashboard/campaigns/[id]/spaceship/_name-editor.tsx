@@ -1,9 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { Crosshair, AlertTriangle, Users, Settings, Shield } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import AccordionBlock from "@/components/accordion-block";
 import type { Spaceship, SpaceshipWeapon, SpaceshipNote, Character, SpaceshipCrew } from "@/db/schema";
 import { updateSpaceshipAction, createWeaponAction, deleteWeaponAction, createSpaceshipNoteAction, updateSpaceshipNoteAction, deleteSpaceshipNoteAction } from "./actions";
 import CrewSection from "./_crew-section";
@@ -15,24 +17,35 @@ const DAMAGE_STATES: { value: Exclude<DamageState, null>; label: string }[] = [
   { value: "wrecked", label: "Wrecked" },
 ];
 
+const DAMAGE_COLORS: Record<Exclude<DamageState, null>, { bg: string; border: string; text: string }> = {
+  glitching:     { bg: "var(--warn-bg)",   border: "var(--warn)",    text: "var(--warn)" },
+  malfunctioning:{ bg: "#fff7ed",           border: "#ea580c",        text: "#ea580c" },
+  wrecked:       { bg: "var(--danger-bg)", border: "var(--danger)",  text: "var(--danger)" },
+};
+
 function DamageStatus({ value, onChange }: { value: DamageState; onChange: (v: DamageState) => void }) {
   return (
-    <div className="flex gap-1 flex-wrap">
-      {DAMAGE_STATES.map(({ value: v, label }) => (
-        <button
-          key={v}
-          type="button"
-          onClick={() => onChange(value === v ? null : v)}
-          className={[
-            "px-2 py-0.5 rounded text-xs border transition-colors",
-            value === v
-              ? "bg-destructive text-destructive-foreground border-destructive"
-              : "bg-background text-muted-foreground border-border hover:border-foreground",
-          ].join(" ")}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="flex gap-1.5 flex-wrap">
+      {DAMAGE_STATES.map(({ value: v, label }) => {
+        const active = value === v;
+        const colors = active ? DAMAGE_COLORS[v] : null;
+        return (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(active ? null : v)}
+            className="px-2.5 py-1 rounded-[7px] border text-xs font-semibold transition-colors"
+            style={{
+              fontFamily: "var(--font-ui)",
+              backgroundColor: colors?.bg ?? "var(--surface)",
+              borderColor: colors?.border ?? "var(--border)",
+              color: colors?.text ?? "var(--text-3)",
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -324,36 +337,6 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     await deleteWeaponAction(campaignId, weaponId);
   }
 
-  function shieldCell(label: string, totalField: TotalField, currentField: CurrentField) {
-    const total = totals[totalField];
-    const displayCurrent = currents[currentField] ?? total;
-    return (
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-muted-foreground font-medium">{label}</span>
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-muted-foreground w-3">T</span>
-            <Input
-              type="number"
-              value={total}
-              onChange={(e) => handleTotalChange(totalField, e.target.value)}
-              className="w-16 text-center h-8 text-sm"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-muted-foreground w-3">C</span>
-            <Input
-              type="number"
-              value={displayCurrent}
-              onChange={(e) => handleCurrentChange(currentField, e.target.value)}
-              className="w-16 text-center h-8 text-sm"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const noteSection = (key: SectionKey, label: string) => {
     const sectionNotes = notes.filter((n) => n.section === key);
     const inputValue = noteForms[key];
@@ -416,11 +399,115 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     );
   };
 
-  return (
-    <div className="max-w-6xl space-y-6">
+  function shieldArcStepper(label: string, totalField: TotalField, currentField: CurrentField) {
+    const total = totals[totalField];
+    const current = currents[currentField] ?? total;
+    return (
+      <div className="flex flex-col items-center gap-2 rounded-[11px] border p-3"
+        style={{ backgroundColor: "var(--surface-2)", borderColor: "var(--border)" }}
+      >
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          {label}
+        </span>
+        <span style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 20, color: "var(--sf-accent)" }}>
+          {current}
+        </span>
+        <div className="flex items-center gap-1" style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-3)" }}>
+          <span>/</span>
+          <input
+            type="number"
+            value={total}
+            min={0}
+            onChange={(e) => handleTotalChange(totalField, e.target.value)}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 12,
+              color: "var(--text-2)",
+              width: 44,
+              textAlign: "center",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--r-xs)",
+              padding: "1px 4px",
+            }}
+          />
+        </div>
+        <div className="flex gap-2 w-full">
+          <button
+            type="button"
+            onClick={() => handleCurrentChange(currentField, String(Math.max(0, current - 1)))}
+            className="flex-1 py-1 rounded-[7px] border text-sm font-semibold transition-colors"
+            style={{ fontFamily: "var(--font-mono)", color: "var(--danger)", borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          >−</button>
+          <button
+            type="button"
+            onClick={() => handleCurrentChange(currentField, String(Math.min(total, current + 1)))}
+            className="flex-1 py-1 rounded-[7px] border text-sm font-semibold transition-colors"
+            style={{ fontFamily: "var(--font-mono)", color: "var(--good)", borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+          >+</button>
+        </div>
+      </div>
+    );
+  }
 
-      {/* TOP ROW: Identity | Shields | Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  return (
+    <div className="max-w-6xl space-y-4">
+
+      {/* Shield Diagram — always visible */}
+      <div
+        className="rounded-[var(--r)] border p-4"
+        style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-48">
+            {shieldArcStepper("Forward", "shieldForwardTotal", "shieldForwardCurrent")}
+          </div>
+          <div className="flex items-center gap-3 w-full max-w-sm">
+            <div className="flex-1">{shieldArcStepper("Port", "shieldPortTotal", "shieldPortCurrent")}</div>
+            <div
+              className="flex flex-col items-center justify-center rounded-[14px] shrink-0"
+              style={{ width: 80, height: 80, backgroundColor: "var(--chrome)", color: "var(--chrome-muted)" }}
+            >
+              <Shield size={22} style={{ color: "var(--accent-bright)" }} />
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--chrome-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginTop: 2 }}>
+                Shields
+              </span>
+              <span style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 13, color: "var(--accent-bright)" }}>
+                {shieldCurrentValue}/{shieldTotalValue}
+              </span>
+            </div>
+            <div className="flex-1">{shieldArcStepper("Starboard", "shieldStarboardTotal", "shieldStarboardCurrent")}</div>
+          </div>
+          <div className="w-48">
+            {shieldArcStepper("Aft", "shieldAftTotal", "shieldAftCurrent")}
+          </div>
+          <div className="flex gap-4 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="ship-shieldMiscMod" className="text-xs">Misc Mod</Label>
+              <Input
+                id="ship-shieldMiscMod"
+                type="number"
+                value={shieldMiscMod}
+                onChange={(e) => handleSimpleChange("shieldMiscMod", e.target.value)}
+                className="w-20"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="ship-shieldRegenPerMin" className="text-xs">Regen/min</Label>
+              <Input
+                id="ship-shieldRegenPerMin"
+                type="number"
+                value={shieldRegenPerMin}
+                onChange={(e) => handleSimpleChange("shieldRegenPerMin", e.target.value)}
+                className="w-20"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* TOP ROW: Identity | Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* Identity column */}
         <div className="flex flex-col gap-3">
@@ -508,49 +595,6 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
                 >
                   +
                 </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Shields column */}
-        <div className="flex flex-col gap-3">
-          <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Shields</h2>
-          <div className="flex flex-col items-center gap-3">
-            {shieldCell("Forward", "shieldForwardTotal", "shieldForwardCurrent")}
-            <div className="flex items-center gap-4">
-              {shieldCell("Port", "shieldPortTotal", "shieldPortCurrent")}
-              <div className="w-10 h-10 rounded bg-muted" />
-              {shieldCell("Starboard", "shieldStarboardTotal", "shieldStarboardCurrent")}
-            </div>
-            {shieldCell("Aft", "shieldAftTotal", "shieldAftCurrent")}
-          </div>
-          <div className="flex flex-wrap gap-3 pt-2 border-t">
-            <div className="text-sm text-muted-foreground">
-              Total <span className="font-bold text-foreground">{shieldTotalValue}</span>
-              {" · "}
-              Current <span className="font-bold text-foreground">{shieldCurrentValue}</span>
-            </div>
-            <div className="flex gap-3">
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="ship-shieldMiscMod" className="text-xs">Misc Mod</Label>
-                <Input
-                  id="ship-shieldMiscMod"
-                  type="number"
-                  value={shieldMiscMod}
-                  onChange={(e) => handleSimpleChange("shieldMiscMod", e.target.value)}
-                  className="w-20"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <Label htmlFor="ship-shieldRegenPerMin" className="text-xs">Regen/min</Label>
-                <Input
-                  id="ship-shieldRegenPerMin"
-                  type="number"
-                  value={shieldRegenPerMin}
-                  onChange={(e) => handleSimpleChange("shieldRegenPerMin", e.target.value)}
-                  className="w-20"
-                />
               </div>
             </div>
           </div>
@@ -685,8 +729,8 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
       </div>
 
       {/* WEAPONS STRIP */}
-      <div>
-        <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Weapons</h2>
+      <AccordionBlock icon={<Crosshair size={16} />} title="Weapons">
+        <div>
         <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-x-visible">
           {ARCS.map((arc) => {
             const arcWeapons = weapons.filter((w) => w.arc === arc);
@@ -773,16 +817,11 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
             );
           })}
         </div>
-      </div>
+        </div>
+      </AccordionBlock>
 
-      {/* BOTTOM ROW: Crew | Notes | Expansion Bays */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <CrewSection
-          campaignId={campaignId}
-          spaceshipId={spaceship.id}
-          characters={characters}
-          initialCrew={initialCrew}
-        />
+      {/* BOTTOM ROW: Notes | Expansion Bays */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {noteSection("notes", "Notes")}
         {noteSection("expansion_bays", "Expansion Bays")}
       </div>
@@ -829,19 +868,19 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
       </div>
 
       {/* CRITICAL DAMAGE */}
-      <div>
-        <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Critical Damage</h2>
-        <div className="flex flex-col gap-2">
+      <AccordionBlock icon={<AlertTriangle size={16} />} title="Critical Damage">
+        <div className="flex flex-col gap-3">
           {(
             [
               { field: "lifeSupportDamage", label: "Life Support" },
               { field: "sensorsDamage", label: "Sensors" },
               { field: "enginesDamage", label: "Engines" },
               { field: "powerCoreDamage", label: "Power Core" },
+              { field: "weaponsForwardDamage", label: "Weapons" },
             ] as { field: DamageField; label: string }[]
           ).map(({ field, label }) => (
             <div key={field} className="flex items-center gap-4">
-              <span className="text-sm w-28 shrink-0">{label}</span>
+              <span className="flex-1 text-sm" style={{ fontFamily: "var(--font-ui)", color: "var(--text-1)" }}>{label}</span>
               <DamageStatus
                 value={damageValues[field]}
                 onChange={(v) => handleDamageChange(field, v)}
@@ -849,7 +888,51 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
             </div>
           ))}
         </div>
-      </div>
+      </AccordionBlock>
+
+      {/* CREW */}
+      <AccordionBlock icon={<Users size={16} />} title="Crew & Roles">
+        <CrewSection
+          campaignId={campaignId}
+          spaceshipId={spaceship.id}
+          characters={characters}
+          initialCrew={initialCrew}
+        />
+      </AccordionBlock>
+
+      {/* SHIP SPECS */}
+      <AccordionBlock icon={<Settings size={16} />} title="Ship Specs">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-name-spec" className="text-xs">Name</Label>
+            <Input id="ship-name-spec" value={textValues.name} onChange={(e) => handleTextChange("name", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-tier-spec" className="text-xs">Tier</Label>
+            <Input id="ship-tier-spec" value={textValues.tier} onChange={(e) => handleTextChange("tier", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-speed-spec" className="text-xs">Speed</Label>
+            <Input id="ship-speed-spec" value={textValues.speed} onChange={(e) => handleTextChange("speed", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-maneuver-spec" className="text-xs">Maneuverability</Label>
+            <Input id="ship-maneuver-spec" value={textValues.maneuverability} onChange={(e) => handleTextChange("maneuverability", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-powerCoreName-spec" className="text-xs">Power Core</Label>
+            <Input id="ship-powerCoreName-spec" value={textValues.powerCoreName} onChange={(e) => handleTextChange("powerCoreName", e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-drift-spec" className="text-xs">Drift Rating</Label>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => changeDrift(driftRating - 1)} disabled={driftRating <= 0}>−</Button>
+              <span className="text-sm font-medium w-6 text-center">{driftRating}</span>
+              <Button variant="outline" size="sm" onClick={() => changeDrift(driftRating + 1)}>+</Button>
+            </div>
+          </div>
+        </div>
+      </AccordionBlock>
     </div>
   );
 }

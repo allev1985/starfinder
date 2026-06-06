@@ -90,6 +90,10 @@ export default async function CharacterDetailPage({
 
       <CharacterStatsClient
         characterId={id}
+        characterName={character.name}
+        raceName={character.raceName ?? null}
+        characterClassName={character.className ?? null}
+        themeName={character.themeName ?? null}
         raceType={character.raceType}
         mechanicLevel={character.mechanicLevel}
         scores={{

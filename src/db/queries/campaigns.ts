@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { campaigns, characters, campaignCharacters, spaceships, spaceshipWeapons, spaceshipNotes, spaceshipCrew, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote, type SpaceshipCrew, type CrewRole } from "@/db/schema";
+import { campaigns, characters, campaignCharacters, characterCombatStats, classes, spaceships, spaceshipWeapons, spaceshipNotes, spaceshipCrew, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote, type SpaceshipCrew, type CrewRole } from "@/db/schema";
 
 export async function createCampaign(data: NewCampaign): Promise<Campaign> {
   const [campaign] = await db.insert(campaigns).values(data).returning();
@@ -49,6 +49,38 @@ export async function getCampaignWithCharacters(
     .then((rows) => rows.map((r) => r.character));
 
   return { campaign, characters: joined };
+}
+
+export type PartyMember = {
+  id: string;
+  name: string;
+  className: string | null;
+  hitPointsCurrent: number;
+  hitPointsTotal: number;
+};
+
+export async function getPartyMembers(campaignId: string): Promise<PartyMember[]> {
+  const rows = await db
+    .select({
+      id: characters.id,
+      name: characters.name,
+      className: classes.name,
+      hitPointsCurrent: characterCombatStats.hitPointsCurrent,
+      hitPointsTotal: characterCombatStats.hitPointsTotal,
+    })
+    .from(characters)
+    .innerJoin(campaignCharacters, eq(campaignCharacters.characterId, characters.id))
+    .leftJoin(classes, eq(characters.classId, classes.id))
+    .leftJoin(characterCombatStats, eq(characterCombatStats.characterId, characters.id))
+    .where(eq(campaignCharacters.campaignId, campaignId));
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    className: r.className ?? null,
+    hitPointsCurrent: r.hitPointsCurrent ?? 0,
+    hitPointsTotal: r.hitPointsTotal ?? 0,
+  }));
 }
 
 export async function getCharacterById(characterId: string): Promise<Character | null> {
