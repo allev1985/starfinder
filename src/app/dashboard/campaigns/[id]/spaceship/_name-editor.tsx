@@ -4,8 +4,9 @@ import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import type { Spaceship, SpaceshipWeapon, SpaceshipNote } from "@/db/schema";
+import type { Spaceship, SpaceshipWeapon, SpaceshipNote, Character, SpaceshipCrew } from "@/db/schema";
 import { updateSpaceshipAction, createWeaponAction, deleteWeaponAction, createSpaceshipNoteAction, updateSpaceshipNoteAction, deleteSpaceshipNoteAction } from "./actions";
+import CrewSection from "./_crew-section";
 
 const SECTIONS = [
   { key: "systems", label: "Systems" },
@@ -20,6 +21,8 @@ type Props = {
   spaceship: Spaceship;
   weapons: SpaceshipWeapon[];
   notes: SpaceshipNote[];
+  characters: Character[];
+  initialCrew: SpaceshipCrew[];
 };
 
 type TextField = "name" | "makeAndModel" | "speed" | "size" | "frame";
@@ -63,7 +66,7 @@ const ARC_LABELS: Record<Arc, string> = {
 type WeaponForm = { name: string; damage: string; range: string; special: string };
 const EMPTY_FORM: WeaponForm = { name: "", damage: "", range: "", special: "" };
 
-export default function SpaceshipEditor({ campaignId, spaceship, weapons: initialWeapons, notes: initialNotes }: Props) {
+export default function SpaceshipEditor({ campaignId, spaceship, weapons: initialWeapons, notes: initialNotes, characters, initialCrew }: Props) {
   const textTimers = useRef<Partial<Record<TextField, ReturnType<typeof setTimeout>>>>({});
   const numTimers = useRef<Partial<Record<NumField, ReturnType<typeof setTimeout>>>>({});
 
@@ -652,6 +655,13 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
           </div>
         );
       })}
+
+      <CrewSection
+        campaignId={campaignId}
+        spaceshipId={spaceship.id}
+        characters={characters}
+        initialCrew={initialCrew}
+      />
     </div>
   );
 }

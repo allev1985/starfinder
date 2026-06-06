@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { campaigns, characters, campaignCharacters, spaceships, spaceshipWeapons, spaceshipNotes, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote } from "@/db/schema";
+import { campaigns, characters, campaignCharacters, spaceships, spaceshipWeapons, spaceshipNotes, spaceshipCrew, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote, type SpaceshipCrew, type CrewRole } from "@/db/schema";
 
 export async function createCampaign(data: NewCampaign): Promise<Campaign> {
   const [campaign] = await db.insert(campaigns).values(data).returning();
@@ -187,4 +187,33 @@ export async function updateSpaceshipNote(noteId: string, note: string): Promise
 
 export async function deleteSpaceshipNote(noteId: string): Promise<void> {
   await db.delete(spaceshipNotes).where(eq(spaceshipNotes.id, noteId));
+}
+
+export async function getCrewBySpaceship(spaceshipId: string): Promise<SpaceshipCrew[]> {
+  return db
+    .select()
+    .from(spaceshipCrew)
+    .where(eq(spaceshipCrew.spaceshipId, spaceshipId))
+    .orderBy(spaceshipCrew.createdAt);
+}
+
+export async function assignCrew(
+  spaceshipId: string,
+  characterId: string,
+  role: CrewRole
+): Promise<SpaceshipCrew> {
+  if (role === "captain" || role === "pilot") {
+    await db
+      .delete(spaceshipCrew)
+      .where(and(eq(spaceshipCrew.spaceshipId, spaceshipId), eq(spaceshipCrew.role, role)));
+  }
+  const [row] = await db
+    .insert(spaceshipCrew)
+    .values({ spaceshipId, characterId, role })
+    .returning();
+  return row;
+}
+
+export async function removeCrew(crewId: string): Promise<void> {
+  await db.delete(spaceshipCrew).where(eq(spaceshipCrew.id, crewId));
 }

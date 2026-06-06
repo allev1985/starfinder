@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/session";
 import { isCampaignParticipant } from "@/lib/authorization";
-import { createSpaceship, updateSpaceship, deleteSpaceship, createSpaceshipWeapon, deleteSpaceshipWeapon, createSpaceshipNote, updateSpaceshipNote, deleteSpaceshipNote } from "@/db/queries/campaigns";
-import type { Spaceship, SpaceshipWeapon, SpaceshipNote } from "@/db/schema";
+import { createSpaceship, updateSpaceship, deleteSpaceship, createSpaceshipWeapon, deleteSpaceshipWeapon, createSpaceshipNote, updateSpaceshipNote, deleteSpaceshipNote, assignCrew, removeCrew } from "@/db/queries/campaigns";
+import type { Spaceship, SpaceshipWeapon, SpaceshipNote, SpaceshipCrew, CrewRole } from "@/db/schema";
 
 type Result = { success: true } | { success: false; error: string };
 
@@ -164,5 +164,43 @@ export async function deleteSpaceshipNoteAction(
     return { success: true };
   } catch {
     return { success: false, error: "Failed to delete note." };
+  }
+}
+
+export async function assignCrewAction(
+  campaignId: string,
+  spaceshipId: string,
+  characterId: string,
+  role: CrewRole
+): Promise<{ success: true; crew: SpaceshipCrew } | { success: false; error: string }> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  const allowed = await isCampaignParticipant(campaignId, user.id);
+  if (!allowed) return { success: false, error: "Not authorized." };
+
+  try {
+    const crew = await assignCrew(spaceshipId, characterId, role);
+    return { success: true, crew };
+  } catch {
+    return { success: false, error: "Failed to assign crew." };
+  }
+}
+
+export async function removeCrewAction(
+  campaignId: string,
+  crewId: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+
+  const allowed = await isCampaignParticipant(campaignId, user.id);
+  if (!allowed) return { success: false, error: "Not authorized." };
+
+  try {
+    await removeCrew(crewId);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to remove crew member." };
   }
 }

@@ -238,6 +238,18 @@ export const spaceshipNotes = pgTable("spaceship_notes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const spaceshipCrew = pgTable("spaceship_crew", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  spaceshipId: uuid("spaceship_id")
+    .notNull()
+    .references(() => spaceships.id, { onDelete: "cascade" }),
+  characterId: uuid("character_id")
+    .notNull()
+    .references(() => characters.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const characterCombatStats = pgTable("character_combat_stats", {
   characterId: uuid("character_id").primaryKey().references(() => characters.id, { onDelete: "cascade" }),
   initiativeMiscMod: integer("initiative_misc_mod").notNull().default(0),
@@ -505,3 +517,6 @@ export type SpaceshipWeapon = typeof spaceshipWeapons.$inferSelect;
 export type NewSpaceshipWeapon = typeof spaceshipWeapons.$inferInsert;
 export type SpaceshipNote = typeof spaceshipNotes.$inferSelect;
 export type NewSpaceshipNote = typeof spaceshipNotes.$inferInsert;
+export type SpaceshipCrew = typeof spaceshipCrew.$inferSelect;
+export type NewSpaceshipCrew = typeof spaceshipCrew.$inferInsert;
+export type CrewRole = "captain" | "pilot" | "engineer" | "gunner" | "science_officer";
