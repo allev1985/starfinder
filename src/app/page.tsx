@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,68 +13,31 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type Step = "email" | "verify";
-
 export default function LoginPage() {
-  const router = useRouter();
   const supabase = createClient();
 
-  const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function parseAuthError(message: string | undefined): string {
-    if (!message || message === "{}" || message.trim() === "") {
-      return "Something went wrong. Please try again.";
-    }
-    return message;
-  }
-
-  async function handleSendCode(e: React.FormEvent) {
+  async function handleSendLink(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
       if (error) {
-        setError(parseAuthError(error.message));
+        setError(error.message || "Something went wrong. Please try again.");
         return;
       }
-      setStep("verify");
-    } catch {
-      setError("Could not reach the auth service. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: "email",
-      });
-      if (error) {
-        const msg = error.message?.toLowerCase() ?? "";
-        if (msg.includes("expired") || msg.includes("otp")) {
-          setError("Code has expired. Please request a new one.");
-        } else if (msg.includes("invalid") || msg === "{}" || msg === "") {
-          setError("Invalid code. Please check and try again.");
-        } else {
-          setError(parseAuthError(error.message));
-        }
-        return;
-      }
-      router.push("/dashboard");
+      setSent(true);
     } catch {
       setError("Could not reach the auth service. Please try again.");
     } finally {
@@ -86,16 +48,34 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
-        {step === "email" ? (
+        {sent ? (
+          <>
+            <CardHeader>
+              <CardTitle>Check your email</CardTitle>
+              <CardDescription>
+                We sent a sign-in link to {email}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <button
+                type="button"
+                onClick={() => { setSent(false); setEmail(""); }}
+                className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+              >
+                Use a different email
+              </button>
+            </CardContent>
+          </>
+        ) : (
           <>
             <CardHeader>
               <CardTitle>Sign in</CardTitle>
               <CardDescription>
-                Enter your email to receive a login code.
+                Enter your email to receive a sign-in link.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSendCode} className="flex flex-col gap-4">
+              <form onSubmit={handleSendLink} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -112,53 +92,8 @@ export default function LoginPage() {
                   <p className="text-sm text-destructive">{error}</p>
                 )}
                 <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "Sending…" : "Send code"}
+                  {loading ? "Sending…" : "Send link"}
                 </Button>
-              </form>
-            </CardContent>
-          </>
-        ) : (
-          <>
-            <CardHeader>
-              <CardTitle>Check your email</CardTitle>
-              <CardDescription>
-                We sent a 6-digit code to {email}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleVerify} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="otp">Code</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={6}
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    required
-                    autoFocus
-                  />
-                </div>
-                {error && (
-                  <p className="text-sm text-destructive">{error}</p>
-                )}
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "Verifying…" : "Verify"}
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("email");
-                    setOtp("");
-                    setError(null);
-                  }}
-                  className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-                >
-                  Back
-                </button>
               </form>
             </CardContent>
           </>
