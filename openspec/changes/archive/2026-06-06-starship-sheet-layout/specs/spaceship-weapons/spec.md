@@ -1,4 +1,4 @@
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Spaceship weapons are tracked per firing arc
 The spaceship editor SHALL support adding weapons to the spaceship, each assigned to a firing arc (Forward, Port, Starboard, Aft, or Turret). Each weapon entry SHALL capture: name, damage, range, PCU cost, BP cost, and special properties.
@@ -15,27 +15,24 @@ The spaceship editor SHALL support adding weapons to the spaceship, each assigne
 - **WHEN** a non-DM participant views the spaceship weapons section
 - **THEN** all weapon entries are displayed but no add or remove controls are rendered
 
-### Requirement: Weapon arcs render in a horizontally scrollable strip on mobile/tablet and a 5-column grid on desktop
-The weapons section SHALL wrap all five arc cards in a flex container with `overflow-x-auto` on mobile/tablet (below lg breakpoint) and switch to a 5-column CSS grid at the lg breakpoint. Each arc card SHALL have a minimum width of 200px in the scroll strip and fill naturally in the desktop grid.
-
-#### Scenario: Arc cards are horizontally scrollable below lg
-- **WHEN** the weapons section is viewed at a viewport narrower than 1024px
-- **THEN** all five arc cards are arranged in a horizontal scrollable row, each at least 200px wide
-
-#### Scenario: Arc cards render as 5-column grid at lg+
-- **WHEN** the weapons section is viewed at a viewport 1024px or wider
-- **THEN** all five arc cards render in a `grid-cols-5` layout with no horizontal scroll
-
-### Requirement: Spaceship weapons are displayed grouped by firing arc
-The weapons list SHALL group weapon entries under their assigned firing arc heading. Arcs with no weapons SHALL display an empty state message.
+### Requirement: Spaceship weapons are displayed grouped by firing arc in a responsive strip
+The weapons list SHALL group weapon entries under their assigned firing arc heading. On viewports < 1024px, arcs SHALL render as a horizontally scrollable strip of cards (each card with `min-w-[200px]`). On viewports ≥ 1024px, arcs SHALL render in a five-column grid. Arcs with no weapons SHALL display an empty state.
 
 #### Scenario: Weapons grouped under arc headings
 - **WHEN** the spaceship has a weapon in the Forward arc and a weapon in the Turret arc
-- **THEN** the Forward arc section shows the first weapon and the Turret arc section shows the second weapon
+- **THEN** the Forward arc card shows the first weapon and the Turret arc card shows the second weapon
 
 #### Scenario: Empty arc shows empty state
 - **WHEN** a firing arc has no weapons assigned
-- **THEN** that arc section displays a message indicating no weapons are assigned
+- **THEN** that arc card displays a message indicating no weapons are assigned
+
+#### Scenario: Horizontal scroll on mobile
+- **WHEN** the weapons section is viewed on a viewport < 1024px
+- **THEN** the five arc cards are arranged horizontally and the user can scroll to reveal off-screen arcs
+
+#### Scenario: Five-column grid on desktop
+- **WHEN** the weapons section is viewed on a viewport ≥ 1024px
+- **THEN** all five arc cards appear side-by-side in a five-column grid without scrolling
 
 ### Requirement: Weapon stats are stored in the database linked to the spaceship
 Each spaceship weapon SHALL be stored as a row in a `spaceship_weapons` table linked to the spaceship by `spaceship_id`. The table SHALL capture: `spaceship_id`, `arc`, `name`, `damage`, `range`, `pcu`, `bp_cost`, `special`, with `arc` constrained to the valid arc values (forward, port, starboard, aft, turret).
@@ -53,14 +50,14 @@ Each spaceship weapon SHALL be stored as a row in a `spaceship_weapons` table li
 - **THEN** all rows in `spaceship_weapons` for that spaceship are also deleted
 
 ### Requirement: Weapons arc damage status is tracked for Forward, Port, Starboard, and Aft arcs
-The spaceship editor Weapons section SHALL display a single-select damage status button group (None / Glitching / Malfunctioning / Wrecked) below the weapon list for each of the four arcs: Forward, Port, Starboard, and Aft. The Turret arc SHALL NOT have a damage status control. Arc damage is arc-level, not per individual weapon entry.
+The spaceship editor Weapons section SHALL display a single-select damage status button group (None / Glitching / Malfunctioning / Wrecked) inside the arc card for each of the four arcs: Forward, Port, Starboard, and Aft. The Turret arc SHALL NOT have a damage status control. Arc damage is arc-level, not per individual weapon entry.
 
 #### Scenario: Forward arc damage is marked Glitching
 - **WHEN** the DM clicks Glitching under the Forward arc
 - **THEN** Glitching becomes active for the Forward arc and is persisted to the database
 
 #### Scenario: Turret arc has no damage control
-- **WHEN** the Turret arc section is rendered
+- **WHEN** the Turret arc card is rendered
 - **THEN** no damage status button group is displayed for Turret
 
 #### Scenario: Aft arc damage defaults to None

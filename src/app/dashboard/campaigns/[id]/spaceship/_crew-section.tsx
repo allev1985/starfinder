@@ -79,8 +79,8 @@ export default function CrewSection({ campaignId, spaceshipId, characters, initi
 
 
   return (
-    <div className="border-t pt-5">
-      <h2 className="text-sm font-semibold mb-4">Crew</h2>
+    <div className="flex flex-col gap-2">
+      <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Crew</h2>
       <div className="flex flex-col gap-5">
         {SINGLETON_ROLES.map(({ role, label }) => {
           const assigned = crewForRole(role)[0];

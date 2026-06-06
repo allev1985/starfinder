@@ -1,28 +1,11 @@
-### Requirement: Note sections are placed in specific spatial zones on the spaceship play sheet
-Each of the four note sections SHALL be rendered in a designated zone of the spaceship play sheet layout rather than stacked at the bottom of the page:
-- `notes` section → middle column of the bottom row (alongside Crew on the left and Expansion Bays on the right)
-- `expansion_bays` section → right column of the bottom row
-- `systems` section → middle column of the systems row (alongside Power Core/Drift on the left and Cargo/Passengers on the right)
-- `cargo_passengers` section → right column of the systems row
+## MODIFIED Requirements
 
-#### Scenario: Notes renders in the bottom row middle column
-- **WHEN** the spaceship sheet is rendered at sm+ width
-- **THEN** the Notes section appears in the middle column of the bottom row, between the Crew section and the Expansion Bays section
-
-#### Scenario: Expansion Bays renders in the bottom row right column
-- **WHEN** the spaceship sheet is rendered at sm+ width
-- **THEN** the Expansion Bays section appears in the right column of the bottom row
-
-#### Scenario: Systems notes render in the systems row middle column
-- **WHEN** the spaceship sheet is rendered at sm+ width
-- **THEN** the Systems note section appears in the middle column of the systems row, between the Power Core/Drift inputs and the Cargo/Passengers section
-
-#### Scenario: Cargo/Passengers renders in the systems row right column
-- **WHEN** the spaceship sheet is rendered at sm+ width
-- **THEN** the Cargo/Passengers section appears in the right column of the systems row
-
-### Requirement: Spaceship editor has four freetext note-list sections
-The spaceship editor SHALL display four note-list sections within the spaceship play sheet layout zones: Systems, Expansion Bays, Cargo/Passengers, and Notes. Each section SHALL allow participants to add and delete individual freetext note lines.
+### Requirement: Spaceship editor has four freetext note-list sections placed in spatial zones
+The spaceship editor SHALL display four note-list sections. Each section SHALL allow participants to add and delete individual freetext note lines. The sections SHALL be placed in specific layout zones rather than stacked at the bottom:
+- `notes` → middle column of the bottom row (alongside Crew and Expansion Bays)
+- `expansion_bays` → right column of the bottom row
+- `systems` → middle column of the systems row (alongside Power Core+Drift and Cargo)
+- `cargo_passengers` → right column of the systems row
 
 #### Scenario: Participant adds a note line
 - **WHEN** a participant types text into a section's input and clicks Add (or presses Enter)
@@ -39,6 +22,14 @@ The spaceship editor SHALL display four note-list sections within the spaceship 
 #### Scenario: Notes persist across page reloads
 - **WHEN** a participant reloads the spaceship page
 - **THEN** all previously added note lines are displayed in their respective sections
+
+#### Scenario: Notes section is in the bottom row middle column
+- **WHEN** the spaceship editor renders at viewport ≥ 640px
+- **THEN** the general Notes section appears in the middle column of the bottom row, between Crew and Expansion Bays
+
+#### Scenario: Systems section is in the systems row middle column
+- **WHEN** the spaceship editor renders at viewport ≥ 640px
+- **THEN** the Systems notes section appears in the middle column of the systems row, between Power Core+Drift and Cargo/Passengers
 
 ### Requirement: Spaceship notes are stored in the database linked to the spaceship
 Each note line SHALL be stored as a row in a `spaceship_notes` table linked to the spaceship by `spaceship_id`. Each row SHALL capture: `id`, `spaceship_id`, `section` (text, app-controlled), `note` (text), and `created_at`. The `section` value SHALL be one of: `systems`, `expansion_bays`, `cargo_passengers`, `notes`.

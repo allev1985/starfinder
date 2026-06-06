@@ -37,13 +37,7 @@ function DamageStatus({ value, onChange }: { value: DamageState; onChange: (v: D
   );
 }
 
-const SECTIONS = [
-  { key: "systems", label: "Systems" },
-  { key: "expansion_bays", label: "Expansion Bays" },
-  { key: "cargo_passengers", label: "Cargo / Passengers" },
-  { key: "notes", label: "Notes" },
-] as const;
-type SectionKey = (typeof SECTIONS)[number]["key"];
+type SectionKey = "systems" | "expansion_bays" | "cargo_passengers" | "notes";
 
 type Props = {
   campaignId: string;
@@ -72,16 +66,6 @@ const PAIRED_FIELDS: FieldPair[] = [
   { total: "shieldPortTotal", current: "shieldPortCurrent" },
   { total: "shieldStarboardTotal", current: "shieldStarboardCurrent" },
   { total: "shieldAftTotal", current: "shieldAftCurrent" },
-];
-
-const TEXT_FIELDS: { field: TextField; label: string }[] = [
-  { field: "name", label: "Name" },
-  { field: "makeAndModel", label: "Make and Model" },
-  { field: "tier", label: "Tier" },
-  { field: "maneuverability", label: "Maneuverability" },
-  { field: "speed", label: "Speed" },
-  { field: "size", label: "Size" },
-  { field: "frame", label: "Frame" },
 ];
 
 const ARCS = ["forward", "port", "starboard", "aft", "turret"] as const;
@@ -340,11 +324,7 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     await deleteWeaponAction(campaignId, weaponId);
   }
 
-  function shieldCell(
-    label: string,
-    totalField: TotalField,
-    currentField: CurrentField,
-  ) {
+  function shieldCell(label: string, totalField: TotalField, currentField: CurrentField) {
     const total = totals[totalField];
     const displayCurrent = currents[currentField] ?? total;
     return (
@@ -374,262 +354,488 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
     );
   }
 
+  const noteSection = (key: SectionKey, label: string) => {
+    const sectionNotes = notes.filter((n) => n.section === key);
+    const inputValue = noteForms[key];
+    return (
+      <div className="flex flex-col gap-2">
+        <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">{label}</h2>
+        {sectionNotes.length > 0 && (
+          <div className="flex flex-col gap-1">
+            {sectionNotes.map((n) => (
+              <div key={n.id} className="flex items-center gap-2 rounded border px-3 py-2 text-sm">
+                {editingNoteId === n.id ? (
+                  <Input
+                    autoFocus
+                    value={editingNoteText}
+                    onChange={(e) => setEditingNoteText(e.target.value)}
+                    onBlur={() => commitNoteEdit(n.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitNoteEdit(n.id);
+                      if (e.key === "Escape") cancelNoteEdit();
+                    }}
+                    className="h-6 flex-1 border-0 p-0 text-sm shadow-none focus-visible:ring-0"
+                  />
+                ) : (
+                  <span className="flex-1 min-w-0 cursor-text" onClick={() => startEditingNote(n)}>
+                    {n.note}
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleDeleteNote(n.id)}
+                  aria-label="Delete note"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2 items-end">
+          <Input
+            value={inputValue}
+            onChange={(e) => setNoteForms((prev) => ({ ...prev, [key]: e.target.value }))}
+            onKeyDown={(e) => { if (e.key === "Enter") handleAddNote(key); }}
+            placeholder="Add a note…"
+            className="h-8 text-sm"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleAddNote(key)}
+            disabled={!inputValue.trim()}
+            className="h-8 shrink-0"
+          >
+            Add
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col gap-5 max-w-2xl">
-      {TEXT_FIELDS.map(({ field, label }) => (
-        <div key={field} className="flex flex-col gap-1.5">
-          <Label htmlFor={`ship-${field}`}>{label}</Label>
-          <Input
-            id={`ship-${field}`}
-            value={textValues[field]}
-            onChange={(e) => handleTextChange(field, e.target.value)}
-          />
-        </div>
-      ))}
+    <div className="max-w-6xl space-y-6">
 
-      <div className="flex gap-4">
-        <div className="flex flex-col gap-1.5 flex-1">
-          <Label htmlFor="ship-powerCoreName">Power Core</Label>
-          <Input
-            id="ship-powerCoreName"
-            value={textValues.powerCoreName}
-            onChange={(e) => handleTextChange("powerCoreName", e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5 w-24">
-          <Label htmlFor="ship-powerCorePcu">PCU</Label>
-          <Input
-            id="ship-powerCorePcu"
-            type="number"
-            value={powerCorePcu ?? ""}
-            onChange={(e) => handlePcuChange(e.target.value)}
-          />
-        </div>
-      </div>
+      {/* TOP ROW: Identity | Shields | Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-      <div className="flex gap-4 items-end">
-        <div className="flex flex-col gap-1.5 flex-1">
-          <Label htmlFor="ship-driftEngine">Drift Engine</Label>
-          <Input
-            id="ship-driftEngine"
-            value={textValues.driftEngine}
-            onChange={(e) => handleTextChange("driftEngine", e.target.value)}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>Drift Rating</Label>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => changeDrift(driftRating - 1)}
-              disabled={driftRating <= 0}
-              aria-label="Decrease drift rating"
-            >
-              −
-            </Button>
-            <span className="w-6 text-center text-sm font-medium">{driftRating}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => changeDrift(driftRating + 1)}
-              aria-label="Increase drift rating"
-            >
-              +
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h2 className="text-sm font-semibold mb-4">Defensive Scores</h2>
-
-        <div className="flex flex-col gap-3 mb-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ship-pilotRank">Pilot Rank</Label>
-            <Input
-              id="ship-pilotRank"
-              type="number"
-              value={pilotRank}
-              onChange={(e) => handleSimpleChange("pilotRank", e.target.value)}
-              className="w-24"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ship-sizeMod">Size Mod</Label>
-            <Input
-              id="ship-sizeMod"
-              type="number"
-              value={sizeMod}
-              onChange={(e) => handleSimpleChange("sizeMod", e.target.value)}
-              className="w-24"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-6">
-          <div className="flex flex-col gap-3">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">AC</div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ship-armorBonus">Armor Bonus</Label>
-              <Input
-                id="ship-armorBonus"
-                type="number"
-                value={armorBonus}
-                onChange={(e) => handleSimpleChange("armorBonus", e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ship-acMiscMod">Misc Mod</Label>
-              <Input
-                id="ship-acMiscMod"
-                type="number"
-                value={acMiscMod}
-                onChange={(e) => handleSimpleChange("acMiscMod", e.target.value)}
-              />
-            </div>
-            <div className="flex items-center justify-between pt-1 border-t">
-              <span className="text-sm text-muted-foreground">Total</span>
-              <span className="text-xl font-bold">{ac}</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">TL</div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ship-countermeasures">Countermeasures</Label>
-              <Input
-                id="ship-countermeasures"
-                type="number"
-                value={countermeasures}
-                onChange={(e) => handleSimpleChange("countermeasures", e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ship-tlMiscMod">Misc Mod</Label>
-              <Input
-                id="ship-tlMiscMod"
-                type="number"
-                value={tlMiscMod}
-                onChange={(e) => handleSimpleChange("tlMiscMod", e.target.value)}
-              />
-            </div>
-            <div className="flex items-center justify-between pt-1 border-t">
-              <span className="text-sm text-muted-foreground">Total</span>
-              <span className="text-xl font-bold">{tl}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h2 className="text-sm font-semibold mb-4">Hull Points</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ship-hullTotal">Total</Label>
-            <Input
-              id="ship-hullTotal"
-              type="number"
-              value={hullTotal}
-              onChange={(e) => handleTotalChange("hullTotal", e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ship-hullCurrent">Current</Label>
-            <Input
-              id="ship-hullCurrent"
-              type="number"
-              value={hullCurrent ?? hullTotal}
-              onChange={(e) => handleCurrentChange("hullCurrent", e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ship-damageThreshold">Damage Threshold</Label>
-            <Input
-              id="ship-damageThreshold"
-              type="number"
-              value={damageThreshold}
-              onChange={(e) => handleSimpleChange("damageThreshold", e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ship-criticalThreshold">Critical Threshold</Label>
-            <Input
-              id="ship-criticalThreshold"
-              type="number"
-              value={criticalThreshold}
-              onChange={(e) => handleSimpleChange("criticalThreshold", e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h2 className="text-sm font-semibold mb-4">Shields</h2>
-        <div className="flex flex-col items-center gap-3 mb-4">
-          {shieldCell("Forward", "shieldForwardTotal", "shieldForwardCurrent")}
-          <div className="flex items-center gap-4">
-            {shieldCell("Port", "shieldPortTotal", "shieldPortCurrent")}
-            <div className="w-10 h-10 rounded bg-muted" />
-            {shieldCell("Starboard", "shieldStarboardTotal", "shieldStarboardCurrent")}
-          </div>
-          {shieldCell("Aft", "shieldAftTotal", "shieldAftCurrent")}
-        </div>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t pt-3">
-          <div className="flex gap-4 text-sm">
-            <span className="text-muted-foreground">Total <span className="font-bold text-foreground">{shieldTotalValue}</span></span>
-            <span className="text-muted-foreground">Current <span className="font-bold text-foreground">{shieldCurrentValue}</span></span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="ship-shieldMiscMod" className="text-xs">Misc Mod</Label>
-              <Input
-                id="ship-shieldMiscMod"
-                type="number"
-                value={shieldMiscMod}
-                onChange={(e) => handleSimpleChange("shieldMiscMod", e.target.value)}
-                className="w-20"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="ship-shieldRegenPerMin" className="text-xs">Regen/min</Label>
-              <Input
-                id="ship-shieldRegenPerMin"
-                type="number"
-                value={shieldRegenPerMin}
-                onChange={(e) => handleSimpleChange("shieldRegenPerMin", e.target.value)}
-                className="w-20"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h2 className="text-sm font-semibold mb-4">Critical Damage</h2>
+        {/* Identity column */}
         <div className="flex flex-col gap-3">
+          <div className="flex gap-2">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <Label htmlFor="ship-name">Name</Label>
+              <Input
+                id="ship-name"
+                value={textValues.name}
+                onChange={(e) => handleTextChange("name", e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-20">
+              <Label htmlFor="ship-tier">Tier</Label>
+              <Input
+                id="ship-tier"
+                value={textValues.tier}
+                onChange={(e) => handleTextChange("tier", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ship-makeAndModel">Make and Model</Label>
+            <Input
+              id="ship-makeAndModel"
+              value={textValues.makeAndModel}
+              onChange={(e) => handleTextChange("makeAndModel", e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ship-size">Size</Label>
+              <Input
+                id="ship-size"
+                value={textValues.size}
+                onChange={(e) => handleTextChange("size", e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ship-frame">Frame</Label>
+              <Input
+                id="ship-frame"
+                value={textValues.frame}
+                onChange={(e) => handleTextChange("frame", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ship-speed">Speed</Label>
+              <Input
+                id="ship-speed"
+                value={textValues.speed}
+                onChange={(e) => handleTextChange("speed", e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="ship-maneuverability">Maneuverability</Label>
+              <Input
+                id="ship-maneuverability"
+                value={textValues.maneuverability}
+                onChange={(e) => handleTextChange("maneuverability", e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex items-end gap-2">
+            <div className="flex flex-col gap-1.5">
+              <Label>Drift Rating</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => changeDrift(driftRating - 1)}
+                  disabled={driftRating <= 0}
+                  aria-label="Decrease drift rating"
+                >
+                  −
+                </Button>
+                <span className="w-6 text-center text-sm font-medium">{driftRating}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => changeDrift(driftRating + 1)}
+                  aria-label="Increase drift rating"
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Shields column */}
+        <div className="flex flex-col gap-3">
+          <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Shields</h2>
+          <div className="flex flex-col items-center gap-3">
+            {shieldCell("Forward", "shieldForwardTotal", "shieldForwardCurrent")}
+            <div className="flex items-center gap-4">
+              {shieldCell("Port", "shieldPortTotal", "shieldPortCurrent")}
+              <div className="w-10 h-10 rounded bg-muted" />
+              {shieldCell("Starboard", "shieldStarboardTotal", "shieldStarboardCurrent")}
+            </div>
+            {shieldCell("Aft", "shieldAftTotal", "shieldAftCurrent")}
+          </div>
+          <div className="flex flex-wrap gap-3 pt-2 border-t">
+            <div className="text-sm text-muted-foreground">
+              Total <span className="font-bold text-foreground">{shieldTotalValue}</span>
+              {" · "}
+              Current <span className="font-bold text-foreground">{shieldCurrentValue}</span>
+            </div>
+            <div className="flex gap-3">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-shieldMiscMod" className="text-xs">Misc Mod</Label>
+                <Input
+                  id="ship-shieldMiscMod"
+                  type="number"
+                  value={shieldMiscMod}
+                  onChange={(e) => handleSimpleChange("shieldMiscMod", e.target.value)}
+                  className="w-20"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-shieldRegenPerMin" className="text-xs">Regen/min</Label>
+                <Input
+                  id="ship-shieldRegenPerMin"
+                  type="number"
+                  value={shieldRegenPerMin}
+                  onChange={(e) => handleSimpleChange("shieldRegenPerMin", e.target.value)}
+                  className="w-20"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats column: AC / TL / Hull */}
+        <div className="flex flex-col gap-4">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">AC</span>
+              <span className="text-2xl font-bold">{ac}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-pilotRank" className="text-xs">Pilot Rank</Label>
+                <Input
+                  id="ship-pilotRank"
+                  type="number"
+                  value={pilotRank}
+                  onChange={(e) => handleSimpleChange("pilotRank", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-armorBonus" className="text-xs">Armor Bonus</Label>
+                <Input
+                  id="ship-armorBonus"
+                  type="number"
+                  value={armorBonus}
+                  onChange={(e) => handleSimpleChange("armorBonus", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-sizeMod" className="text-xs">Size Mod</Label>
+                <Input
+                  id="ship-sizeMod"
+                  type="number"
+                  value={sizeMod}
+                  onChange={(e) => handleSimpleChange("sizeMod", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-acMiscMod" className="text-xs">Misc Mod</Label>
+                <Input
+                  id="ship-acMiscMod"
+                  type="number"
+                  value={acMiscMod}
+                  onChange={(e) => handleSimpleChange("acMiscMod", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">TL</span>
+              <span className="text-2xl font-bold">{tl}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-countermeasures" className="text-xs">Countermeasures</Label>
+                <Input
+                  id="ship-countermeasures"
+                  type="number"
+                  value={countermeasures}
+                  onChange={(e) => handleSimpleChange("countermeasures", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-tlMiscMod" className="text-xs">Misc Mod</Label>
+                <Input
+                  id="ship-tlMiscMod"
+                  type="number"
+                  value={tlMiscMod}
+                  onChange={(e) => handleSimpleChange("tlMiscMod", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Hull Points</h2>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-hullTotal" className="text-xs">Total</Label>
+                <Input
+                  id="ship-hullTotal"
+                  type="number"
+                  value={hullTotal}
+                  onChange={(e) => handleTotalChange("hullTotal", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-hullCurrent" className="text-xs">Current</Label>
+                <Input
+                  id="ship-hullCurrent"
+                  type="number"
+                  value={hullCurrent ?? hullTotal}
+                  onChange={(e) => handleCurrentChange("hullCurrent", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-damageThreshold" className="text-xs">Damage Threshold</Label>
+                <Input
+                  id="ship-damageThreshold"
+                  type="number"
+                  value={damageThreshold}
+                  onChange={(e) => handleSimpleChange("damageThreshold", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="ship-criticalThreshold" className="text-xs">Critical Threshold</Label>
+                <Input
+                  id="ship-criticalThreshold"
+                  type="number"
+                  value={criticalThreshold}
+                  onChange={(e) => handleSimpleChange("criticalThreshold", e.target.value)}
+                  className="h-8"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* WEAPONS STRIP */}
+      <div>
+        <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Weapons</h2>
+        <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-5 lg:overflow-x-visible">
+          {ARCS.map((arc) => {
+            const arcWeapons = weapons.filter((w) => w.arc === arc);
+            const form = weaponForms[arc];
+            const arcDamageField: DamageField | null = arc !== "turret"
+              ? (`weapons${arc.charAt(0).toUpperCase() + arc.slice(1)}Damage` as DamageField)
+              : null;
+            return (
+              <div key={arc} className="min-w-[200px] shrink-0 lg:min-w-0 border rounded p-3 flex flex-col gap-2">
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {ARC_LABELS[arc]}
+                </div>
+                {arcDamageField && (
+                  <DamageStatus
+                    value={damageValues[arcDamageField]}
+                    onChange={(v) => handleDamageChange(arcDamageField, v)}
+                  />
+                )}
+                {arcWeapons.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    {arcWeapons.map((w) => (
+                      <div key={w.id} className="flex items-start gap-1 rounded border px-2 py-1.5 text-sm">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium">{w.name}</span>
+                          {w.damage && <span className="text-muted-foreground ml-1">{w.damage}</span>}
+                          {w.range && <span className="text-muted-foreground ml-1">· {w.range}</span>}
+                          {w.special && <div className="text-muted-foreground text-xs mt-0.5">{w.special}</div>}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-5 w-5 p-0 shrink-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteWeapon(w.id)}
+                          aria-label={`Delete ${w.name}`}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="flex flex-col gap-1 mt-auto pt-1">
+                  <Input
+                    value={form.name}
+                    onChange={(e) => updateWeaponForm(arc, { name: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
+                    placeholder="Name"
+                    className="h-7 text-xs"
+                  />
+                  <div className="flex gap-1">
+                    <Input
+                      value={form.damage}
+                      onChange={(e) => updateWeaponForm(arc, { damage: e.target.value })}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
+                      placeholder="Dmg"
+                      className="h-7 text-xs flex-1 min-w-0"
+                    />
+                    <Input
+                      value={form.range}
+                      onChange={(e) => updateWeaponForm(arc, { range: e.target.value })}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
+                      placeholder="Rng"
+                      className="h-7 text-xs flex-1 min-w-0"
+                    />
+                  </div>
+                  <Input
+                    value={form.special}
+                    onChange={(e) => updateWeaponForm(arc, { special: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
+                    placeholder="Special"
+                    className="h-7 text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddWeapon(arc)}
+                    disabled={!form.name.trim()}
+                    className="h-7 text-xs"
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* BOTTOM ROW: Crew | Notes | Expansion Bays */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <CrewSection
+          campaignId={campaignId}
+          spaceshipId={spaceship.id}
+          characters={characters}
+          initialCrew={initialCrew}
+        />
+        {noteSection("notes", "Notes")}
+        {noteSection("expansion_bays", "Expansion Bays")}
+      </div>
+
+      {/* SYSTEMS ROW: Power Core + Drift | Systems | Cargo */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-3">
+          <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Power Core &amp; Drift</h2>
+          <div className="flex gap-2">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <Label htmlFor="ship-powerCoreName" className="text-xs">Power Core</Label>
+              <Input
+                id="ship-powerCoreName"
+                value={textValues.powerCoreName}
+                onChange={(e) => handleTextChange("powerCoreName", e.target.value)}
+                className="h-8"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 w-20">
+              <Label htmlFor="ship-powerCorePcu" className="text-xs">PCU</Label>
+              <Input
+                id="ship-powerCorePcu"
+                type="number"
+                value={powerCorePcu ?? ""}
+                onChange={(e) => handlePcuChange(e.target.value)}
+                className="h-8"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 items-end">
+            <div className="flex flex-col gap-1.5 flex-1">
+              <Label htmlFor="ship-driftEngine" className="text-xs">Drift Engine</Label>
+              <Input
+                id="ship-driftEngine"
+                value={textValues.driftEngine}
+                onChange={(e) => handleTextChange("driftEngine", e.target.value)}
+                className="h-8"
+              />
+            </div>
+          </div>
+        </div>
+        {noteSection("systems", "Systems")}
+        {noteSection("cargo_passengers", "Cargo / Passengers")}
+      </div>
+
+      {/* CRITICAL DAMAGE */}
+      <div>
+        <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Critical Damage</h2>
+        <div className="flex flex-col gap-2">
           {(
             [
               { field: "lifeSupportDamage", label: "Life Support" },
               { field: "sensorsDamage", label: "Sensors" },
-            ] as { field: DamageField; label: string }[]
-          ).map(({ field, label }) => (
-            <div key={field} className="flex items-center gap-4">
-              <span className="text-sm w-28 shrink-0">{label}</span>
-              <DamageStatus
-                value={damageValues[field]}
-                onChange={(v) => handleDamageChange(field, v)}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h2 className="text-sm font-semibold mb-4">Weapons</h2>
-        <div className="flex flex-col gap-3 mb-6">
-          {(
-            [
               { field: "enginesDamage", label: "Engines" },
               { field: "powerCoreDamage", label: "Power Core" },
             ] as { field: DamageField; label: string }[]
@@ -643,179 +849,7 @@ export default function SpaceshipEditor({ campaignId, spaceship, weapons: initia
             </div>
           ))}
         </div>
-
-        <div className="flex flex-col gap-6">
-          {ARCS.map((arc) => {
-            const arcWeapons = weapons.filter((w) => w.arc === arc);
-            const form = weaponForms[arc];
-            return (
-              <div key={arc}>
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-2">
-                  {ARC_LABELS[arc]}
-                </div>
-                {arcWeapons.length > 0 && (
-                  <div className="flex flex-col gap-1 mb-3">
-                    {arcWeapons.map((w) => (
-                      <div key={w.id} className="flex items-start gap-2 rounded border px-3 py-2 text-sm">
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium">{w.name}</span>
-                          {w.damage && <span className="text-muted-foreground ml-2">{w.damage}</span>}
-                          {w.range && <span className="text-muted-foreground ml-2">· {w.range}</span>}
-                          {w.special && <div className="text-muted-foreground text-xs mt-0.5">{w.special}</div>}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDeleteWeapon(w.id)}
-                          aria-label={`Delete ${w.name}`}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {arc !== "turret" && (() => {
-                  const arcDamageField: DamageField = `weapons${arc.charAt(0).toUpperCase() + arc.slice(1)}Damage` as DamageField;
-                  return (
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-xs text-muted-foreground w-20 shrink-0">Arc damage</span>
-                      <DamageStatus
-                        value={damageValues[arcDamageField]}
-                        onChange={(v) => handleDamageChange(arcDamageField, v)}
-                      />
-                    </div>
-                  );
-                })()}
-                <div className="flex flex-wrap gap-2 items-end">
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Name</Label>
-                    <Input
-                      value={form.name}
-                      onChange={(e) => updateWeaponForm(arc, { name: e.target.value })}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
-                      placeholder="Weapon name"
-                      className="w-36 h-8 text-sm"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Damage</Label>
-                    <Input
-                      value={form.damage}
-                      onChange={(e) => updateWeaponForm(arc, { damage: e.target.value })}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
-                      placeholder="2d8"
-                      className="w-20 h-8 text-sm"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Range</Label>
-                    <Input
-                      value={form.range}
-                      onChange={(e) => updateWeaponForm(arc, { range: e.target.value })}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
-                      placeholder="Short"
-                      className="w-20 h-8 text-sm"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <Label className="text-xs">Special</Label>
-                    <Input
-                      value={form.special}
-                      onChange={(e) => updateWeaponForm(arc, { special: e.target.value })}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddWeapon(arc); }}
-                      placeholder="Notes"
-                      className="w-28 h-8 text-sm"
-                    />
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleAddWeapon(arc)}
-                    disabled={!form.name.trim()}
-                    className="h-8"
-                  >
-                    Add
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
-
-      {SECTIONS.map(({ key, label }) => {
-        const sectionNotes = notes.filter((n) => n.section === key);
-        const inputValue = noteForms[key];
-        return (
-          <div key={key} className="border-t pt-5">
-            <h2 className="text-sm font-semibold mb-3">{label}</h2>
-            {sectionNotes.length > 0 && (
-              <div className="flex flex-col gap-1 mb-3">
-                {sectionNotes.map((n) => (
-                  <div key={n.id} className="flex items-center gap-2 rounded border px-3 py-2 text-sm">
-                    {editingNoteId === n.id ? (
-                      <Input
-                        autoFocus
-                        value={editingNoteText}
-                        onChange={(e) => setEditingNoteText(e.target.value)}
-                        onBlur={() => commitNoteEdit(n.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") commitNoteEdit(n.id);
-                          if (e.key === "Escape") cancelNoteEdit();
-                        }}
-                        className="h-6 flex-1 border-0 p-0 text-sm shadow-none focus-visible:ring-0"
-                      />
-                    ) : (
-                      <span
-                        className="flex-1 min-w-0 cursor-text"
-                        onClick={() => startEditingNote(n)}
-                      >
-                        {n.note}
-                      </span>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDeleteNote(n.id)}
-                      aria-label="Delete note"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-2 items-end">
-              <Input
-                value={inputValue}
-                onChange={(e) => setNoteForms((prev) => ({ ...prev, [key]: e.target.value }))}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAddNote(key); }}
-                placeholder="Add a note…"
-                className="h-8 text-sm"
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleAddNote(key)}
-                disabled={!inputValue.trim()}
-                className="h-8 shrink-0"
-              >
-                Add
-              </Button>
-            </div>
-          </div>
-        );
-      })}
-
-      <CrewSection
-        campaignId={campaignId}
-        spaceshipId={spaceship.id}
-        characters={characters}
-        initialCrew={initialCrew}
-      />
     </div>
   );
 }
