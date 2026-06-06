@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { AppBarProvider } from "@/components/app-bar-context";
 import AppBar from "@/components/app-bar";
 import TabBar from "@/components/tab-bar";
