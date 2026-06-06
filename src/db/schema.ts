@@ -198,6 +198,33 @@ export const spaceships = pgTable("spaceships", {
   acMiscMod: integer("ac_misc_mod").notNull().default(0),
   countermeasures: integer("countermeasures").notNull().default(0),
   tlMiscMod: integer("tl_misc_mod").notNull().default(0),
+  hullTotal: integer("hull_total").notNull().default(0),
+  hullCurrent: integer("hull_current"),
+  damageThreshold: integer("damage_threshold").notNull().default(0),
+  criticalThreshold: integer("critical_threshold").notNull().default(0),
+  shieldForwardTotal: integer("shield_forward_total").notNull().default(0),
+  shieldForwardCurrent: integer("shield_forward_current"),
+  shieldPortTotal: integer("shield_port_total").notNull().default(0),
+  shieldPortCurrent: integer("shield_port_current"),
+  shieldStarboardTotal: integer("shield_starboard_total").notNull().default(0),
+  shieldStarboardCurrent: integer("shield_starboard_current"),
+  shieldAftTotal: integer("shield_aft_total").notNull().default(0),
+  shieldAftCurrent: integer("shield_aft_current"),
+  shieldRegenPerMin: integer("shield_regen_per_min").notNull().default(0),
+  shieldMiscMod: integer("shield_misc_mod").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const spaceshipWeapons = pgTable("spaceship_weapons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  spaceshipId: uuid("spaceship_id")
+    .notNull()
+    .references(() => spaceships.id, { onDelete: "cascade" }),
+  arc: text("arc").notNull(),
+  name: text("name").notNull(),
+  damage: text("damage"),
+  range: text("range"),
+  special: text("special"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -464,3 +491,5 @@ export type CharacterFeat = typeof characterFeats.$inferSelect;
 export type NewCharacterFeat = typeof characterFeats.$inferInsert;
 export type Spaceship = typeof spaceships.$inferSelect;
 export type NewSpaceship = typeof spaceships.$inferInsert;
+export type SpaceshipWeapon = typeof spaceshipWeapons.$inferSelect;
+export type NewSpaceshipWeapon = typeof spaceshipWeapons.$inferInsert;

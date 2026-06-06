@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
-import { getSpaceshipByCampaign } from "@/db/queries/campaigns";
+import { getSpaceshipByCampaign, getWeaponsBySpaceship } from "@/db/queries/campaigns";
 import CreateSpaceshipForm from "./_create-form";
 import SpaceshipEditor from "./_name-editor";
 import SpaceshipActions from "./_spaceship-actions";
@@ -15,6 +15,7 @@ export default async function SpaceshipPage({
   if (!user) redirect("/");
 
   const spaceship = await getSpaceshipByCampaign(id);
+  const weapons = spaceship ? await getWeaponsBySpaceship(spaceship.id) : [];
 
   return (
     <div className="p-6">
@@ -25,7 +26,7 @@ export default async function SpaceshipPage({
         )}
       </div>
       {spaceship ? (
-        <SpaceshipEditor campaignId={id} spaceship={spaceship} />
+        <SpaceshipEditor campaignId={id} spaceship={spaceship} weapons={weapons} />
       ) : (
         <CreateSpaceshipForm campaignId={id} />
       )}
