@@ -30,7 +30,7 @@ export default function DescriptionSection({ descriptions, savedValues }: Props)
       <h2 className="mb-3 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">
         Description
       </h2>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
         {descriptions.map((desc) => {
           const rawValue = savedValues[desc.id] ?? "";
           const isSpeedField = LAND_SPEED_FIELDS.has(desc.name);
@@ -39,31 +39,29 @@ export default function DescriptionSection({ descriptions, savedValues }: Props)
           const effectiveSpeed = !isNaN(baseSpeed) && armorPenalty !== 0 ? baseSpeed + armorPenalty : null;
 
           return (
-            <div key={desc.id} className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <span className="shrink-0 text-xs font-medium">{desc.name}</span>
-                {isOwner ? (
-                  <div className="flex items-center gap-1">
-                    <Input
-                      defaultValue={rawValue}
-                      onBlur={(e) => handleBlur(desc.id, e.target.value)}
-                      className="h-6 w-20 text-xs"
-                      placeholder={isSpeedField ? "ft" : ""}
-                    />
-                    {isSpeedField && !isNaN(baseSpeed) && (
-                      <span className="text-xs text-muted-foreground">ft</span>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground">
-                    {isSpeedField && !isNaN(baseSpeed)
-                      ? `${baseSpeed} ft`
-                      : rawValue || "—"}
-                  </span>
-                )}
-              </div>
+            <div key={desc.id} className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-foreground">{desc.name}</span>
+              {isOwner ? (
+                <div className="flex items-center gap-1">
+                  <Input
+                    defaultValue={rawValue}
+                    onBlur={(e) => handleBlur(desc.id, e.target.value)}
+                    className="h-7 w-full max-w-[160px] text-xs"
+                    placeholder={isSpeedField ? "e.g. 30" : ""}
+                  />
+                  {isSpeedField && !isNaN(baseSpeed) && (
+                    <span className="text-xs text-muted-foreground">ft</span>
+                  )}
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {isSpeedField && !isNaN(baseSpeed)
+                    ? `${baseSpeed} ft`
+                    : rawValue || "—"}
+                </span>
+              )}
               {isSpeedField && effectiveSpeed !== null && (
-                <span className="text-xs text-muted-foreground pl-1">
+                <span className="text-xs text-muted-foreground">
                   {effectiveSpeed} ft effective ({baseSpeed} − {Math.abs(armorPenalty)} armor)
                 </span>
               )}
