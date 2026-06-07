@@ -1,7 +1,7 @@
 import "server-only";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { campaigns, characters, campaignCharacters, characterCombatStats, classes, spaceships, spaceshipWeapons, spaceshipNotes, spaceshipCrew, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote, type SpaceshipCrew, type CrewRole } from "@/db/schema";
+import { campaigns, characters, campaignCharacters, characterCombatStats, classes, spaceships, spaceshipWeapons, spaceshipNotes, spaceshipCrew, sessionNotes, sessionNoteCharacterEntries, type NewCampaign, type Campaign, type Character, type NewSpaceship, type Spaceship, type SpaceshipWeapon, type NewSpaceshipWeapon, type SpaceshipNote, type NewSpaceshipNote, type SpaceshipCrew, type CrewRole, type SessionNote, type NewSessionNote, type SessionNoteCharacterEntry } from "@/db/schema";
 
 export async function createCampaign(data: NewCampaign): Promise<Campaign> {
   const [campaign] = await db.insert(campaigns).values(data).returning();
@@ -256,4 +256,60 @@ export async function assignCrew(
 
 export async function removeCrew(crewId: string): Promise<void> {
   await db.delete(spaceshipCrew).where(eq(spaceshipCrew.id, crewId));
+}
+
+export async function listSessionsByCampaign(campaignId: string): Promise<SessionNote[]> {
+  return db
+    .select()
+    .from(sessionNotes)
+    .where(eq(sessionNotes.campaignId, campaignId))
+    .orderBy(desc(sessionNotes.createdAt));
+}
+
+export async function getSessionWithEntries(
+  sessionId: string
+): Promise<{ session: SessionNote | null; entries: SessionNoteCharacterEntry[] }> {
+  const [session] = await db
+    .select()
+    .from(sessionNotes)
+    .where(eq(sessionNotes.id, sessionId));
+
+  if (!session) return { session: null, entries: [] };
+
+  const entries = await db
+    .select()
+    .from(sessionNoteCharacterEntries)
+    .where(eq(sessionNoteCharacterEntries.sessionNoteId, sessionId));
+
+  return { session, entries };
+}
+
+export async function createSessionNote(data: NewSessionNote): Promise<SessionNote> {
+  const [session] = await db.insert(sessionNotes).values(data).returning();
+  return session;
+}
+
+export async function updateSessionMetadata(
+  sessionId: string,
+  data: Partial<Pick<SessionNote, "title" | "sessionNumber" | "sessionDate" | "dmStoragePath">>
+): Promise<void> {
+  await db.update(sessionNotes).set(data).where(eq(sessionNotes.id, sessionId));
+}
+
+export async function upsertCharacterEntry(
+  sessionNoteId: string,
+  characterId: string,
+  storagePath: string
+): Promise<void> {
+  await db
+    .insert(sessionNoteCharacterEntries)
+    .values({ sessionNoteId, characterId, storagePath, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: [sessionNoteCharacterEntries.sessionNoteId, sessionNoteCharacterEntries.characterId],
+      set: { storagePath, updatedAt: new Date() },
+    });
+}
+
+export async function deleteSessionNote(sessionId: string): Promise<void> {
+  await db.delete(sessionNotes).where(eq(sessionNotes.id, sessionId));
 }

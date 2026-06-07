@@ -495,6 +495,34 @@ export const characterNotes = pgTable("character_notes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const sessionNotes = pgTable("session_notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  campaignId: uuid("campaign_id")
+    .notNull()
+    .references(() => campaigns.id, { onDelete: "cascade" }),
+  sessionNumber: integer("session_number"),
+  title: text("title").notNull(),
+  sessionDate: text("session_date"),
+  dmStoragePath: text("dm_storage_path"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const sessionNoteCharacterEntries = pgTable(
+  "session_note_character_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionNoteId: uuid("session_note_id")
+      .notNull()
+      .references(() => sessionNotes.id, { onDelete: "cascade" }),
+    characterId: uuid("character_id")
+      .notNull()
+      .references(() => characters.id, { onDelete: "cascade" }),
+    storagePath: text("storage_path").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [uniqueIndex("session_note_character_entries_unique").on(t.sessionNoteId, t.characterId)]
+);
+
 export const conditions = pgTable("conditions", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -582,3 +610,7 @@ export type CrewRole = "captain" | "pilot" | "engineer" | "gunner" | "science_of
 export type Condition = typeof conditions.$inferSelect;
 export type NewCondition = typeof conditions.$inferInsert;
 export type CharacterCondition = typeof characterConditions.$inferSelect;
+export type SessionNote = typeof sessionNotes.$inferSelect;
+export type NewSessionNote = typeof sessionNotes.$inferInsert;
+export type SessionNoteCharacterEntry = typeof sessionNoteCharacterEntries.$inferSelect;
+export type NewSessionNoteCharacterEntry = typeof sessionNoteCharacterEntries.$inferInsert;

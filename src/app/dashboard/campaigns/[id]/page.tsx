@@ -163,27 +163,35 @@ export default async function CampaignDetailPage({
       <div className="mb-6">
         <SectionLabel>Encounter</SectionLabel>
         <div className="grid grid-cols-2 gap-3">
-          {[
-            { icon: Dices, label: "Initiative" },
-            { icon: NotebookText, label: "Session notes" },
-          ].map(({ icon: Icon, label }) => (
-            <button
-              key={label}
-              type="button"
-              className="encounter-btn flex flex-col items-center justify-center gap-2 rounded-[var(--r)] transition-colors"
-              style={{
-                padding: "16px 12px",
-                backgroundColor: "var(--surface)",
-                border: "1px solid var(--border)",
-                cursor: "default",
-              }}
-            >
-              <Icon size={22} style={{ color: "var(--sf-accent)" }} />
-              <span style={{ fontFamily: "var(--font-ui)", fontWeight: 600, fontSize: 13, color: "var(--text-1)" }}>
-                {label}
-              </span>
-            </button>
-          ))}
+          <button
+            type="button"
+            className="encounter-btn flex flex-col items-center justify-center gap-2 rounded-[var(--r)] transition-colors"
+            style={{
+              padding: "16px 12px",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--border)",
+              cursor: "default",
+            }}
+          >
+            <Dices size={22} style={{ color: "var(--sf-accent)" }} />
+            <span style={{ fontFamily: "var(--font-ui)", fontWeight: 600, fontSize: 13, color: "var(--text-1)" }}>
+              Initiative
+            </span>
+          </button>
+          <Link
+            href={`/dashboard/campaigns/${id}/sessions`}
+            className="card-hover flex flex-col items-center justify-center gap-2 rounded-[var(--r)]"
+            style={{
+              padding: "16px 12px",
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <NotebookText size={22} style={{ color: "var(--sf-accent)" }} />
+            <span style={{ fontFamily: "var(--font-ui)", fontWeight: 600, fontSize: 13, color: "var(--text-1)" }}>
+              Session notes
+            </span>
+          </Link>
         </div>
       </div>
     </div>

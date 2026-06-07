@@ -32,9 +32,9 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-function NavItem({ href, label }: { href: string; label: string }) {
+function NavItem({ href, label, prefixMatch }: { href: string; label: string; prefixMatch?: boolean }) {
   const pathname = usePathname();
-  const active = pathname === href;
+  const active = prefixMatch ? pathname.startsWith(href) : pathname === href;
 
   return (
     <Link
@@ -137,6 +137,13 @@ export default function CampaignSidebar({
             label="+ Add ship"
           />
         )}
+
+        <SectionLabel>Notes</SectionLabel>
+        <NavItem
+          href={`/dashboard/campaigns/${campaignId}/sessions`}
+          label="Session notes"
+          prefixMatch
+        />
       </nav>
     </aside>
   );
