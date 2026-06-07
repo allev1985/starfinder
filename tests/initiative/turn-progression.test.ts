@@ -14,13 +14,13 @@ import {
   getBattleCombatants,
   updateBattleTurn,
 } from "@/db/queries/battles";
-import { checkIsCampaignDm } from "@/db/queries/campaigns";
+import { checkIsCampaignGm } from "@/db/queries/campaigns";
 
 const mockGetUser = vi.mocked(getUser);
 const mockGetActiveBattle = vi.mocked(getActiveBattleForCampaign);
 const mockGetCombatants = vi.mocked(getBattleCombatants);
 const mockUpdateTurn = vi.mocked(updateBattleTurn);
-const mockCheckIsDm = vi.mocked(checkIsCampaignDm);
+const mockCheckIsGm = vi.mocked(checkIsCampaignGm);
 
 function makeCombatant(overrides: Partial<BattleCombatant> & { id: string; sortOrder: number }): BattleCombatant {
   return {
@@ -42,7 +42,7 @@ function makeCombatant(overrides: Partial<BattleCombatant> & { id: string; sortO
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetUser.mockResolvedValue({ id: "user-dm-001", email: "dm@test.com" } as Awaited<ReturnType<typeof getUser>>);
-  mockCheckIsDm.mockResolvedValue(true);
+  mockCheckIsGm.mockResolvedValue(true);
   mockUpdateTurn.mockResolvedValue(undefined);
 });
 

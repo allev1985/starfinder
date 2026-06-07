@@ -13,8 +13,8 @@ export default async function NewSpaceshipPage({
   if (!user) redirect("/");
 
   const { campaign } = await getCampaignWithCharacters(id);
-  const isDm = campaign?.dmId === user.id;
-  if (!isDm) redirect(`/dashboard/campaigns/${id}/spaceship`);
+  const isGm = campaign?.gmId === user.id;
+  if (!isGm) redirect(`/dashboard/campaigns/${id}/spaceship`);
 
   return (
     <div className="p-6">

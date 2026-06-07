@@ -18,14 +18,14 @@ export default async function SpaceshipRootPage({
   }
 
   const { campaign } = await getCampaignWithCharacters(id);
-  const isDm = campaign?.dmId === user.id;
+  const isGm = campaign?.gmId === user.id;
 
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Spaceships</h1>
       </div>
-      {isDm ? (
+      {isGm ? (
         <CreateSpaceshipForm campaignId={id} />
       ) : (
         <p className="text-muted-foreground text-sm">No ships have been added to this campaign yet.</p>

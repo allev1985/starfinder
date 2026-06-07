@@ -8,17 +8,17 @@ export async function createCampaign(data: NewCampaign): Promise<Campaign> {
   return campaign;
 }
 
-export async function getCampaignsByDm(dmId: string): Promise<Campaign[]> {
-  return db.select().from(campaigns).where(eq(campaigns.dmId, dmId));
+export async function getCampaignsByGm(gmId: string): Promise<Campaign[]> {
+  return db.select().from(campaigns).where(eq(campaigns.gmId, gmId));
 }
 
 export async function getCampaignsForUser(
   userId: string
-): Promise<{ dmCampaigns: Campaign[]; playerCampaigns: Campaign[] }> {
-  const dmCampaigns = await db
+): Promise<{ gmCampaigns: Campaign[]; playerCampaigns: Campaign[] }> {
+  const gmCampaigns = await db
     .select()
     .from(campaigns)
-    .where(eq(campaigns.dmId, userId));
+    .where(eq(campaigns.gmId, userId));
 
   const playerCampaigns = await db
     .selectDistinct({ campaign: campaigns })
@@ -28,7 +28,7 @@ export async function getCampaignsForUser(
     .where(eq(characters.ownerId, userId))
     .then((rows) => rows.map((r) => r.campaign));
 
-  return { dmCampaigns, playerCampaigns };
+  return { gmCampaigns, playerCampaigns };
 }
 
 export async function getCampaignWithCharacters(
@@ -122,14 +122,14 @@ export async function deleteCampaign(campaignId: string): Promise<void> {
   await db.delete(campaigns).where(eq(campaigns.id, campaignId));
 }
 
-export async function checkIsCampaignDm(
+export async function checkIsCampaignGm(
   campaignId: string,
   userId: string
 ): Promise<boolean> {
   const [row] = await db
     .select({ id: campaigns.id })
     .from(campaigns)
-    .where(and(eq(campaigns.id, campaignId), eq(campaigns.dmId, userId)))
+    .where(and(eq(campaigns.id, campaignId), eq(campaigns.gmId, userId)))
     .limit(1);
   return !!row;
 }
@@ -291,7 +291,7 @@ export async function createSessionNote(data: NewSessionNote): Promise<SessionNo
 
 export async function updateSessionMetadata(
   sessionId: string,
-  data: Partial<Pick<SessionNote, "title" | "sessionNumber" | "sessionDate" | "dmStoragePath">>
+  data: Partial<Pick<SessionNote, "title" | "sessionNumber" | "sessionDate" | "gmStoragePath">>
 ): Promise<void> {
   await db.update(sessionNotes).set(data).where(eq(sessionNotes.id, sessionId));
 }

@@ -27,7 +27,7 @@ import type { BattlePartyMember } from "@/db/queries/battles";
 type Props = {
   campaignId: string;
   userId: string;
-  isDm: boolean;
+  isGm: boolean;
   battle: Battle | null;
   combatants: BattleCombatant[];
   partyMembers: BattlePartyMember[];
@@ -311,7 +311,7 @@ function AddEnemyForm({ campaignId }: { campaignId: string }) {
 export default function InitiativeClient({
   campaignId,
   userId,
-  isDm,
+  isGm,
   battle: initialBattle,
   combatants: initialCombatants,
   partyMembers,
@@ -379,7 +379,7 @@ export default function InitiativeClient({
             Initiative
           </h1>
         </div>
-        {isDm ? (
+        {isGm ? (
           <Button
             onClick={() => startTransition(async () => {
               const result = await startBattleAction(campaignId);
@@ -394,7 +394,7 @@ export default function InitiativeClient({
             New Battle
           </Button>
         ) : (
-          <p style={{ fontSize: 13, color: "var(--text-3)" }}>Waiting for DM to start a battle…</p>
+          <p style={{ fontSize: 13, color: "var(--text-3)" }}>Waiting for GM to start a battle…</p>
         )}
         <BattleRealtimeSync
           campaignId={campaignId}
@@ -459,7 +459,7 @@ export default function InitiativeClient({
           <div className="flex flex-col gap-2">
             {setupCombatants.filter((c) => c.type === "pc").map((c) => {
               const member = partyMembers.find((m) => m.characterId === c.characterId);
-              const canSubmit = isDm || myPcIds.includes(c.id);
+              const canSubmit = isGm || myPcIds.includes(c.id);
               return (
                 <div
                   key={c.id}
@@ -555,9 +555,9 @@ export default function InitiativeClient({
           </div>
         )}
 
-        {isDm && <AddEnemyForm campaignId={campaignId} />}
+        {isGm && <AddEnemyForm campaignId={campaignId} />}
 
-        {isDm && (
+        {isGm && (
           <div className="flex flex-col gap-2">
             <Button
               onClick={() => {
@@ -616,7 +616,7 @@ export default function InitiativeClient({
             Round {battle.currentRound}
           </h1>
         </div>
-        {isDm && (
+        {isGm && (
           <Button
             variant="outline"
             size="sm"
@@ -638,10 +638,10 @@ export default function InitiativeClient({
           {sorted.map((c) => {
             const isCurrent = c.id === currentCombatant?.id;
             // Players must not see that a hidden enemy holds the current turn
-            const isCurrentVisible = isCurrent && (isDm || !c.hidden);
+            const isCurrentVisible = isCurrent && (isGm || !c.hidden);
             const member = partyMembers.find((m) => m.characterId === c.characterId);
-            const canFinish = isDm || (isCurrent && myPcIds.includes(c.id));
-            const name = !isDm && c.hidden ? "???" : c.displayName;
+            const canFinish = isGm || (isCurrent && myPcIds.includes(c.id));
+            const name = !isGm && c.hidden ? "???" : c.displayName;
 
             return (
               <li
@@ -698,7 +698,7 @@ export default function InitiativeClient({
                         Finish Turn
                       </Button>
                     )}
-                    {isDm && c.type === "enemy" && c.hidden && !c.defeated && (
+                    {isGm && c.type === "enemy" && c.hidden && !c.defeated && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -709,7 +709,7 @@ export default function InitiativeClient({
                         <Eye size={14} className="mr-1" aria-hidden="true" /> Reveal
                       </Button>
                     )}
-                    {isDm && c.type === "enemy" && !c.defeated && (
+                    {isGm && c.type === "enemy" && !c.defeated && (
                       <Button
                         size="icon"
                         variant="ghost"
@@ -727,7 +727,7 @@ export default function InitiativeClient({
                 {c.type === "pc" && member && !c.defeated && (
                   <PcInlineStats
                     member={member}
-                    canEdit={isDm || member.ownerId === userId}
+                    canEdit={isGm || member.ownerId === userId}
                     campaignId={campaignId}
                     health={pcHealth[member.characterId] ?? {
                       sp: member.staminaPointsCurrent,
@@ -743,8 +743,8 @@ export default function InitiativeClient({
                   />
                 )}
 
-                {/* DM-only enemy stats — inline below the row */}
-                {isDm && c.type === "enemy" && !c.defeated && (
+                {/* GM-only enemy stats — inline below the row */}
+                {isGm && c.type === "enemy" && !c.defeated && (
                   <EnemyDmStats
                     combatantId={c.id}
                     campaignId={campaignId}
@@ -760,8 +760,8 @@ export default function InitiativeClient({
         </ol>
       </div>
 
-      {/* DM: add enemy mid-battle */}
-      {isDm && <AddEnemyForm campaignId={campaignId} />}
+      {/* GM: add enemy mid-battle */}
+      {isGm && <AddEnemyForm campaignId={campaignId} />}
 
       <BattleRealtimeSync
         campaignId={campaignId}

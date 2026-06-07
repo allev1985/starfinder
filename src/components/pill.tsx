@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 
-type Variant = "dm" | "lv" | "code";
+type Variant = "gm" | "lv" | "code";
 
 const styles: Record<Variant, string> = {
-  dm: [
+  gm: [
     "bg-[var(--chrome)] text-white",
     "font-[family-name:var(--font-mono)] text-[9.5px] font-semibold uppercase tracking-[0.06em]",
     "px-2 py-0.5 rounded-full",

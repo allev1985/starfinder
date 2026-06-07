@@ -4,10 +4,10 @@ vi.mock("@/db/queries/campaigns");
 vi.mock("@/db/queries/characters");
 
 import { isCampaignParticipant, canViewCharacter } from "@/lib/authorization";
-import { checkIsCampaignDm, checkHasCharacterOwnerInCampaign } from "@/db/queries/campaigns";
+import { checkIsCampaignGm, checkHasCharacterOwnerInCampaign } from "@/db/queries/campaigns";
 import { checkIsCharacterOwner, getCharacterCampaignIds } from "@/db/queries/characters";
 
-const mockCheckIsDm = vi.mocked(checkIsCampaignDm);
+const mockCheckIsGm = vi.mocked(checkIsCampaignGm);
 const mockCheckHasOwner = vi.mocked(checkHasCharacterOwnerInCampaign);
 const mockCheckIsOwner = vi.mocked(checkIsCharacterOwner);
 const mockGetCampaignIds = vi.mocked(getCharacterCampaignIds);
@@ -17,9 +17,9 @@ beforeEach(() => {
 });
 
 describe("isCampaignParticipant(campaignId, userId)", () => {
-  it("returns true for the campaign DM", async () => {
+  it("returns true for the campaign GM", async () => {
     // Arrange
-    mockCheckIsDm.mockResolvedValue(true);
+    mockCheckIsGm.mockResolvedValue(true);
     // Act
     const result = await isCampaignParticipant("campaign-001", "user-dm");
     // Assert
@@ -29,7 +29,7 @@ describe("isCampaignParticipant(campaignId, userId)", () => {
 
   it("returns true for a player who owns a character in the campaign", async () => {
     // Arrange
-    mockCheckIsDm.mockResolvedValue(false);
+    mockCheckIsGm.mockResolvedValue(false);
     mockCheckHasOwner.mockResolvedValue(true);
     // Act
     const result = await isCampaignParticipant("campaign-001", "user-player");
@@ -39,7 +39,7 @@ describe("isCampaignParticipant(campaignId, userId)", () => {
 
   it("returns false for a user with no connection to the campaign", async () => {
     // Arrange
-    mockCheckIsDm.mockResolvedValue(false);
+    mockCheckIsGm.mockResolvedValue(false);
     mockCheckHasOwner.mockResolvedValue(false);
     // Act
     const result = await isCampaignParticipant("campaign-001", "user-stranger");
@@ -59,11 +59,11 @@ describe("canViewCharacter(characterId, userId)", () => {
     expect(mockGetCampaignIds).not.toHaveBeenCalled();
   });
 
-  it("returns true for the DM of a campaign that includes the character", async () => {
+  it("returns true for the GM of a campaign that includes the character", async () => {
     // Arrange
     mockCheckIsOwner.mockResolvedValue(false);
     mockGetCampaignIds.mockResolvedValue(["campaign-001"]);
-    mockCheckIsDm.mockResolvedValue(true);
+    mockCheckIsGm.mockResolvedValue(true);
     // Act
     const result = await canViewCharacter("char-001", "user-dm");
     // Assert
@@ -74,7 +74,7 @@ describe("canViewCharacter(characterId, userId)", () => {
     // Arrange
     mockCheckIsOwner.mockResolvedValue(false);
     mockGetCampaignIds.mockResolvedValue(["campaign-001"]);
-    mockCheckIsDm.mockResolvedValue(false);
+    mockCheckIsGm.mockResolvedValue(false);
     mockCheckHasOwner.mockResolvedValue(true);
     // Act
     const result = await canViewCharacter("char-001", "user-player");
@@ -86,7 +86,7 @@ describe("canViewCharacter(characterId, userId)", () => {
     // Arrange
     mockCheckIsOwner.mockResolvedValue(false);
     mockGetCampaignIds.mockResolvedValue(["campaign-001"]);
-    mockCheckIsDm.mockResolvedValue(false);
+    mockCheckIsGm.mockResolvedValue(false);
     mockCheckHasOwner.mockResolvedValue(false);
     // Act
     const result = await canViewCharacter("char-001", "user-stranger");

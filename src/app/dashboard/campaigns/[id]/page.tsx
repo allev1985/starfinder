@@ -35,7 +35,7 @@ export default async function CampaignDetailPage({
   ]);
   if (!campaign) redirect("/dashboard/campaigns");
 
-  const isDm = campaign.dmId === user.id;
+  const isGm = campaign.gmId === user.id;
 
   return (
     <div className="p-5 max-w-2xl mx-auto w-full">
@@ -47,9 +47,9 @@ export default async function CampaignDetailPage({
           <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 26, color: "var(--text-1)" }}>
             {campaign.name}
           </h1>
-          {isDm && <Pill variant="dm">DM</Pill>}
+          {isGm && <Pill variant="gm">GM</Pill>}
         </div>
-        {isDm && <CampaignActions campaignId={id} />}
+        {isGm && <CampaignActions campaignId={id} />}
       </div>
 
       {/* Join code */}

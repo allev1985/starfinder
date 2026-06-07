@@ -43,7 +43,7 @@ describe("listCampaignsForUser(userId)", () => {
   it("returns player role for a player-only campaign", async () => {
     // Arrange
     mockGetCampaignsForUser.mockResolvedValue({
-      dmCampaigns: [],
+      gmCampaigns: [],
       playerCampaigns: [campaignFixture],
     });
     // Act
@@ -53,45 +53,45 @@ describe("listCampaignsForUser(userId)", () => {
     expect(result[0].role).toBe("player");
   });
 
-  it("returns dm role for a DM-only campaign", async () => {
+  it("returns gm role for a GM-only campaign", async () => {
     // Arrange
     mockGetCampaignsForUser.mockResolvedValue({
-      dmCampaigns: [campaignFixture],
+      gmCampaigns: [campaignFixture],
       playerCampaigns: [],
     });
     // Act
     const result = await listCampaignsForUser("user-001");
     // Assert
     expect(result).toHaveLength(1);
-    expect(result[0].role).toBe("dm");
+    expect(result[0].role).toBe("gm");
   });
 
-  it("dm role wins when the same campaign appears in both lists", async () => {
+  it("gm role wins when the same campaign appears in both lists", async () => {
     // Arrange: same campaign in both
     mockGetCampaignsForUser.mockResolvedValue({
-      dmCampaigns: [campaignFixture],
+      gmCampaigns: [campaignFixture],
       playerCampaigns: [campaignFixture],
     });
     // Act
     const result = await listCampaignsForUser("user-001");
     // Assert: de-duplicated to one entry, role = dm
     expect(result).toHaveLength(1);
-    expect(result[0].role).toBe("dm");
+    expect(result[0].role).toBe("gm");
   });
 
-  it("returns both campaigns when the user has distinct dm and player campaigns", async () => {
+  it("returns both campaigns when the user has distinct gm and player campaigns", async () => {
     // Arrange
-    const dmCampaign = { ...campaignFixture, id: "campaign-dm", name: "DM Campaign" };
+    const gmCampaign = { ...campaignFixture, id: "campaign-gm", name: "GM Campaign" };
     const playerCampaign = { ...campaignFixture, id: "campaign-player", name: "Player Campaign" };
     mockGetCampaignsForUser.mockResolvedValue({
-      dmCampaigns: [dmCampaign],
+      gmCampaigns: [gmCampaign],
       playerCampaigns: [playerCampaign],
     });
     // Act
     const result = await listCampaignsForUser("user-001");
     // Assert
     expect(result).toHaveLength(2);
-    expect(result.find((c) => c.id === "campaign-dm")?.role).toBe("dm");
+    expect(result.find((c) => c.id === "campaign-gm")?.role).toBe("gm");
     expect(result.find((c) => c.id === "campaign-player")?.role).toBe("player");
   });
 });

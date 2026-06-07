@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
-import { isCampaignDm } from "@/lib/authorization";
+import { isCampaignGm } from "@/lib/authorization";
 import { getCampaignWithCharacters } from "@/db/queries/campaigns";
 import EditCampaignForm from "./_edit-form";
 
@@ -13,8 +13,8 @@ export default async function EditCampaignPage({
   const user = await getUser();
   if (!user) redirect("/");
 
-  const isDm = await isCampaignDm(id, user.id);
-  if (!isDm) redirect(`/dashboard/campaigns/${id}`);
+  const isGm = await isCampaignGm(id, user.id);
+  if (!isGm) redirect(`/dashboard/campaigns/${id}`);
 
   const { campaign } = await getCampaignWithCharacters(id);
   if (!campaign) redirect("/dashboard/campaigns");

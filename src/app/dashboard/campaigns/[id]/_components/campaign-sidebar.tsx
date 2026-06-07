@@ -7,7 +7,7 @@ import type { Character, Spaceship } from "@/db/schema";
 type Props = {
   campaignId: string;
   campaignName: string;
-  isDm: boolean;
+  isGm: boolean;
   joinCode: string;
   characters: Character[];
   spaceships: Spaceship[];
@@ -66,7 +66,7 @@ function NavItem({ href, label, prefixMatch }: { href: string; label: string; pr
 export default function CampaignSidebar({
   campaignId,
   campaignName,
-  isDm,
+  isGm,
   joinCode,
   characters,
   spaceships,
@@ -90,7 +90,7 @@ export default function CampaignSidebar({
         >
           {campaignName}
         </Link>
-        {isDm && (
+        {isGm && (
           <p
             className="mt-1"
             style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--text-3)" }}
@@ -119,7 +119,7 @@ export default function CampaignSidebar({
 
         <SectionLabel>Starship</SectionLabel>
         {spaceships.length === 0 ? (
-          isDm ? null : (
+          isGm ? null : (
             <p className="px-[10px] text-xs" style={{ color: "var(--text-3)" }}>None yet</p>
           )
         ) : (
@@ -131,7 +131,7 @@ export default function CampaignSidebar({
             />
           ))
         )}
-        {isDm && (
+        {isGm && (
           <NavItem
             href={`/dashboard/campaigns/${campaignId}/spaceship/new`}
             label="+ Add ship"

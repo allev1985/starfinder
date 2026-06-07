@@ -160,7 +160,7 @@ export const raceDescriptions = pgTable("race_descriptions", {
 export const campaigns = pgTable("campaigns", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
-  dmId: uuid("dm_id").notNull(),
+  gmId: uuid("gm_id").notNull(),
   joinCode: text("join_code").notNull().unique(),
   editionId: uuid("edition_id").notNull().references(() => editions.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -520,7 +520,7 @@ export const sessionNotes = pgTable("session_notes", {
   sessionNumber: integer("session_number"),
   title: text("title").notNull(),
   sessionDate: text("session_date"),
-  dmStoragePath: text("dm_storage_path"),
+  gmStoragePath: text("gm_storage_path"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

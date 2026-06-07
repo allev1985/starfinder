@@ -22,7 +22,7 @@ export default async function SessionDetailPage({
   if (!campaign) redirect("/dashboard/campaigns");
   if (!session) redirect(`/dashboard/campaigns/${id}/sessions`);
 
-  const isDm = campaign.dmId === user.id;
+  const isGm = campaign.gmId === user.id;
 
   return (
     <SessionDetailClient
@@ -30,7 +30,7 @@ export default async function SessionDetailPage({
       session={session}
       characters={characters}
       initialContent={content}
-      isDm={isDm}
+      isGm={isGm}
     />
   );
 }

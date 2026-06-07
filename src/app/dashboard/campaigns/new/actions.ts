@@ -18,7 +18,7 @@ export async function createCampaignAction(formData: FormData): Promise<Result> 
   if (!user) return { success: false, error: "You must be signed in to create a campaign." };
 
   try {
-    const campaign = await createCampaignForUser({ name: name.trim(), dmId: user.id });
+    const campaign = await createCampaignForUser({ name: name.trim(), gmId: user.id });
     return { success: true, campaignId: campaign.id };
   } catch {
     return { success: false, error: "Failed to create campaign. Please try again." };

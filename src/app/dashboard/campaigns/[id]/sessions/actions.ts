@@ -16,8 +16,8 @@ import {
 
 const BUCKET = "session-notes";
 
-function dmBlobPath(campaignId: string, sessionId: string) {
-  return `campaigns/${campaignId}/sessions/${sessionId}/dm`;
+function gmBlobPath(campaignId: string, sessionId: string) {
+  return `campaigns/${campaignId}/sessions/${sessionId}/gm`;
 }
 
 function charBlobPath(campaignId: string, sessionId: string, characterId: string) {
@@ -73,7 +73,7 @@ export async function saveSessionMetadataAction(
   }
 }
 
-export async function saveDmNoteAction(
+export async function saveGmNoteAction(
   campaignId: string,
   sessionId: string,
   content: string
@@ -85,7 +85,7 @@ export async function saveDmNoteAction(
   if (!allowed) return { success: false, error: "Not authorized." };
 
   const supabase = await createClient();
-  const path = dmBlobPath(campaignId, sessionId);
+  const path = gmBlobPath(campaignId, sessionId);
 
   const { error } = await supabase.storage
     .from(BUCKET)
@@ -93,7 +93,7 @@ export async function saveDmNoteAction(
 
   if (error) return { success: false, error: error.message };
 
-  await updateSessionMetadata(sessionId, { dmStoragePath: path });
+  await updateSessionMetadata(sessionId, { gmStoragePath: path });
   return { success: true };
 }
 
@@ -156,7 +156,7 @@ export async function deleteSessionAction(
 }
 
 export type SessionNoteContent = {
-  dm: string;
+  gm: string;
   characters: Record<string, string>;
 };
 
@@ -165,10 +165,10 @@ export async function loadSessionNoteContentAction(
   sessionId: string
 ): Promise<SessionNoteContent> {
   const user = await getUser();
-  if (!user) return { dm: "", characters: {} };
+  if (!user) return { gm: "", characters: {} };
 
   const allowed = await isCampaignParticipant(campaignId, user.id);
-  if (!allowed) return { dm: "", characters: {} };
+  if (!allowed) return { gm: "", characters: {} };
 
   const supabase = await createClient();
   const { session, entries } = await getSessionWithEntries(sessionId);
@@ -179,8 +179,8 @@ export async function loadSessionNoteContentAction(
     return data.text();
   }
 
-  const [dmText, ...charTexts] = await Promise.all([
-    session?.dmStoragePath ? readBlob(session.dmStoragePath) : Promise.resolve(""),
+  const [gmText, ...charTexts] = await Promise.all([
+    session?.gmStoragePath ? readBlob(session.gmStoragePath) : Promise.resolve(""),
     ...entries.map((e) => readBlob(e.storagePath)),
   ]);
 
@@ -189,7 +189,7 @@ export async function loadSessionNoteContentAction(
     characters[e.characterId] = charTexts[i] ?? "";
   });
 
-  return { dm: dmText, characters };
+  return { gm: gmText, characters };
 }
 
 export { listSessionsByCampaign, getSessionWithEntries };

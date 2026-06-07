@@ -1,12 +1,12 @@
 import type { Campaign, Battle, BattleCombatant } from "@/db/schema";
 
-export const dmUserId = "user-dm-001";
+export const gmUserId = "user-gm-001";
 export const playerUserId = "user-player-001";
 
 export const campaignFixture: Campaign = {
   id: "campaign-001",
   name: "Dead Suns",
-  dmId: dmUserId,
+  gmId: gmUserId,
   joinCode: "ABC123",
   editionId: "edition-001",
   createdAt: new Date("2025-01-01T00:00:00Z"),

@@ -25,7 +25,7 @@ export default async function CampaignLayout({
   ]);
   if (!campaign) redirect("/dashboard/campaigns");
 
-  const isDm = campaign.dmId === user.id;
+  const isGm = campaign.gmId === user.id;
 
   return (
     <div className="flex flex-1">
@@ -36,7 +36,7 @@ export default async function CampaignLayout({
       <CampaignSidebar
         campaignId={id}
         campaignName={campaign.name}
-        isDm={isDm}
+        isGm={isGm}
         joinCode={campaign.joinCode}
         characters={characters}
         spaceships={spaceships}

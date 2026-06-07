@@ -1,6 +1,6 @@
 import "server-only";
 import {
-  checkIsCampaignDm,
+  checkIsCampaignGm,
   checkHasCharacterOwnerInCampaign,
 } from "@/db/queries/campaigns";
 import {
@@ -12,15 +12,15 @@ export async function isCampaignParticipant(
   campaignId: string,
   userId: string
 ): Promise<boolean> {
-  if (await checkIsCampaignDm(campaignId, userId)) return true;
+  if (await checkIsCampaignGm(campaignId, userId)) return true;
   return checkHasCharacterOwnerInCampaign(campaignId, userId);
 }
 
-export async function isCampaignDm(
+export async function isCampaignGm(
   campaignId: string,
   userId: string
 ): Promise<boolean> {
-  return checkIsCampaignDm(campaignId, userId);
+  return checkIsCampaignGm(campaignId, userId);
 }
 
 export async function isCharacterOwner(

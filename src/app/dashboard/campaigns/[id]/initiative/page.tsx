@@ -16,7 +16,7 @@ export default async function InitiativePage({
   const { campaign } = await getCampaignWithCharacters(id);
   if (!campaign) redirect("/dashboard/campaigns");
 
-  const isDm = campaign.dmId === user.id;
+  const isGm = campaign.gmId === user.id;
   const [battle, partyMembers] = await Promise.all([
     getActiveBattleForCampaign(id),
     getBattlePartyMembers(id),
@@ -24,7 +24,7 @@ export default async function InitiativePage({
 
   const combatants = battle ? await getBattleCombatants(battle.id) : [];
 
-  const dmCombatants = isDm
+  const dmCombatants = isGm
     ? combatants
     : combatants.map((c) => ({
         ...c,
@@ -38,7 +38,7 @@ export default async function InitiativePage({
     <InitiativeClient
       campaignId={id}
       userId={user.id}
-      isDm={isDm}
+      isGm={isGm}
       battle={battle}
       combatants={dmCombatants}
       partyMembers={partyMembers}

@@ -20,7 +20,7 @@ import {
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
 import {
   saveSessionMetadataAction,
-  saveDmNoteAction,
+  saveGmNoteAction,
   saveCharacterNoteAction,
   deleteSessionAction,
 } from "../actions";
@@ -32,7 +32,7 @@ type Props = {
   session: SessionNote;
   characters: Character[];
   initialContent: SessionNoteContent;
-  isDm: boolean;
+  isGm: boolean;
 };
 
 function SectionLabel({ children }: { children: string }) {
@@ -77,7 +77,7 @@ export default function SessionDetailClient({
   session,
   characters,
   initialContent,
-  isDm,
+  isGm,
 }: Props) {
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -146,7 +146,7 @@ export default function SessionDetailClient({
             style={{ width: 180 }}
           />
         </div>
-        {isDm && (
+        {isGm && (
           <>
             <Button
               variant="ghost"
@@ -176,12 +176,12 @@ export default function SessionDetailClient({
         )}
       </div>
 
-      {/* DM Notes */}
+      {/* GM Notes */}
       <div className="mb-6">
-        <SectionLabel>DM Notes</SectionLabel>
+        <SectionLabel>GM Notes</SectionLabel>
         <NoteTextarea
-          initialValue={initialContent.dm}
-          onSave={(value) => saveDmNoteAction(campaignId, session.id, value)}
+          initialValue={initialContent.gm}
+          onSave={(value) => saveGmNoteAction(campaignId, session.id, value)}
         />
       </div>
 

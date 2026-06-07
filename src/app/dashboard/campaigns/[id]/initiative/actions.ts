@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getUser } from "@/lib/session";
-import { checkIsCampaignDm } from "@/db/queries/campaigns";
+import { checkIsCampaignGm } from "@/db/queries/campaigns";
 import { getCharacterById, updateHealthResolve } from "@/db/queries/characters";
 import {
   getActiveBattleForCampaign,
@@ -26,11 +26,11 @@ import { characterCombatStats } from "@/db/schema";
 import type { HealthResolveValues } from "@/db/queries/characters";
 import type { Battle, BattleCombatant } from "@/db/schema";
 
-async function requireDm(campaignId: string) {
+async function requireGm(campaignId: string) {
   const user = await getUser();
   if (!user) redirect("/");
-  const isDm = await checkIsCampaignDm(campaignId, user.id);
-  if (!isDm) throw new Error("Unauthorized");
+  const isGm = await checkIsCampaignGm(campaignId, user.id);
+  if (!isGm) throw new Error("Unauthorized");
   return user;
 }
 
@@ -43,7 +43,7 @@ async function requireUser() {
 export async function startBattleAction(
   campaignId: string
 ): Promise<{ battle: Battle; combatants: BattleCombatant[] } | null> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   const existing = await getActiveBattleForCampaign(campaignId);
   if (existing) return null;
   const battle = await createBattle(campaignId);
@@ -73,9 +73,9 @@ export async function submitInitiativeAction(
   const character = await getCharacterById(characterId);
   if (!character) return { error: "Character not found" };
 
-  const isDm = await checkIsCampaignDm(campaignId, user.id);
+  const isGm = await checkIsCampaignGm(campaignId, user.id);
   const isOwner = character.ownerId === user.id;
-  if (!isDm && !isOwner) return { error: "Unauthorized" };
+  if (!isGm && !isOwner) return { error: "Unauthorized" };
 
   const battle = await getActiveBattleForCampaign(campaignId);
   if (!battle) return { error: "No active battle" };
@@ -102,9 +102,9 @@ export async function setInitiativeTotalAction(
   const character = await getCharacterById(characterId);
   if (!character) return { error: "Character not found" };
 
-  const isDm = await checkIsCampaignDm(campaignId, user.id);
+  const isGm = await checkIsCampaignGm(campaignId, user.id);
   const isOwner = character.ownerId === user.id;
-  if (!isDm && !isOwner) return { error: "Unauthorized" };
+  if (!isGm && !isOwner) return { error: "Unauthorized" };
 
   const battle = await getActiveBattleForCampaign(campaignId);
   if (!battle) return { error: "No active battle" };
@@ -126,7 +126,7 @@ export async function addEnemyAction(
     kac?: number;
   }
 ): Promise<void> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   const battle = await getActiveBattleForCampaign(campaignId);
   if (!battle) throw new Error("No active battle");
 
@@ -156,7 +156,7 @@ export async function addEnemyAction(
 export async function beginBattleAction(
   campaignId: string
 ): Promise<{ error?: string }> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   const battle = await getActiveBattleForCampaign(campaignId);
   if (!battle) return { error: "No active battle" };
 
@@ -194,8 +194,8 @@ export async function finishTurnAction(campaignId: string): Promise<void> {
 
   if (!current) throw new Error("Invalid turn state");
 
-  const isDm = await checkIsCampaignDm(campaignId, user.id);
-  if (!isDm) {
+  const isGm = await checkIsCampaignGm(campaignId, user.id);
+  if (!isGm) {
     if (current.type !== "pc" || !current.characterId) throw new Error("Unauthorized");
     const character = await getCharacterById(current.characterId);
     if (!character || character.ownerId !== user.id) throw new Error("Unauthorized");
@@ -221,7 +221,7 @@ export async function finishTurnAction(campaignId: string): Promise<void> {
 }
 
 export async function markDefeatedAction(campaignId: string, combatantId: string): Promise<void> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   const battle = await getActiveBattleForCampaign(campaignId);
   if (!battle) throw new Error("No active battle");
 
@@ -239,7 +239,7 @@ export async function markDefeatedAction(campaignId: string, combatantId: string
 }
 
 export async function revealEnemyAction(campaignId: string, combatantId: string): Promise<void> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   await updateCombatantHidden(combatantId, false);
 }
 
@@ -248,12 +248,12 @@ export async function updateEnemyStatsAction(
   combatantId: string,
   data: { hpTotal?: number; hpCurrent?: number; eac?: number; kac?: number }
 ): Promise<void> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   await updateEnemyStats(combatantId, data);
 }
 
 export async function endInitiativeAction(campaignId: string): Promise<void> {
-  await requireDm(campaignId);
+  await requireGm(campaignId);
   const battle = await getActiveBattleForCampaign(campaignId);
   if (!battle) return;
   await deleteBattle(battle.id);
@@ -268,8 +268,8 @@ export async function updateCharacterHealthAction(
   const user = await requireUser();
   const character = await getCharacterById(characterId);
   if (!character) throw new Error("Character not found");
-  const isDm = await checkIsCampaignDm(campaignId, user.id);
+  const isGm = await checkIsCampaignGm(campaignId, user.id);
   const isOwner = character.ownerId === user.id;
-  if (!isDm && !isOwner) throw new Error("Unauthorized");
+  if (!isGm && !isOwner) throw new Error("Unauthorized");
   await updateHealthResolve(characterId, values);
 }

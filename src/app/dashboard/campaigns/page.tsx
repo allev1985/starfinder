@@ -50,7 +50,7 @@ export default async function CampaignsPage() {
           <Link href="/dashboard/campaigns/new" style={{ color: "var(--sf-accent)", textDecoration: "underline" }}>
             Create one
           </Link>{" "}
-          or ask a DM for a join code.
+          or ask a GM for a join code.
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
@@ -72,7 +72,7 @@ export default async function CampaignsPage() {
                     <span style={{ fontFamily: "var(--font-ui)", fontWeight: 600, fontSize: 15, color: "var(--text-1)" }}>
                       {campaign.name}
                     </span>
-                    {campaign.role === "dm" && <Pill variant="dm">DM</Pill>}
+                    {campaign.role === "gm" && <Pill variant="gm">GM</Pill>}
                     <Pill variant="code">{campaign.joinCode}</Pill>
                   </div>
                 </div>
