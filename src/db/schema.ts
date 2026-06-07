@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, uniqueIndex, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 export const equipmentCategory = pgEnum("equipment_category", [
   "augmentation_cybernetic",
@@ -455,7 +455,9 @@ export const characterClassChoices = pgTable("character_class_choices", {
   optionId: uuid("option_id").references(() => classAbilityOptions.id),
   customValue: text("custom_value"),
   acquiredAtLevel: integer("acquired_at_level").notNull(),
-});
+}, (t) => [
+  uniqueIndex("character_class_choices_unique").on(t.characterId, t.classAbilityId, t.acquiredAtLevel),
+]);
 
 export const characterFeats = pgTable("character_feats", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -463,6 +465,14 @@ export const characterFeats = pgTable("character_feats", {
   featId: uuid("feat_id").references(() => feats.id),
   customName: text("custom_name"),
   notes: text("notes"),
+});
+
+export const characterNotes = pgTable("character_notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export type Weapon = typeof weapons.$inferSelect;
@@ -523,6 +533,8 @@ export type CharacterClassChoice = typeof characterClassChoices.$inferSelect;
 export type NewCharacterClassChoice = typeof characterClassChoices.$inferInsert;
 export type CharacterFeat = typeof characterFeats.$inferSelect;
 export type NewCharacterFeat = typeof characterFeats.$inferInsert;
+export type CharacterNote = typeof characterNotes.$inferSelect;
+export type NewCharacterNote = typeof characterNotes.$inferInsert;
 export type Spaceship = typeof spaceships.$inferSelect;
 export type NewSpaceship = typeof spaceships.$inferInsert;
 export type SpaceshipWeapon = typeof spaceshipWeapons.$inferSelect;

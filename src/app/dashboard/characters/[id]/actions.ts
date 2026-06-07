@@ -58,9 +58,12 @@ import {
   addCharacterFeat,
   removeCharacterFeat,
   getCharacterSkills,
+  insertCharacterNote,
+  deleteCharacterNote,
+  updateCharacterNote,
 } from "@/db/queries/characters";
 import type { AbilityScores, HealthResolveValues, SkillEntry, CharacterEquipmentEntry } from "@/db/queries/characters";
-import type { CharacterSkill } from "@/db/schema";
+import type { CharacterSkill, CharacterNote } from "@/db/schema";
 import type { Feat } from "@/db/schema";
 
 type Result = { success: true } | { success: false; error: string };
@@ -709,6 +712,56 @@ export async function removeLanguageAction(characterId: string, language: string
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to remove language." };
+  }
+}
+
+export async function addCharacterNoteAction(
+  characterId: string,
+  type: string,
+  content: string
+): Promise<{ success: true; note: CharacterNote } | { success: false; error: string }> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owns = await isCharacterOwner(characterId, user.id);
+  if (!owns) return { success: false, error: "Not authorised." };
+  try {
+    const note = await insertCharacterNote(characterId, type, content);
+    return { success: true, note };
+  } catch {
+    return { success: false, error: "Failed to add note." };
+  }
+}
+
+export async function updateCharacterNoteAction(
+  characterId: string,
+  noteId: string,
+  content: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owns = await isCharacterOwner(characterId, user.id);
+  if (!owns) return { success: false, error: "Not authorised." };
+  try {
+    await updateCharacterNote(noteId, content);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to update note." };
+  }
+}
+
+export async function removeCharacterNoteAction(
+  characterId: string,
+  noteId: string
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owns = await isCharacterOwner(characterId, user.id);
+  if (!owns) return { success: false, error: "Not authorised." };
+  try {
+    await deleteCharacterNote(noteId);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to remove note." };
   }
 }
 

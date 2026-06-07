@@ -32,6 +32,8 @@ import {
   type CharacterClassChoice,
   type NewCharacterClassChoice,
   type NewCharacterFeat,
+  characterNotes,
+  type CharacterNote,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -761,4 +763,28 @@ export async function removeCharacterLanguage(characterId: string, language: str
   if (!row) return;
   const updated = row.languages.filter((l) => l !== language);
   await db.update(characters).set({ languages: updated }).where(eq(characters.id, characterId));
+}
+
+export async function getCharacterNotes(characterId: string): Promise<CharacterNote[]> {
+  return db
+    .select()
+    .from(characterNotes)
+    .where(eq(characterNotes.characterId, characterId))
+    .orderBy(asc(characterNotes.createdAt));
+}
+
+export async function insertCharacterNote(characterId: string, type: string, content: string): Promise<CharacterNote> {
+  const [note] = await db
+    .insert(characterNotes)
+    .values({ characterId, type, content })
+    .returning();
+  return note;
+}
+
+export async function deleteCharacterNote(noteId: string): Promise<void> {
+  await db.delete(characterNotes).where(eq(characterNotes.id, noteId));
+}
+
+export async function updateCharacterNote(noteId: string, content: string): Promise<void> {
+  await db.update(characterNotes).set({ content }).where(eq(characterNotes.id, noteId));
 }

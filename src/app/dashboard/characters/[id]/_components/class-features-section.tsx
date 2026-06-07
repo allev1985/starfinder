@@ -36,7 +36,6 @@ const WEAPON_CATEGORY_LABELS: Record<WeaponCategory, string> = {
 type Props = {
   classAbilities: ClassAbility[];
   allAbilityOptions: ClassAbilityOption[];
-  savedChoices: CharacterClassChoice[];
   weaponProficiencies: WeaponCategory[];
 };
 
@@ -67,6 +66,7 @@ function ChoicePicker({
   savedChoice,
   acquiredAtLevel,
   isOwner,
+  onSelect,
 }: {
   characterId: string;
   ability: ClassAbility;
@@ -74,6 +74,7 @@ function ChoicePicker({
   savedChoice: CharacterClassChoice | undefined;
   acquiredAtLevel: number;
   isOwner: boolean;
+  onSelect: (choice: CharacterClassChoice) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [, startTransition] = useTransition();
@@ -86,7 +87,17 @@ function ChoicePicker({
     if (!option) return;
     setOpen(false);
     startTransition(async () => {
-      await saveClassChoiceAction(characterId, ability.id, acquiredAtLevel, optionId, null);
+      const result = await saveClassChoiceAction(characterId, ability.id, acquiredAtLevel, optionId, null);
+      if (result.success) {
+        onSelect({
+          id: savedChoice?.id ?? crypto.randomUUID(),
+          characterId,
+          classAbilityId: ability.id,
+          acquiredAtLevel,
+          optionId,
+          customValue: null,
+        });
+      }
     });
   }
 
@@ -133,10 +144,9 @@ function ChoicePicker({
 export default function ClassFeaturesSection({
   classAbilities,
   allAbilityOptions,
-  savedChoices,
   weaponProficiencies,
 }: Props) {
-  const { characterId, isOwner, level: characterLevel } = useCharacter();
+  const { characterId, isOwner, level: characterLevel, choices: savedChoices, setChoices } = useCharacter();
   const abilityOptions = allAbilityOptions.reduce<Record<string, ClassAbilityOption[]>>((acc, opt) => {
     (acc[opt.poolName] ??= []).push(opt);
     return acc;
@@ -184,7 +194,7 @@ export default function ClassFeaturesSection({
               {byLevel[lvl].map((ability, idx) => {
                 const options = ability.choicePool ? (abilityOptions[ability.choicePool] ?? []) : [];
 
-                if (ability.repeatable && ability.choicePool) {
+                if (ability.choicePool) {
                   const savedChoice = choicesByAbilityAndLevel[`${ability.id}:${lvl}`];
                   return (
                     <div key={`${ability.id}-${idx}`} className="space-y-1">
@@ -197,26 +207,11 @@ export default function ClassFeaturesSection({
                           savedChoice={savedChoice}
                           acquiredAtLevel={lvl}
                           isOwner={isOwner}
-                        />
-                      </div>
-                      <FeatureDescription description={ability.description} />
-                    </div>
-                  );
-                }
-
-                if (!ability.repeatable && ability.choicePool) {
-                  const savedChoice = choicesByAbilityAndLevel[`${ability.id}:${lvl}`];
-                  return (
-                    <div key={`${ability.id}-${idx}`} className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium">{ability.name}</span>
-                        <ChoicePicker
-                          characterId={characterId}
-                          ability={ability}
-                          options={options}
-                          savedChoice={savedChoice}
-                          acquiredAtLevel={lvl}
-                          isOwner={isOwner}
+                          onSelect={(choice) => setChoices(
+                            savedChoices.some((c) => c.classAbilityId === choice.classAbilityId && c.acquiredAtLevel === choice.acquiredAtLevel)
+                              ? savedChoices.map((c) => c.classAbilityId === choice.classAbilityId && c.acquiredAtLevel === choice.acquiredAtLevel ? choice : c)
+                              : [...savedChoices, choice]
+                          )}
                         />
                       </div>
                       <FeatureDescription description={ability.description} />

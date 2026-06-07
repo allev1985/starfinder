@@ -35,15 +35,15 @@ The "Stats" tab content SHALL use a two-column grid (`md:grid-cols-2 grid-cols-1
 - **THEN** all sections stack in a single column
 
 ### Requirement: Abilities & Gear tab two-column layout
-The "Abilities & Gear" tab content SHALL use a two-column grid (`md:grid-cols-2 grid-cols-1`). The left column SHALL contain Class Features, Theme Features, and Feats. The right column SHALL contain Armour inventory and Equipment inventory.
+The "Abilities & Gear" tab content SHALL use a two-column grid (`md:grid-cols-2 grid-cols-1`). The left column SHALL contain Class Features, Theme Features, Feats, Abilities, and Proficiencies. The right column SHALL contain Armour inventory, Equipment inventory, and Notes.
 
 #### Scenario: Left column content
 - **WHEN** the Abilities & Gear tab is active
-- **THEN** Class Features, Theme Features, and Feats appear in the left column
+- **THEN** Class Features, Theme Features, Feats, Abilities, and Proficiencies appear in the left column
 
 #### Scenario: Right column content
 - **WHEN** the Abilities & Gear tab is active
-- **THEN** Armour and Equipment appear in the right column
+- **THEN** Armour, Equipment, and Notes appear in the right column
 
 ### Requirement: Section header label-badge style
 Every section heading on the character sheet SHALL be rendered as a `bg-primary text-primary-foreground` inline block with bold uppercase tracking-widest text, matching the label-badge style of the official character sheet. This applies to: Ability Scores, Skills, Initiative, Health & Resolve, Armor Class, Saving Throws, Attack Bonuses, Weapons, Class Features, Theme Features, Feats & Proficiencies, Armour, Equipment.

@@ -52,6 +52,7 @@ export default async function CampaignCharacterPage({
     weaponProficiencies,
     classChoices,
     characterFeatsList,
+    characterNotesList,
   } = sheetData;
 
   return (
@@ -121,7 +122,7 @@ export default async function CampaignCharacterPage({
         allAbilityOptions={classAbilityOptionsList}
         themeAbilities={themeFeatureAbilities}
         weaponProficiencies={weaponProficiencies}
-        savedChoices={classChoices}
+        initialChoices={classChoices}
         initialFeats={characterFeatsList}
         hasClass={!!character.classId}
         hasTheme={!!character.themeId}
@@ -148,6 +149,7 @@ export default async function CampaignCharacterPage({
         initialCredits={character.credits}
         initialXpEarned={character.xpEarned}
         initialLanguages={character.languages}
+        initialNotes={characterNotesList}
       />
     </div>
   );

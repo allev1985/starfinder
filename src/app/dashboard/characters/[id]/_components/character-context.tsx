@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, HealthResolveValues } from "@/db/queries/characters";
-import type { Armor, Weapon, RaceType, CharacterSkill } from "@/db/schema";
+import type { Armor, Weapon, RaceType, CharacterSkill, CharacterNote, CharacterClassChoice } from "@/db/schema";
 
 export type CombatMods = {
   initiativeMiscMod: number;
@@ -41,8 +41,12 @@ type CharacterContextValue = {
   setSkills: (skills: CharacterSkill[]) => void;
   feats: CharacterFeatWithName[];
   setFeats: (feats: CharacterFeatWithName[]) => void;
+  choices: CharacterClassChoice[];
+  setChoices: (choices: CharacterClassChoice[]) => void;
   languages: string[];
   setLanguages: (languages: string[]) => void;
+  notes: CharacterNote[];
+  setNotes: (notes: CharacterNote[]) => void;
   credits: number;
   setCredits: (credits: number) => void;
   xpEarned: number;
@@ -74,7 +78,9 @@ type ProviderProps = {
   initialEquipmentInventory: CharacterEquipmentEntry[];
   initialSkills: CharacterSkill[];
   initialFeats: CharacterFeatWithName[];
+  initialChoices: CharacterClassChoice[];
   initialLanguages: string[];
+  initialNotes: CharacterNote[];
   initialCredits: number;
   initialXpEarned: number;
   initialHealthValues: HealthResolveValues;
@@ -95,7 +101,9 @@ export function CharacterProvider({
   initialEquipmentInventory,
   initialSkills,
   initialFeats,
+  initialChoices,
   initialLanguages,
+  initialNotes,
   initialCredits,
   initialXpEarned,
   initialHealthValues,
@@ -110,7 +118,9 @@ export function CharacterProvider({
   const [equipmentInventory, setEquipmentInventory] = useState(initialEquipmentInventory);
   const [skills, setSkills] = useState<CharacterSkill[]>(initialSkills);
   const [feats, setFeats] = useState<CharacterFeatWithName[]>(initialFeats);
+  const [choices, setChoices] = useState<CharacterClassChoice[]>(initialChoices);
   const [languages, setLanguages] = useState<string[]>(initialLanguages);
+  const [notes, setNotes] = useState<CharacterNote[]>(initialNotes);
   const [credits, setCredits] = useState(initialCredits);
   const [xpEarned, setXpEarned] = useState(initialXpEarned);
   const [healthValues, setHealthValues] = useState<HealthResolveValues>(initialHealthValues);
@@ -127,7 +137,9 @@ export function CharacterProvider({
       equipmentInventory, setEquipmentInventory,
       skills, setSkills,
       feats, setFeats,
+      choices, setChoices,
       languages, setLanguages,
+      notes, setNotes,
       credits, setCredits,
       xpEarned, setXpEarned,
       healthValues, setHealthValues,

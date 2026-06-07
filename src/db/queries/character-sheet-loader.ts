@@ -9,6 +9,7 @@ import {
   getCharacterEquipment,
   getCharacterClassChoices,
   getCharacterFeats,
+  getCharacterNotes,
 } from "@/db/queries/characters";
 import {
   getDescriptionsForType,
@@ -118,6 +119,7 @@ export async function loadCharacterSheetData(
     weaponProficiencies,
     classChoices,
     characterFeatsList,
+    characterNotesList,
   ] = await Promise.all([
     character.classId
       ? getClassAbilities(character.classId)
@@ -133,6 +135,7 @@ export async function loadCharacterSheetData(
       : Promise.resolve([]),
     getCharacterClassChoices(characterId),
     getCharacterFeats(characterId),
+    getCharacterNotes(characterId),
   ]);
 
   return {
@@ -159,5 +162,6 @@ export async function loadCharacterSheetData(
     weaponProficiencies,
     classChoices,
     characterFeatsList,
+    characterNotesList,
   };
 }

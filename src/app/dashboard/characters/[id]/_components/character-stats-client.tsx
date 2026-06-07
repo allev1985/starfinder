@@ -23,6 +23,7 @@ import DescriptionSection from "./description-section";
 import MechanicPanel from "./mechanic-panel";
 import CreditsXpSection from "./credits-xp-section";
 import LanguagesSection from "./languages-section";
+import CharacterNotesSection from "./character-notes-section";
 import { CharacterProvider, useCharacter } from "./character-context";
 import CharacterRealtimeSync from "./character-realtime-sync";
 import CharacterSheetHeader from "./character-sheet-header";
@@ -30,7 +31,7 @@ import VitalsStrip from "./vitals-strip";
 import type { CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription, CharacterSpellSlot } from "@/db/schema";
+import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription, CharacterSpellSlot, CharacterNote } from "@/db/schema";
 import type { CombatMods } from "./character-context";
 
 type CharacterSpellWithSpell = CharacterSpell & { spell: Spell };
@@ -72,7 +73,7 @@ type Props = {
   allAbilityOptions: ClassAbilityOption[];
   themeAbilities: ThemeAbility[];
   weaponProficiencies: WeaponCategory[];
-  savedChoices: CharacterClassChoice[];
+  initialChoices: CharacterClassChoice[];
   initialFeats: CharacterFeatWithName[];
   hasClass: boolean;
   hasTheme: boolean;
@@ -99,6 +100,7 @@ type Props = {
   initialCredits: number;
   initialXpEarned: number;
   initialLanguages: string[];
+  initialNotes: CharacterNote[];
 };
 
 export default function CharacterStatsClient({
@@ -138,7 +140,7 @@ export default function CharacterStatsClient({
   allAbilityOptions,
   themeAbilities,
   weaponProficiencies,
-  savedChoices,
+  initialChoices,
   initialFeats,
   hasClass,
   hasTheme,
@@ -165,6 +167,7 @@ export default function CharacterStatsClient({
   initialCredits,
   initialXpEarned,
   initialLanguages,
+  initialNotes,
 }: Props) {
   const initialCombatMods: CombatMods = {
     initiativeMiscMod,
@@ -205,7 +208,9 @@ export default function CharacterStatsClient({
       initialEquipmentInventory={initialCharacterEquipment}
       initialSkills={initialSkills}
       initialFeats={initialFeats}
+      initialChoices={initialChoices}
       initialLanguages={initialLanguages}
+      initialNotes={initialNotes}
       initialCredits={initialCredits}
       initialXpEarned={initialXpEarned}
       initialHealthValues={initialHealthValues}
@@ -229,7 +234,6 @@ export default function CharacterStatsClient({
         allAbilityOptions={allAbilityOptions}
         themeAbilities={themeAbilities}
         weaponProficiencies={weaponProficiencies}
-        savedChoices={savedChoices}
         hasClass={hasClass}
         hasTheme={hasTheme}
         isSpellcaster={isSpellcaster}
@@ -260,7 +264,6 @@ type SheetProps = {
   allAbilityOptions: ClassAbilityOption[];
   themeAbilities: ThemeAbility[];
   weaponProficiencies: WeaponCategory[];
-  savedChoices: CharacterClassChoice[];
   hasClass: boolean;
   hasTheme: boolean;
   isSpellcaster: boolean;
@@ -326,7 +329,6 @@ function CharacterSheet({
   allAbilityOptions,
   themeAbilities,
   weaponProficiencies,
-  savedChoices,
   hasClass,
   hasTheme,
   isSpellcaster,
@@ -450,12 +452,15 @@ function CharacterSheet({
             <ClassFeaturesSection
               classAbilities={classAbilities}
               allAbilityOptions={allAbilityOptions}
-              savedChoices={savedChoices}
+
               weaponProficiencies={weaponProficiencies}
             />
           )}
           {hasTheme && <ThemeFeaturesSection themeAbilities={themeAbilities} characterLevel={level} />}
           <FeatsSection />
+          <CharacterNotesSection type="ability" title="Abilities" />
+          <CharacterNotesSection type="proficiency" title="Proficiencies" />
+          <CharacterNotesSection type="note" title="Notes" />
         </AccordionBlock>
 
         <AccordionBlock icon={<Star size={16} />} title="Inventory">
@@ -515,18 +520,21 @@ function CharacterSheet({
                 <ClassFeaturesSection
                   classAbilities={classAbilities}
                   allAbilityOptions={allAbilityOptions}
-                  savedChoices={savedChoices}
+    
                   weaponProficiencies={weaponProficiencies}
                 />
               )}
               {hasTheme && <ThemeFeaturesSection themeAbilities={themeAbilities} characterLevel={level} />}
               <FeatsSection />
+              <CharacterNotesSection type="ability" title="Abilities" />
+              <CharacterNotesSection type="proficiency" title="Proficiencies" />
               <LanguagesSection />
             </div>
             <div>
               <CreditsXpSection />
               <ArmorInventory availableArmor={availableArmor} />
               <EquipmentInventory allEquipment={allEquipment} />
+              <CharacterNotesSection type="note" title="Notes" />
               {descriptions.length > 0 && (
                 <DescriptionSection descriptions={descriptions} savedValues={savedDescriptionValues} />
               )}
