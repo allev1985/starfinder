@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,7 @@ interface SpellsClientProps { edition: Edition; initialSpells: Spell[]; }
 export function SpellsClient({ edition, initialSpells }: SpellsClientProps) {
   const [items, setItems] = useState(initialSpells);
   const { sorted, sortState, toggleSort } = useSortable<(typeof items)[0], "name" | "school" | "castingTime">(items);
+  const { filter, setFilter, page, setPage, totalPages, paged, totalFiltered } = useTableControls(sorted);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Spell | null>(null);
   const [form, setForm] = useState<SpellFormData>(EMPTY_FORM);
@@ -78,9 +81,10 @@ export function SpellsClient({ edition, initialSpells }: SpellsClientProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Spells</h1>
-        <Button onClick={openAdd}>+ Add Spell</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Spell</Button>
       </div>
 
       <DataTable
@@ -91,12 +95,12 @@ export function SpellsClient({ edition, initialSpells }: SpellsClientProps) {
           { label: "Casting Time", sortKey: "castingTime" },
           "Actions",
         ]}
-        isEmpty={items.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No spells yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sorted.map((spell) => (
+        {paged.map((spell) => (
           <ExpandableRow
             key={spell.id}
             colSpan={5}
@@ -117,6 +121,7 @@ export function SpellsClient({ edition, initialSpells }: SpellsClientProps) {
           />
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Spell" : "Add Spell"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>

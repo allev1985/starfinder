@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +23,7 @@ interface FeatsClientProps { edition: Edition; initialFeats: Feat[]; }
 export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
   const [items, setItems] = useState(initialFeats);
   const { sorted, sortState, toggleSort } = useSortable<(typeof items)[0], "name" | "isCombatFeat">(items);
+  const { filter, setFilter, page, setPage, totalPages, paged, totalFiltered } = useTableControls(sorted);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Feat | null>(null);
   const [form, setForm] = useState<FeatFormData>(EMPTY_FORM);
@@ -65,9 +68,10 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Feats</h1>
-        <Button onClick={openAdd}>+ Add Feat</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Feat</Button>
       </div>
 
       <DataTable
@@ -78,12 +82,12 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
           "Prerequisites",
           "Actions",
         ]}
-        isEmpty={items.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No feats yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sorted.map((item) => (
+        {paged.map((item) => (
           <TableRow key={item.id}>
             <TableCell>{item.name}</TableCell>
             <TableCell>{item.isCombatFeat ? "Yes" : "No"}</TableCell>
@@ -98,6 +102,7 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
           </TableRow>
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Feat" : "Add Feat"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>

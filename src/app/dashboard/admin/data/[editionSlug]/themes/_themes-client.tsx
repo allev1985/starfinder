@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +25,7 @@ interface ThemesClientProps {
 export function ThemesClient({ edition, initialThemes }: ThemesClientProps) {
   const [themes, setThemes] = useState(initialThemes);
   const { sorted: sortedThemes, sortState, toggleSort } = useSortable<(typeof themes)[0], "name">(themes);
+  const { filter, setFilter, page, setPage, totalPages, paged: pagedThemes, totalFiltered } = useTableControls(sortedThemes);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Theme | null>(null);
   const [name, setName] = useState("");
@@ -61,19 +64,20 @@ export function ThemesClient({ edition, initialThemes }: ThemesClientProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Themes</h1>
-        <Button onClick={openAdd}>+ Add Theme</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Theme</Button>
       </div>
 
       <DataTable
         columns={["", { label: "Name", sortKey: "name" }, "Actions"]}
-        isEmpty={themes.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No themes yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sortedThemes.map((theme) => (
+        {pagedThemes.map((theme) => (
           <ExpandableRow
             key={theme.id}
             colSpan={3}
@@ -92,6 +96,7 @@ export function ThemesClient({ edition, initialThemes }: ThemesClientProps) {
           />
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Theme" : "Add Theme"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>

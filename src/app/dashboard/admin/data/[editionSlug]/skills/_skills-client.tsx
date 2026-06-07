@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +26,7 @@ interface SkillsClientProps {
 export function SkillsClient({ edition, initialSkills }: SkillsClientProps) {
   const [skills, setSkills] = useState(initialSkills);
   const { sorted: sortedSkills, sortState, toggleSort } = useSortable<(typeof skills)[0], "name" | "ability" | "trainedOnly" | "armorCheckPenalty">(skills);
+  const { filter, setFilter, page, setPage, totalPages, paged: pagedSkills, totalFiltered } = useTableControls(sortedSkills);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Skill | null>(null);
   const [name, setName] = useState("");
@@ -83,9 +86,10 @@ export function SkillsClient({ edition, initialSkills }: SkillsClientProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Skills</h1>
-        <Button onClick={openAdd}>+ Add Skill</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Skill</Button>
       </div>
 
       <DataTable
@@ -96,12 +100,12 @@ export function SkillsClient({ edition, initialSkills }: SkillsClientProps) {
           { label: "ACP", sortKey: "armorCheckPenalty" },
           "Actions",
         ]}
-        isEmpty={skills.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No skills yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sortedSkills.map((skill) => (
+        {pagedSkills.map((skill) => (
           <TableRow key={skill.id}>
             <TableCell>{skill.name}</TableCell>
             <TableCell style={{ textTransform: "uppercase" }}>{skill.ability}</TableCell>
@@ -116,6 +120,7 @@ export function SkillsClient({ edition, initialSkills }: SkillsClientProps) {
           </TableRow>
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Skill" : "Add Skill"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>

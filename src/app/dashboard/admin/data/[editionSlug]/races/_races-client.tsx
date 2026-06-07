@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,7 @@ const RACE_TYPES: { value: RaceType; label: string }[] = [
 export function RacesClient({ edition, initialRaces }: RacesClientProps) {
   const [races, setRaces] = useState(initialRaces);
   const { sorted: sortedRaces, sortState, toggleSort } = useSortable<(typeof races)[0], "name" | "type">(races);
+  const { filter, setFilter, page, setPage, totalPages, paged: pagedRaces, totalFiltered } = useTableControls(sortedRaces);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Race | null>(null);
   const [name, setName] = useState("");
@@ -86,19 +89,20 @@ export function RacesClient({ edition, initialRaces }: RacesClientProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Races</h1>
-        <Button onClick={openAdd}>+ Add Race</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Race</Button>
       </div>
 
       <DataTable
         columns={["", { label: "Name", sortKey: "name" }, { label: "Type", sortKey: "type" }, "Actions"]}
-        isEmpty={races.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No races yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sortedRaces.map((race) => (
+        {pagedRaces.map((race) => (
           <TableRow key={race.id}>
             <TableCell style={{ width: 40 }} />
             <TableCell>{race.name}</TableCell>
@@ -112,6 +116,7 @@ export function RacesClient({ edition, initialRaces }: RacesClientProps) {
           </TableRow>
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal
         open={modalOpen}

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +29,7 @@ interface ClassesClientProps {
 export function ClassesClient({ edition, initialClasses, allSkills }: ClassesClientProps) {
   const [classes, setClasses] = useState(initialClasses);
   const { sorted: sortedClasses, sortState, toggleSort } = useSortable<(typeof classes)[0], "name" | "skillRanksPerLevel" | "isSpellcaster">(classes);
+  const { filter, setFilter, page, setPage, totalPages, paged: pagedClasses, totalFiltered } = useTableControls(sortedClasses);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Class | null>(null);
   const [name, setName] = useState("");
@@ -79,9 +82,10 @@ export function ClassesClient({ edition, initialClasses, allSkills }: ClassesCli
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Classes</h1>
-        <Button onClick={openAdd}>+ Add Class</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Class</Button>
       </div>
 
       <DataTable
@@ -92,12 +96,12 @@ export function ClassesClient({ edition, initialClasses, allSkills }: ClassesCli
           { label: "Spellcaster", sortKey: "isSpellcaster" },
           "Actions",
         ]}
-        isEmpty={classes.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No classes yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sortedClasses.map((cls) => (
+        {pagedClasses.map((cls) => (
           <ExpandableRow
             key={cls.id}
             colSpan={colCount}
@@ -129,6 +133,7 @@ export function ClassesClient({ edition, initialClasses, allSkills }: ClassesCli
           />
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Class" : "Add Class"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>

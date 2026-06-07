@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +39,7 @@ interface EquipmentClientProps { initialEquipment: Equipment[]; }
 export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
   const [items, setItems] = useState(initialEquipment);
   const { sorted, sortState, toggleSort } = useSortable<(typeof items)[0], "name" | "category" | "itemLevel" | "price" | "bulk">(items);
+  const { filter, setFilter, page, setPage, totalPages, paged, totalFiltered } = useTableControls(sorted);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Equipment | null>(null);
   const [form, setForm] = useState<EquipmentFormData>(EMPTY_FORM);
@@ -97,9 +100,10 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Equipment</h1>
-        <Button onClick={openAdd}>+ Add Equipment</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Equipment</Button>
       </div>
 
       <DataTable
@@ -111,12 +115,12 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
           { label: "Bulk", sortKey: "bulk" },
           "Actions",
         ]}
-        isEmpty={items.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No equipment yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sorted.map((item) => (
+        {paged.map((item) => (
           <TableRow key={item.id}>
             <TableCell>{item.name}</TableCell>
             <TableCell className="text-xs">{item.category.replace(/_/g, " ")}</TableCell>
@@ -132,6 +136,7 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
           </TableRow>
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Equipment" : "Add Equipment"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>

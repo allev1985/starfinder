@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useSortable } from "../_components/use-sortable";
+import { useTableControls } from "../_components/use-table-controls";
+import { TablePagination } from "../_components/table-pagination";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,7 @@ interface ChassisClientProps { edition: Edition; initialChassis: Chassis[]; allS
 export function ChassisClient({ edition, initialChassis, allSkills }: ChassisClientProps) {
   const [items, setItems] = useState(initialChassis);
   const { sorted, sortState, toggleSort } = useSortable<(typeof items)[0], "name" | "defaultStr" | "defaultDex" | "defaultInt" | "defaultWis" | "defaultCha">(items);
+  const { filter, setFilter, page, setPage, totalPages, paged, totalFiltered } = useTableControls(sorted);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Chassis | null>(null);
   const [form, setForm] = useState<typeof EMPTY_FORM>(EMPTY_FORM);
@@ -83,9 +86,10 @@ export function ChassisClient({ edition, initialChassis, allSkills }: ChassisCli
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3 mb-4">
         <h1 style={{ fontFamily: "var(--font-ui)", fontWeight: 700, fontSize: 22, color: "var(--text-1)" }}>Chassis</h1>
-        <Button onClick={openAdd}>+ Add Chassis</Button>
+        <Input placeholder="Filter by name…" value={filter} onChange={(e) => setFilter(e.target.value)} className="w-56 ml-4" />
+        <Button className="ml-auto" onClick={openAdd}>+ Add Chassis</Button>
       </div>
 
       <DataTable
@@ -99,12 +103,12 @@ export function ChassisClient({ edition, initialChassis, allSkills }: ChassisCli
           { label: "CHA", sortKey: "defaultCha" },
           "Actions",
         ]}
-        isEmpty={items.length === 0}
+        isEmpty={totalFiltered === 0}
         empty="No chassis yet."
         sortState={sortState}
         onSort={toggleSort}
       >
-        {sorted.map((item) => (
+        {paged.map((item) => (
           <TableRow key={item.id}>
             <TableCell>{item.name}</TableCell>
             <TableCell>{skillName(item.bonusSkillId ?? null)}</TableCell>
@@ -122,6 +126,7 @@ export function ChassisClient({ edition, initialChassis, allSkills }: ChassisCli
           </TableRow>
         ))}
       </DataTable>
+      <TablePagination page={page} totalPages={totalPages} totalFiltered={totalFiltered} onPage={setPage} />
 
       <EntityModal open={modalOpen} onOpenChange={setModalOpen} title={editing ? "Edit Chassis" : "Add Chassis"}
         onSubmit={handleSubmit} submitting={submitting} error={error}>
