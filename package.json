@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "supabase migration up"
@@ -39,6 +40,7 @@
     "eslint-config-next": "16.2.6",
     "supabase": "^2.102.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   }
 }

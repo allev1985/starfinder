@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { modifier } from "@/lib/ability";
+import { calculateCombatStats } from "@/lib/character-stats";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
 import { useNumericInput } from "@/hooks/use-numeric-input";
 import {
@@ -118,27 +119,32 @@ export default function CombatStatsSection() {
 
   const eacArmorBonus = equippedArmor?.eacBonus ?? 0;
   const kacArmorBonus = equippedArmor?.kacBonus ?? 0;
-
-  const armorMaxDex = equippedArmor?.maxDexBonus ?? null;
-  const shieldMaxDex = equippedShield?.maxDexBonus ?? null;
-  const effectiveMaxDex =
-    armorMaxDex != null && shieldMaxDex != null ? Math.min(armorMaxDex, shieldMaxDex)
-    : armorMaxDex ?? shieldMaxDex;
-  const effectiveDex = effectiveMaxDex != null ? Math.min(dexMod, effectiveMaxDex) : dexMod;
-
   const shieldEacBonus = hasShieldProficiency ? (equippedShield?.eacBonus ?? 0) : 0;
   const shieldKacBonus = hasShieldProficiency ? (equippedShield?.kacBonus ?? 0) : 0;
 
-  const initiativeTotal = dexMod + miscMod;
-  const eacTotal = 10 + eacArmorBonus + shieldEacBonus + effectiveDex + eacMisc;
-  const kacTotal = 10 + kacArmorBonus + shieldKacBonus + effectiveDex + kacMisc;
-  const kacVsCm = 8 + kacTotal;
-  const meleeTotal = bab + strMod + meleeMisc;
-  const rangedTotal = bab + dexMod + rangedMisc;
-  const thrownTotal = bab + strMod + thrownMisc;
-  const fortTotal = fortBase + conMod + fortMisc;
-  const refTotal = refBase + dexMod + refMisc;
-  const willTotal = willBase + wisMod + willMisc;
+  const {
+    effectiveDex,
+    initiativeTotal,
+    eacTotal,
+    kacTotal,
+    kacVsCm,
+    meleeTotal,
+    rangedTotal,
+    thrownTotal,
+    fortTotal,
+    refTotal,
+    willTotal,
+  } = calculateCombatStats({
+    scores: { strScore, dexScore, conScore, wisScore },
+    mods,
+    equippedArmor: equippedArmor
+      ? { eacBonus: equippedArmor.eacBonus, kacBonus: equippedArmor.kacBonus, maxDexBonus: equippedArmor.maxDexBonus ?? null }
+      : null,
+    equippedShield: equippedShield
+      ? { eacBonus: equippedShield.eacBonus ?? 0, kacBonus: equippedShield.kacBonus ?? 0, maxDexBonus: equippedShield.maxDexBonus ?? null }
+      : null,
+    hasShieldProficiency,
+  });
 
   return (
     <>
