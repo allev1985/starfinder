@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Building2, Users } from "lucide-react";
+import { Building2, Users, ShieldCheck } from "lucide-react";
+import { getUser, isAdmin } from "@/lib/session";
 
-const tiles = [
+const baseTiles = [
   {
     label: "Campaigns",
     description: "Manage your campaigns and party",
@@ -16,7 +17,17 @@ const tiles = [
   },
 ];
 
-export default function DashboardPage() {
+const adminTile = {
+  label: "Admin",
+  description: "Manage reference data and settings",
+  icon: ShieldCheck,
+  href: "/dashboard/admin",
+};
+
+export default async function DashboardPage() {
+  const user = await getUser();
+  const tiles = isAdmin(user) ? [...baseTiles, adminTile] : baseTiles;
+
   return (
     <div className="flex flex-col items-center justify-center flex-1 p-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
