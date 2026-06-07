@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addArmorAction, removeArmorAction, toggleArmorWornAction } from "../actions";
 import type { Armor } from "@/db/schema";
 import type { CharacterArmorEntry } from "@/db/queries/characters";
@@ -194,18 +194,20 @@ export default function ArmorInventory({ availableArmor }: Props) {
       )}
 
       {isOwner && (
-        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-          <PopoverTrigger
+        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DialogTrigger
             className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
-            aria-expanded={pickerOpen}
             disabled={availableArmor.length === 0}
           >
             <Plus className="h-3.5 w-3.5" />
             {availableArmor.length === 0 ? "Select a class to add armor" : "Add Armor"}
-          </PopoverTrigger>
-          <PopoverContent className="w-[340px] p-0">
+          </DialogTrigger>
+          <DialogContent className="max-w-sm p-0">
+            <DialogHeader className="px-4 pt-4">
+              <DialogTitle>Add Armor</DialogTitle>
+            </DialogHeader>
             <Command>
-              <CommandInput placeholder="Search armor…" className="h-8" autoFocus={false} />
+              <CommandInput placeholder="Search armor…" className="h-8" />
               <CommandList>
                 <CommandEmpty>No armor found.</CommandEmpty>
                 <CommandGroup>
@@ -224,8 +226,8 @@ export default function ArmorInventory({ availableArmor }: Props) {
                 </CommandGroup>
               </CommandList>
             </Command>
-          </PopoverContent>
-        </Popover>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

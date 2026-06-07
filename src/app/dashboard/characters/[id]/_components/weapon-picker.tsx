@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addWeaponAction } from "../actions";
 import type { Weapon } from "@/db/schema";
 import { useCharacter } from "./character-context";
@@ -42,17 +42,19 @@ export default function WeaponPicker({ allWeapons }: Props) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
         className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
-        aria-expanded={open}
       >
         <Plus className="h-3.5 w-3.5" />
         Add Weapon
-      </PopoverTrigger>
-      <PopoverContent className="w-[360px] p-0">
+      </DialogTrigger>
+      <DialogContent className="max-w-sm p-0">
+        <DialogHeader className="px-4 pt-4">
+          <DialogTitle>Add Weapon</DialogTitle>
+        </DialogHeader>
         <Command>
-          <CommandInput placeholder="Search weapons…" className="h-8" autoFocus={false} />
+          <CommandInput placeholder="Search weapons…" className="h-8" />
           <CommandList>
             <CommandEmpty>No weapons found.</CommandEmpty>
             <CommandGroup>
@@ -71,7 +73,7 @@ export default function WeaponPicker({ allWeapons }: Props) {
             </CommandGroup>
           </CommandList>
         </Command>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 }

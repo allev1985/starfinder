@@ -17,7 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction, updateAmmoChargesAction } from "../actions";
 import type { Equipment, EquipmentCategory } from "@/db/schema";
 import type { CharacterEquipmentEntry } from "@/db/queries/characters";
@@ -344,16 +344,20 @@ export default function EquipmentInventory({ allEquipment }: Props) {
       </div>
 
       {isOwner && (
-        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-          <PopoverTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
+        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+          <DialogTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
             <Plus className="h-3.5 w-3.5" />
             Add Equipment
-          </PopoverTrigger>
-          <PopoverContent className="w-[360px] p-0">
+          </DialogTrigger>
+          <DialogContent className="max-w-sm p-0">
+            <DialogHeader className="px-4 pt-4">
+              <DialogTitle>Add Equipment</DialogTitle>
+            </DialogHeader>
             <div className="flex border-b">
               {(["all", "augmentations", "ammunition"] as FilterTab[]).map((tab) => (
                 <button
                   key={tab}
+                  type="button"
                   onClick={() => setPickerFilter(tab)}
                   className={cn(
                     "flex-1 px-2 py-1.5 text-xs font-medium transition-colors",
@@ -367,7 +371,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
               ))}
             </div>
             <Command>
-              <CommandInput placeholder="Search equipment…" className="h-8" autoFocus={false} />
+              <CommandInput placeholder="Search equipment…" className="h-8" />
               <CommandList>
                 <CommandEmpty>No equipment found.</CommandEmpty>
                 <CommandGroup>
@@ -380,8 +384,8 @@ export default function EquipmentInventory({ allEquipment }: Props) {
                 </CommandGroup>
               </CommandList>
             </Command>
-          </PopoverContent>
-        </Popover>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
