@@ -1,4 +1,4 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Persistent dashboard layout
 The system SHALL wrap all `/dashboard/*` routes in a shared layout containing a top navigation bar and a content area below it.
@@ -56,3 +56,14 @@ The system SHALL serve a stub page at `/dashboard/characters`.
 #### Scenario: Characters page renders
 - **WHEN** an authenticated user navigates to `/dashboard/characters`
 - **THEN** a page is rendered within the dashboard layout
+
+### Requirement: Admin navigation item (conditional)
+The top bar SHALL render an "Admin" navigation link to `/dashboard/admin` only when the current user has the `admin` role. Player users SHALL NOT see this link.
+
+#### Scenario: Admin user sees Admin nav link
+- **WHEN** an admin user views any dashboard page
+- **THEN** the top bar includes an "Admin" link that navigates to `/dashboard/admin`
+
+#### Scenario: Player user does not see Admin nav link
+- **WHEN** a player user views any dashboard page
+- **THEN** the top bar does not include any "Admin" link

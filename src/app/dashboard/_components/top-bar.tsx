@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: "Characters", href: "/dashboard/characters" },
 ];
 
-export default function TopBar() {
+export default function TopBar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -71,6 +71,23 @@ export default function TopBar() {
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              href="/dashboard/admin"
+              className="transition-colors"
+              style={{
+                fontFamily: "var(--font-ui)",
+                fontSize: 14,
+                fontWeight: pathname.startsWith("/dashboard/admin") ? 600 : 400,
+                color: pathname.startsWith("/dashboard/admin") ? "var(--chrome-text)" : "var(--chrome-muted)",
+                backgroundColor: pathname.startsWith("/dashboard/admin") ? "var(--chrome-3)" : "transparent",
+                padding: "5px 12px",
+                borderRadius: "var(--r-sm)",
+              }}
+            >
+              Admin
+            </Link>
+          )}
         </nav>
       </div>
 

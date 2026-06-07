@@ -7,3 +7,7 @@ export async function getUser(): Promise<User | null> {
   const { data: { user } } = await supabase.auth.getUser();
   return user ?? null;
 }
+
+export function isAdmin(user: User | null): boolean {
+  return user?.app_metadata?.role === "admin";
+}
