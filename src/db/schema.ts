@@ -374,7 +374,7 @@ export const equipment = pgTable("equipment", {
   maxDexBonus: integer("max_dex_bonus"),
   description: text("description"),
   capacity: integer("capacity"),
-  usage: integer("usage"),
+  usage: text("usage"),
   hands: integer("hands"),
 });
 

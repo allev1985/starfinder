@@ -206,7 +206,7 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
           </div>
           <div className="flex flex-col gap-1">
             <Label>Usage (optional)</Label>
-            <Input type="number" value={form.usage ?? ""} onChange={(e) => set("usage", e.target.value ? parseInt(e.target.value) : null)} />
+            <Input value={form.usage ?? ""} onChange={(e) => set("usage", e.target.value || null)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Hands (optional)</Label>

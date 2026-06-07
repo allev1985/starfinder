@@ -21,7 +21,7 @@ export interface EquipmentFormData {
   maxDexBonus?: number | null;
   description?: string | null;
   capacity?: number | null;
-  usage?: number | null;
+  usage?: string | null;
   hands?: number | null;
 }
 
