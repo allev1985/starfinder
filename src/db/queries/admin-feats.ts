@@ -17,11 +17,11 @@ export async function listFeats(editionId: string): Promise<Feat[]> {
   return db.select().from(feats).where(eq(feats.editionId, editionId)).orderBy(feats.name);
 }
 
-export async function createFeat(editionId: string, data: FeatFormData): Promise<{ error?: string }> {
+export async function createFeat(editionId: string, data: FeatFormData): Promise<{ data?: Feat; error?: string }> {
   try {
-    await db.insert(feats).values({ editionId, ...data });
+    const [created] = await db.insert(feats).values({ editionId, ...data }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     if (msg.includes("unique") || msg.includes("duplicate")) return { error: "A feat with that name already exists." };

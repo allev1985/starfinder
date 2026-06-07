@@ -26,11 +26,11 @@ export async function listWeapons(editionId: string): Promise<Weapon[]> {
   return db.select().from(weapons).where(eq(weapons.editionId, editionId)).orderBy(weapons.category, weapons.itemLevel);
 }
 
-export async function createWeapon(editionId: string, data: WeaponFormData): Promise<{ error?: string }> {
+export async function createWeapon(editionId: string, data: WeaponFormData): Promise<{ data?: Weapon; error?: string }> {
   try {
-    await db.insert(weapons).values({ editionId, ...data });
+    const [created] = await db.insert(weapons).values({ editionId, ...data }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create weapon." };
   }

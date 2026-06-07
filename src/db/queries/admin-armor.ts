@@ -26,11 +26,11 @@ export async function listArmor(editionId: string): Promise<Armor[]> {
   return db.select().from(armor).where(eq(armor.editionId, editionId)).orderBy(armor.type, armor.itemLevel);
 }
 
-export async function createArmor(editionId: string, data: ArmorFormData): Promise<{ error?: string }> {
+export async function createArmor(editionId: string, data: ArmorFormData): Promise<{ data?: Armor; error?: string }> {
   try {
-    await db.insert(armor).values({ editionId, ...data });
+    const [created] = await db.insert(armor).values({ editionId, ...data }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create armor." };
   }

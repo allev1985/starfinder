@@ -9,11 +9,11 @@ export async function listRaces(editionId: string): Promise<Race[]> {
   return db.select().from(races).where(eq(races.editionId, editionId)).orderBy(races.name);
 }
 
-export async function createRace(editionId: string, name: string, type: RaceType): Promise<{ error?: string }> {
+export async function createRace(editionId: string, name: string, type: RaceType): Promise<{ data?: Race; error?: string }> {
   try {
-    await db.insert(races).values({ editionId, name, type });
+    const [created] = await db.insert(races).values({ editionId, name, type }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create race." };
   }

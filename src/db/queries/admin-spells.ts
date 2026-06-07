@@ -31,11 +31,11 @@ export async function listSpells(editionId: string): Promise<Spell[]> {
   return db.select().from(spells).where(eq(spells.editionId, editionId)).orderBy(spells.name);
 }
 
-export async function createSpell(editionId: string, data: SpellFormData): Promise<{ error?: string }> {
+export async function createSpell(editionId: string, data: SpellFormData): Promise<{ data?: Spell; error?: string }> {
   try {
-    await db.insert(spells).values({ editionId, ...data });
+    const [created] = await db.insert(spells).values({ editionId, ...data }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     if (msg.includes("unique") || msg.includes("duplicate")) return { error: "A spell with that name already exists." };

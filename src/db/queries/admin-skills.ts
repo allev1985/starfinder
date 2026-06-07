@@ -12,9 +12,9 @@ export async function listSkillsByEdition(editionId: string): Promise<Skill[]> {
 export async function createSkill(
   editionId: string,
   data: { name: string; ability: string; abilityAlts?: string[] | null; trainedOnly: boolean; armorCheckPenalty: boolean }
-): Promise<{ error?: string }> {
+): Promise<{ data?: Skill; error?: string }> {
   try {
-    await db.insert(skills).values({
+    const [created] = await db.insert(skills).values({
       id: crypto.randomUUID(),
       editionId,
       name: data.name,
@@ -22,9 +22,9 @@ export async function createSkill(
       abilityAlts: data.abilityAlts ?? null,
       trainedOnly: data.trainedOnly,
       armorCheckPenalty: data.armorCheckPenalty,
-    });
+    }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create skill." };
   }

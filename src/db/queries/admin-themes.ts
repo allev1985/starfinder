@@ -9,11 +9,11 @@ export async function listThemes(editionId: string): Promise<Theme[]> {
   return db.select().from(themes).where(eq(themes.editionId, editionId)).orderBy(themes.name);
 }
 
-export async function createTheme(editionId: string, name: string): Promise<{ error?: string }> {
+export async function createTheme(editionId: string, name: string): Promise<{ data?: Theme; error?: string }> {
   try {
-    await db.insert(themes).values({ editionId, name });
+    const [created] = await db.insert(themes).values({ editionId, name }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create theme." };
   }

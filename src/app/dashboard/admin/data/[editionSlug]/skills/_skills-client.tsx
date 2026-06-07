@@ -59,13 +59,16 @@ export function SkillsClient({ edition, initialSkills }: SkillsClientProps) {
     setSubmitting(true);
     const alts = abilityAlts.trim() ? abilityAlts.split(",").map((s) => s.trim()).filter(Boolean) : null;
     const data = { name: name.trim(), ability, abilityAlts: alts, trainedOnly, armorCheckPenalty };
-    const result = editing ? await updateSkill(editing.id, data) : await createSkill(edition.id, data);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
+      const result = await updateSkill(editing.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setSkills((prev) => prev.map((s) => s.id === editing.id ? { ...s, ...data } : s));
     } else {
-      setSkills((prev) => [...prev, { id: crypto.randomUUID(), editionId: edition.id, ...data }]);
+      const result = await createSkill(edition.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setSkills((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }

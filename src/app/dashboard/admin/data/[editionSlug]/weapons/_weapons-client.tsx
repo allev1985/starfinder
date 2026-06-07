@@ -32,6 +32,7 @@ export function WeaponsClient({ edition, initialWeapons }: WeaponsClientProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Weapon | null>(null);
   const [form, setForm] = useState<WeaponFormData>(EMPTY_FORM);
+  const [itemLevelStr, setItemLevelStr] = useState("1");
   const [damageTypesStr, setDamageTypesStr] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -42,25 +43,29 @@ export function WeaponsClient({ edition, initialWeapons }: WeaponsClientProps) {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
-  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setDamageTypesStr(""); setError(null); setModalOpen(true); }
+  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setItemLevelStr("1"); setDamageTypesStr(""); setError(null); setModalOpen(true); }
   function openEdit(item: Weapon) {
     setEditing(item);
     setForm({ name: item.name, category: item.category, itemLevel: item.itemLevel, damageDice: item.damageDice, damageTypes: item.damageTypes, criticalEffect: item.criticalEffect ?? null, criticalDice: item.criticalDice ?? null, range: item.range ?? null, capacity: item.capacity ?? null, usage: item.usage ?? null, bulk: item.bulk, special: item.special ?? null, ammoType: item.ammoType ?? null, sourceBook: item.sourceBook });
+    setItemLevelStr(String(item.itemLevel));
     setDamageTypesStr(item.damageTypes.join(", "));
     setError(null); setModalOpen(true);
   }
 
   async function handleSubmit() {
     if (!form.name.trim() || !form.damageDice.trim()) { setError("Name and damage dice are required."); return; }
-    const finalForm = { ...form, damageTypes: damageTypesStr.split(",").map((s) => s.trim()).filter(Boolean) };
+    const finalForm = { ...form, itemLevel: parseInt(itemLevelStr) || 1, damageTypes: damageTypesStr.split(",").map((s) => s.trim()).filter(Boolean) };
     setSubmitting(true);
-    const result = editing ? await updateWeapon(editing.id, finalForm) : await createWeapon(edition.id, finalForm);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
+      const result = await updateWeapon(editing.id, finalForm);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...finalForm } : i));
     } else {
-      setItems((prev) => [...prev, { id: crypto.randomUUID(), editionId: edition.id, ...finalForm } as Weapon]);
+      const result = await createWeapon(edition.id, finalForm);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setItems((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }
@@ -127,7 +132,7 @@ export function WeaponsClient({ edition, initialWeapons }: WeaponsClientProps) {
           </div>
           <div className="flex flex-col gap-1">
             <Label>Item Level</Label>
-            <Input type="number" value={form.itemLevel} onChange={(e) => set("itemLevel", parseInt(e.target.value) || 1)} />
+            <Input type="number" value={itemLevelStr} onChange={(e) => setItemLevelStr(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Damage Dice</Label>

@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { modifier } from "@/lib/ability";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
+import { useNumericInput } from "@/hooks/use-numeric-input";
 import {
   updateInitiativeMiscModAction,
   updateBaseAttackBonusAction,
@@ -41,6 +42,44 @@ function Cell({ label, children }: { label: string; children: React.ReactNode })
 function Op({ children }: { children: string }) {
   return (
     <span className="self-end pb-2 text-sm text-muted-foreground">{children}</span>
+  );
+}
+
+function EditableCell({ label, value, onChange, isOwner }: { label: string; value: number; onChange: (v: number) => void; isOwner: boolean }) {
+  const input = useNumericInput(value, onChange);
+  return isOwner ? (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <Input
+        type="number"
+        value={input.inputValue}
+        onChange={input.handleChange}
+        onBlur={input.handleBlur}
+        className="h-9 w-16 text-center text-sm"
+      />
+    </div>
+  ) : (
+    <Cell label={label}>{formatModifier(value)}</Cell>
+  );
+}
+
+function BabInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const input = useNumericInput(value, onChange);
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
+        Edit BAB
+      </span>
+      <Input
+        type="number"
+        value={input.inputValue}
+        onChange={input.handleChange}
+        onBlur={input.handleBlur}
+        className="h-9 w-16 text-center text-sm"
+      />
+    </div>
   );
 }
 
@@ -94,15 +133,8 @@ export default function CombatStatsSection() {
   const refTotal = refBase + dexMod + refMisc;
   const willTotal = willBase + wisMod + willMisc;
 
-  function parseInput(raw: string): number {
-    return isNaN(parseInt(raw, 10)) ? 0 : parseInt(raw, 10);
-  }
-
-  function editableCell(
-    label: string,
-    value: number,
-    onChange: (v: number) => void,
-  ) {
+  function EditableCell({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+    const input = useNumericInput(value, onChange);
     return isOwner ? (
       <div className="flex flex-col items-center gap-0.5">
         <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -110,13 +142,32 @@ export default function CombatStatsSection() {
         </span>
         <Input
           type="number"
-          value={value}
-          onChange={(e) => onChange(parseInput(e.target.value))}
+          value={input.inputValue}
+          onChange={input.handleChange}
+          onBlur={input.handleBlur}
           className="h-9 w-16 text-center text-sm"
         />
       </div>
     ) : (
       <Cell label={label}>{formatModifier(value)}</Cell>
+    );
+  }
+
+  function BabInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+    const input = useNumericInput(value, onChange);
+    return (
+      <div className="flex flex-col items-center gap-0.5">
+        <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
+          Edit BAB
+        </span>
+        <Input
+          type="number"
+          value={input.inputValue}
+          onChange={input.handleChange}
+          onBlur={input.handleBlur}
+          className="h-9 w-16 text-center text-sm"
+        />
+      </div>
     );
   }
 
@@ -132,7 +183,7 @@ export default function CombatStatsSection() {
           <Op>=</Op>
           <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
           <Op>+</Op>
-          {editableCell("Misc Mod", miscMod, (v) => { set("initiativeMiscMod", v); scheduleMiscModSave(v); })}
+          <EditableCell label="Misc Mod" value={miscMod} onChange={(v) => { set("initiativeMiscMod", v); scheduleMiscModSave(v); }} />
         </div>
       </section>
 
@@ -152,7 +203,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(effectiveDex)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", eacMisc, (v) => { set("eacMiscMod", v); scheduleEacMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={eacMisc} onChange={(v) => { set("eacMiscMod", v); scheduleEacMiscSave(v); }} />
           </div>
         </div>
         <div className="mb-3">
@@ -166,7 +217,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(effectiveDex)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", kacMisc, (v) => { set("kacMiscMod", v); scheduleKacMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={kacMisc} onChange={(v) => { set("kacMiscMod", v); scheduleKacMiscSave(v); }} />
           </div>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -198,11 +249,11 @@ export default function CombatStatsSection() {
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(fortTotal)}</Cell>
             <Op>=</Op>
-            {editableCell("Base Save", fortBase, (v) => { set("fortBaseSave", v); scheduleFortBaseSave(v); })}
+            <EditableCell label="Base Save" value={fortBase} onChange={(v) => { set("fortBaseSave", v); scheduleFortBaseSave(v); }} />
             <Op>+</Op>
             <Cell label="CON Mod">{formatModifier(conMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", fortMisc, (v) => { set("fortMiscMod", v); scheduleFortMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={fortMisc} onChange={(v) => { set("fortMiscMod", v); scheduleFortMiscSave(v); }} />
           </div>
         </div>
         <div className="mb-3">
@@ -210,11 +261,11 @@ export default function CombatStatsSection() {
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(refTotal)}</Cell>
             <Op>=</Op>
-            {editableCell("Base Save", refBase, (v) => { set("refBaseSave", v); scheduleRefBaseSave(v); })}
+            <EditableCell label="Base Save" value={refBase} onChange={(v) => { set("refBaseSave", v); scheduleRefBaseSave(v); }} />
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", refMisc, (v) => { set("refMiscMod", v); scheduleRefMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={refMisc} onChange={(v) => { set("refMiscMod", v); scheduleRefMiscSave(v); }} />
           </div>
         </div>
         <div>
@@ -222,11 +273,11 @@ export default function CombatStatsSection() {
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(willTotal)}</Cell>
             <Op>=</Op>
-            {editableCell("Base Save", willBase, (v) => { set("willBaseSave", v); scheduleWillBaseSave(v); })}
+            <EditableCell label="Base Save" value={willBase} onChange={(v) => { set("willBaseSave", v); scheduleWillBaseSave(v); }} />
             <Op>+</Op>
             <Cell label="WIS Mod">{formatModifier(wisMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", willMisc, (v) => { set("willMiscMod", v); scheduleWillMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={willMisc} onChange={(v) => { set("willMiscMod", v); scheduleWillMiscSave(v); }} />
           </div>
         </div>
       </section>
@@ -241,17 +292,7 @@ export default function CombatStatsSection() {
           {isOwner && (
             <>
               <Op>=</Op>
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Edit BAB
-                </span>
-                <Input
-                  type="number"
-                  value={bab}
-                  onChange={(e) => { const v = parseInput(e.target.value); set("baseAttackBonus", v); scheduleBabSave(v); }}
-                  className="h-9 w-16 text-center text-sm"
-                />
-              </div>
+              <BabInput value={bab} onChange={(v) => { set("baseAttackBonus", v); scheduleBabSave(v); }} />
             </>
           )}
         </div>
@@ -264,7 +305,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="STR Mod">{formatModifier(strMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", meleeMisc, (v) => { set("meleeAttackMiscMod", v); scheduleMeleeMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={meleeMisc} onChange={(v) => { set("meleeAttackMiscMod", v); scheduleMeleeMiscSave(v); }} />
           </div>
         </div>
         <div className="mb-3">
@@ -276,7 +317,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", rangedMisc, (v) => { set("rangedAttackMiscMod", v); scheduleRangedMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={rangedMisc} onChange={(v) => { set("rangedAttackMiscMod", v); scheduleRangedMiscSave(v); }} />
           </div>
         </div>
         <div>
@@ -288,7 +329,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="STR Mod">{formatModifier(strMod)}</Cell>
             <Op>+</Op>
-            {editableCell("Misc Mod", thrownMisc, (v) => { set("thrownAttackMiscMod", v); scheduleThrownMiscSave(v); })}
+            <EditableCell label="Misc Mod" value={thrownMisc} onChange={(v) => { set("thrownAttackMiscMod", v); scheduleThrownMiscSave(v); }} />
           </div>
         </div>
       </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { useNumericInput } from "@/hooks/use-numeric-input";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,19 +81,16 @@ function BiologicalSkillRow({
   const acp = skill.armorCheckPenalty ? armorCheckPenalty : 0;
   const total = ranks + classBonus + abilityMod + miscMod + acp;
 
-  function handleRanksChange(raw: string) {
-    const parsed = parseInt(raw, 10);
-    const v = Math.min(Math.max(0, isNaN(parsed) ? 0 : parsed), maxRanks);
-    onRanksChange(row.id, v);
-    scheduleRanksSave(v);
-  }
+  const ranksInput = useNumericInput(ranks, (v) => {
+    const clamped = Math.min(Math.max(0, v), maxRanks);
+    onRanksChange(row.id, clamped);
+    scheduleRanksSave(clamped);
+  });
 
-  function handleMiscChange(raw: string) {
-    const v = parseInt(raw, 10);
-    const next = isNaN(v) ? 0 : v;
-    setMiscMod(next);
-    scheduleMiscSave(next);
-  }
+  const miscInput = useNumericInput(miscMod, (v) => {
+    setMiscMod(v);
+    scheduleMiscSave(v);
+  });
 
   async function handleRemove() {
     await removeCharacterSkillAction(row.id, characterId);
@@ -115,8 +113,9 @@ function BiologicalSkillRow({
           type="number"
           min={0}
           max={maxRanks}
-          value={ranks}
-          onChange={(e) => handleRanksChange(e.target.value)}
+          value={ranksInput.inputValue}
+          onChange={ranksInput.handleChange}
+          onBlur={ranksInput.handleBlur}
           className="h-7 text-sm text-center"
         />
       ) : (
@@ -129,8 +128,9 @@ function BiologicalSkillRow({
       {isOwner ? (
         <Input
           type="number"
-          value={miscMod}
-          onChange={(e) => handleMiscChange(e.target.value)}
+          value={miscInput.inputValue}
+          onChange={miscInput.handleChange}
+          onBlur={miscInput.handleBlur}
           className="h-7 text-sm text-center"
         />
       ) : (
@@ -185,12 +185,10 @@ function DroneSkillRow({
   const classBonus = ranks > 0 ? 3 : 0;
   const total = ranks + classBonus + abilityMod + miscMod;
 
-  function handleMiscChange(raw: string) {
-    const v = parseInt(raw, 10);
-    const next = isNaN(v) ? 0 : v;
-    setMiscMod(next);
-    scheduleMiscSave(next);
-  }
+  const miscInput = useNumericInput(miscMod, (v) => {
+    setMiscMod(v);
+    scheduleMiscSave(v);
+  });
 
   async function handleRemove() {
     await removeCharacterSkillAction(row.id, characterId);
@@ -216,8 +214,9 @@ function DroneSkillRow({
       {isOwner ? (
         <Input
           type="number"
-          value={miscMod}
-          onChange={(e) => handleMiscChange(e.target.value)}
+          value={miscInput.inputValue}
+          onChange={miscInput.handleChange}
+          onBlur={miscInput.handleBlur}
           className="h-7 text-sm text-center"
         />
       ) : (
@@ -279,12 +278,10 @@ function MobileSkillRow({
     scheduleRanksSave(next);
   }
 
-  function handleMiscChange(raw: string) {
-    const v = parseInt(raw, 10);
-    const next = isNaN(v) ? 0 : v;
-    setMiscMod(next);
-    scheduleMiscSave(next);
-  }
+  const miscInput = useNumericInput(miscMod, (v) => {
+    setMiscMod(v);
+    scheduleMiscSave(v);
+  });
 
   const fmt = (n: number) => n >= 0 ? `+${n}` : `${n}`;
 
@@ -338,8 +335,9 @@ function MobileSkillRow({
             <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Misc</span>
             <input
               type="number"
-              value={miscMod}
-              onChange={(e) => handleMiscChange(e.target.value)}
+              value={miscInput.inputValue}
+              onChange={miscInput.handleChange}
+              onBlur={miscInput.handleBlur}
               style={{
                 fontFamily: "var(--font-mono)", fontSize: 13, color: "var(--text-1)",
                 width: 48, textAlign: "center",

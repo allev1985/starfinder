@@ -54,13 +54,16 @@ export function SpellsClient({ edition, initialSpells }: SpellsClientProps) {
   async function handleSubmit() {
     if (!form.name.trim() || !form.description.trim()) { setError("Name and description are required."); return; }
     setSubmitting(true);
-    const result = editing ? await updateSpell(editing.id, form) : await createSpell(edition.id, form);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
+      const result = await updateSpell(editing.id, form);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...form } : i));
     } else {
-      setItems((prev) => [...prev, { id: crypto.randomUUID(), editionId: edition.id, ...form } as Spell]);
+      const result = await createSpell(edition.id, form);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setItems((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }

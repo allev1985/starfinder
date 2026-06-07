@@ -22,11 +22,11 @@ export async function listClasses(editionId: string): Promise<Class[]> {
 export async function createClass(
   editionId: string,
   data: { name: string; skillRanksPerLevel: number; isSpellcaster: boolean }
-): Promise<{ error?: string }> {
+): Promise<{ data?: Class; error?: string }> {
   try {
-    await db.insert(classes).values({ editionId, ...data });
+    const [created] = await db.insert(classes).values({ editionId, ...data }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create class." };
   }

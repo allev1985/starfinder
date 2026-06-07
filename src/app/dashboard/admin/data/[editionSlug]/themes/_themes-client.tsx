@@ -37,13 +37,16 @@ export function ThemesClient({ edition, initialThemes }: ThemesClientProps) {
   async function handleSubmit() {
     if (!name.trim()) { setError("Name is required."); return; }
     setSubmitting(true);
-    const result = editing ? await updateTheme(editing.id, name.trim()) : await createTheme(edition.id, name.trim());
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
+      const result = await updateTheme(editing.id, name.trim());
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setThemes((prev) => prev.map((t) => t.id === editing.id ? { ...t, name: name.trim() } : t));
     } else {
-      setThemes((prev) => [...prev, { id: crypto.randomUUID(), name: name.trim(), editionId: edition.id }]);
+      const result = await createTheme(edition.id, name.trim());
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setThemes((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }

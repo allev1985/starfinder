@@ -35,6 +35,8 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Equipment | null>(null);
   const [form, setForm] = useState<EquipmentFormData>(EMPTY_FORM);
+  const [itemLevelStr, setItemLevelStr] = useState("1");
+  const [priceStr, setPriceStr] = useState("0");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Equipment | null>(null);
@@ -44,24 +46,29 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
     setForm((f) => ({ ...f, [key]: val }));
   }
 
-  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setError(null); setModalOpen(true); }
+  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setItemLevelStr("1"); setPriceStr("0"); setError(null); setModalOpen(true); }
   function openEdit(item: Equipment) {
     setEditing(item);
     setForm({ name: item.name, category: item.category, itemLevel: item.itemLevel, price: item.price, bulk: item.bulk, system: item.system ?? null, ammoType: item.ammoType ?? null, ammoCapacity: item.ammoCapacity ?? null, bonusHint: item.bonusHint ?? null });
+    setItemLevelStr(String(item.itemLevel));
+    setPriceStr(String(item.price));
     setError(null); setModalOpen(true);
   }
 
   async function handleSubmit() {
     if (!form.name.trim()) { setError("Name is required."); return; }
-    const finalForm = { ...form, system: isAugmentation(form.category) ? form.system : null };
+    const finalForm = { ...form, itemLevel: parseInt(itemLevelStr) || 1, price: parseInt(priceStr) || 0, system: isAugmentation(form.category) ? form.system : null };
     setSubmitting(true);
-    const result = editing ? await updateEquipment(editing.id, finalForm) : await createEquipment(finalForm);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
+      const result = await updateEquipment(editing.id, finalForm);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...finalForm, system: finalForm.system ?? null } : i));
     } else {
-      setItems((prev) => [...prev, { id: crypto.randomUUID(), sourceBook: "crb", ...finalForm, system: finalForm.system ?? null } as Equipment]);
+      const result = await createEquipment(finalForm);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setItems((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }
@@ -137,11 +144,11 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
           )}
           <div className="flex flex-col gap-1">
             <Label>Item Level</Label>
-            <Input type="number" value={form.itemLevel} onChange={(e) => set("itemLevel", parseInt(e.target.value) || 1)} />
+            <Input type="number" value={itemLevelStr} onChange={(e) => setItemLevelStr(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Price (credits)</Label>
-            <Input type="number" value={form.price} onChange={(e) => set("price", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={priceStr} onChange={(e) => setPriceStr(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Bulk</Label>

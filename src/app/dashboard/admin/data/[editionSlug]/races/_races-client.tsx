@@ -59,18 +59,18 @@ export function RacesClient({ edition, initialRaces }: RacesClientProps) {
 
   async function handleSubmit() {
     if (!name.trim()) { setError("Name is required."); return; }
-    setSubmitting(true);
     setError(null);
-    const result = editing
-      ? await updateRace(editing.id, name.trim(), type)
-      : await createRace(edition.id, name.trim(), type);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
+    setSubmitting(true);
     if (editing) {
+      const result = await updateRace(editing.id, name.trim(), type);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setRaces((prev) => prev.map((r) => r.id === editing.id ? { ...r, name: name.trim(), type } : r));
     } else {
-      // Refresh by re-fetching would be ideal but we rely on revalidatePath; optimistically add a temp
-      setRaces((prev) => [...prev, { id: crypto.randomUUID(), name: name.trim(), type, editionId: edition.id }]);
+      const result = await createRace(edition.id, name.trim(), type);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setRaces((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }

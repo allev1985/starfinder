@@ -19,11 +19,11 @@ export async function listChassis(editionId: string): Promise<Chassis[]> {
   return db.select().from(chassis).where(eq(chassis.editionId, editionId)).orderBy(chassis.name);
 }
 
-export async function createChassis(editionId: string, data: ChassisFormData): Promise<{ error?: string }> {
+export async function createChassis(editionId: string, data: ChassisFormData): Promise<{ data?: Chassis; error?: string }> {
   try {
-    await db.insert(chassis).values({ editionId, ...data });
+    const [created] = await db.insert(chassis).values({ editionId, ...data }).returning();
     revalidatePath("/dashboard/admin/data");
-    return {};
+    return { data: created };
   } catch {
     return { error: "Failed to create chassis." };
   }

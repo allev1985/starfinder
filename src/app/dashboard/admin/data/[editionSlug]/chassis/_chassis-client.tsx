@@ -13,9 +13,12 @@ import { ConfirmDeleteDialog } from "../_components/confirm-delete-dialog";
 import { createChassis, updateChassis, deleteChassis, type ChassisFormData } from "@/db/queries/admin-chassis";
 import type { Chassis, Skill, Edition } from "@/db/schema";
 
-const EMPTY_FORM: ChassisFormData = {
-  name: "", bonusSkillId: null, defaultStr: 10, defaultDex: 10, defaultInt: 10, defaultWis: 10, defaultCha: 10,
-};
+const ABILITY_KEYS = ["defaultStr", "defaultDex", "defaultInt", "defaultWis", "defaultCha"] as const;
+type AbilityKey = typeof ABILITY_KEYS[number];
+type AbilityStrs = Record<AbilityKey, string>;
+
+const EMPTY_FORM: Omit<ChassisFormData, AbilityKey> = { name: "", bonusSkillId: null };
+const EMPTY_ABILITY_STRS: AbilityStrs = { defaultStr: "10", defaultDex: "10", defaultInt: "10", defaultWis: "10", defaultCha: "10" };
 
 interface ChassisClientProps { edition: Edition; initialChassis: Chassis[]; allSkills: Skill[]; }
 
@@ -24,31 +27,46 @@ export function ChassisClient({ edition, initialChassis, allSkills }: ChassisCli
   const { sorted, sortState, toggleSort } = useSortable<(typeof items)[0], "name" | "defaultStr" | "defaultDex" | "defaultInt" | "defaultWis" | "defaultCha">(items);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Chassis | null>(null);
-  const [form, setForm] = useState<ChassisFormData>(EMPTY_FORM);
+  const [form, setForm] = useState<typeof EMPTY_FORM>(EMPTY_FORM);
+  const [abilityStrs, setAbilityStrs] = useState<AbilityStrs>(EMPTY_ABILITY_STRS);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Chassis | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  function set<K extends keyof ChassisFormData>(key: K, val: ChassisFormData[K]) { setForm((f) => ({ ...f, [key]: val })); }
-
-  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setError(null); setModalOpen(true); }
+  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setAbilityStrs(EMPTY_ABILITY_STRS); setError(null); setModalOpen(true); }
   function openEdit(item: Chassis) {
     setEditing(item);
-    setForm({ name: item.name, bonusSkillId: item.bonusSkillId ?? null, defaultStr: item.defaultStr, defaultDex: item.defaultDex, defaultInt: item.defaultInt, defaultWis: item.defaultWis, defaultCha: item.defaultCha });
+    setForm({ name: item.name, bonusSkillId: item.bonusSkillId ?? null });
+    setAbilityStrs({ defaultStr: String(item.defaultStr), defaultDex: String(item.defaultDex), defaultInt: String(item.defaultInt), defaultWis: String(item.defaultWis), defaultCha: String(item.defaultCha) });
     setError(null); setModalOpen(true);
+  }
+
+  function buildFormData(): ChassisFormData {
+    return {
+      ...form,
+      defaultStr: parseInt(abilityStrs.defaultStr) || 10,
+      defaultDex: parseInt(abilityStrs.defaultDex) || 10,
+      defaultInt: parseInt(abilityStrs.defaultInt) || 10,
+      defaultWis: parseInt(abilityStrs.defaultWis) || 10,
+      defaultCha: parseInt(abilityStrs.defaultCha) || 10,
+    };
   }
 
   async function handleSubmit() {
     if (!form.name.trim()) { setError("Name is required."); return; }
+    const data = buildFormData();
     setSubmitting(true);
-    const result = editing ? await updateChassis(editing.id, form) : await createChassis(edition.id, form);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
-      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...form } : i));
+      const result = await updateChassis(editing.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...data } : i));
     } else {
-      setItems((prev) => [...prev, { id: crypto.randomUUID(), editionId: edition.id, ...form } as Chassis]);
+      const result = await createChassis(edition.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setItems((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }
@@ -110,11 +128,11 @@ export function ChassisClient({ edition, initialChassis, allSkills }: ChassisCli
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Name</Label>
-            <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
+            <Input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
           </div>
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Bonus Skill (optional)</Label>
-            <Select value={form.bonusSkillId ?? "none"} onValueChange={(v) => set("bonusSkillId", v === "none" ? null : v)}>
+            <Select value={form.bonusSkillId ?? "none"} onValueChange={(v) => setForm((f) => ({ ...f, bonusSkillId: v === "none" ? null : v }))}>
               <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
@@ -122,10 +140,10 @@ export function ChassisClient({ edition, initialChassis, allSkills }: ChassisCli
               </SelectContent>
             </Select>
           </div>
-          {(["defaultStr", "defaultDex", "defaultInt", "defaultWis", "defaultCha"] as const).map((key) => (
+          {ABILITY_KEYS.map((key) => (
             <div key={key} className="flex flex-col gap-1">
               <Label>{key.replace("default", "Default ")}</Label>
-              <Input type="number" value={form[key]} onChange={(e) => set(key, parseInt(e.target.value) || 10)} />
+              <Input type="number" value={abilityStrs[key]} onChange={(e) => setAbilityStrs((s) => ({ ...s, [key]: e.target.value }))} />
             </div>
           ))}
         </div>

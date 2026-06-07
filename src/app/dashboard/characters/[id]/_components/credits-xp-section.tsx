@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { useDebouncedSave } from "@/hooks/use-debounced-save";
+import { useNumericInput } from "@/hooks/use-numeric-input";
 import { updateCreditsAction, updateXpAction } from "../actions";
 import { useCharacter } from "./character-context";
 
@@ -10,10 +11,8 @@ export default function CreditsXpSection() {
   const scheduleCreditsSave = useDebouncedSave((v: number) => updateCreditsAction(characterId, v));
   const scheduleXpSave = useDebouncedSave((v: number) => updateXpAction(characterId, v));
 
-  function parseInput(raw: string): number {
-    const n = parseInt(raw, 10);
-    return isNaN(n) ? 0 : n;
-  }
+  const creditsInput = useNumericInput(credits, (v) => { setCredits(v); scheduleCreditsSave(v); });
+  const xpInput = useNumericInput(xpEarned, (v) => { setXpEarned(v); scheduleXpSave(v); });
 
   return (
     <section className="mb-6">
@@ -26,8 +25,9 @@ export default function CreditsXpSection() {
           {isOwner ? (
             <Input
               type="number"
-              value={credits}
-              onChange={(e) => { const v = parseInput(e.target.value); setCredits(v); scheduleCreditsSave(v); }}
+              value={creditsInput.inputValue}
+              onChange={creditsInput.handleChange}
+              onBlur={creditsInput.handleBlur}
               className="h-8 text-sm"
             />
           ) : (
@@ -39,8 +39,9 @@ export default function CreditsXpSection() {
           {isOwner ? (
             <Input
               type="number"
-              value={xpEarned}
-              onChange={(e) => { const v = parseInput(e.target.value); setXpEarned(v); scheduleXpSave(v); }}
+              value={xpInput.inputValue}
+              onChange={xpInput.handleChange}
+              onBlur={xpInput.handleBlur}
               className="h-8 text-sm"
             />
           ) : (

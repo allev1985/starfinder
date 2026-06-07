@@ -53,13 +53,16 @@ export function ClassesClient({ edition, initialClasses, allSkills }: ClassesCli
     if (isNaN(ranks) || ranks < 0) { setError("Skill ranks must be a non-negative integer."); return; }
     setSubmitting(true);
     const data = { name: name.trim(), skillRanksPerLevel: ranks, isSpellcaster };
-    const result = editing ? await updateClass(editing.id, data) : await createClass(edition.id, data);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
+      const result = await updateClass(editing.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
       setClasses((prev) => prev.map((c) => c.id === editing.id ? { ...c, ...data } : c));
     } else {
-      setClasses((prev) => [...prev, { id: crypto.randomUUID(), editionId: edition.id, ...data }]);
+      const result = await createClass(edition.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setClasses((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }

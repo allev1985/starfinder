@@ -15,10 +15,34 @@ import type { Armor, ArmorType, Edition } from "@/db/schema";
 
 const ARMOR_TYPES: ArmorType[] = ["light", "heavy", "powered"];
 
-const EMPTY_FORM: ArmorFormData = {
-  name: "", type: "light", itemLevel: 1, price: 0, eacBonus: 0, kacBonus: 0,
-  maxDexBonus: null, armorCheckPenalty: 0, speedAdjustment: 0, bulk: "L",
-  upgradeSlots: 0, sourceBook: "crb", dr: null, resistances: null,
+// String-keyed numeric fields for clean input editing
+interface ArmorNums {
+  itemLevel: string;
+  price: string;
+  eacBonus: string;
+  kacBonus: string;
+  armorCheckPenalty: string;
+  speedAdjustment: string;
+  upgradeSlots: string;
+}
+
+const EMPTY_NUMS: ArmorNums = {
+  itemLevel: "1", price: "0", eacBonus: "0", kacBonus: "0",
+  armorCheckPenalty: "0", speedAdjustment: "0", upgradeSlots: "0",
+};
+
+interface ArmorStrings {
+  name: string;
+  type: ArmorType;
+  maxDexBonus: number | null;
+  bulk: string;
+  sourceBook: string;
+  dr: string | null;
+  resistances: string | null;
+}
+
+const EMPTY_STR: ArmorStrings = {
+  name: "", type: "light", maxDexBonus: null, bulk: "L", sourceBook: "crb", dr: null, resistances: null,
 };
 
 interface ArmorClientProps { edition: Edition; initialArmor: Armor[]; }
@@ -28,33 +52,54 @@ export function ArmorClient({ edition, initialArmor }: ArmorClientProps) {
   const { sorted, sortState, toggleSort } = useSortable<(typeof items)[0], "name" | "type" | "itemLevel" | "eacBonus" | "kacBonus" | "bulk">(items);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Armor | null>(null);
-  const [form, setForm] = useState<ArmorFormData>(EMPTY_FORM);
+  const [f, setF] = useState<ArmorStrings>(EMPTY_STR);
+  const [n, setN] = useState<ArmorNums>(EMPTY_NUMS);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Armor | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  function set<K extends keyof ArmorFormData>(key: K, val: ArmorFormData[K]) {
-    setForm((f) => ({ ...f, [key]: val }));
+  function setStr<K extends keyof ArmorStrings>(key: K, val: ArmorStrings[K]) { setF((s) => ({ ...s, [key]: val })); }
+  function setNum(key: keyof ArmorNums, val: string) { setN((s) => ({ ...s, [key]: val })); }
+
+  function openAdd() {
+    setEditing(null); setF(EMPTY_STR); setN(EMPTY_NUMS); setError(null); setModalOpen(true);
   }
 
-  function openAdd() { setEditing(null); setForm(EMPTY_FORM); setError(null); setModalOpen(true); }
   function openEdit(item: Armor) {
     setEditing(item);
-    setForm({ name: item.name, type: item.type, itemLevel: item.itemLevel, price: item.price, eacBonus: item.eacBonus, kacBonus: item.kacBonus, maxDexBonus: item.maxDexBonus ?? null, armorCheckPenalty: item.armorCheckPenalty, speedAdjustment: item.speedAdjustment, bulk: item.bulk, upgradeSlots: item.upgradeSlots, sourceBook: item.sourceBook, dr: item.dr ?? null, resistances: item.resistances ?? null });
+    setF({ name: item.name, type: item.type, maxDexBonus: item.maxDexBonus ?? null, bulk: item.bulk, sourceBook: item.sourceBook, dr: item.dr ?? null, resistances: item.resistances ?? null });
+    setN({ itemLevel: String(item.itemLevel), price: String(item.price), eacBonus: String(item.eacBonus), kacBonus: String(item.kacBonus), armorCheckPenalty: String(item.armorCheckPenalty), speedAdjustment: String(item.speedAdjustment), upgradeSlots: String(item.upgradeSlots) });
     setError(null); setModalOpen(true);
   }
 
+  function buildFormData(): ArmorFormData {
+    return {
+      ...f,
+      itemLevel: parseInt(n.itemLevel) || 0,
+      price: parseInt(n.price) || 0,
+      eacBonus: parseInt(n.eacBonus) || 0,
+      kacBonus: parseInt(n.kacBonus) || 0,
+      armorCheckPenalty: parseInt(n.armorCheckPenalty) || 0,
+      speedAdjustment: parseInt(n.speedAdjustment) || 0,
+      upgradeSlots: parseInt(n.upgradeSlots) || 0,
+    };
+  }
+
   async function handleSubmit() {
-    if (!form.name.trim()) { setError("Name is required."); return; }
+    if (!f.name.trim()) { setError("Name is required."); return; }
+    const data = buildFormData();
     setSubmitting(true);
-    const result = editing ? await updateArmor(editing.id, form) : await createArmor(edition.id, form);
-    setSubmitting(false);
-    if (result.error) { setError(result.error); return; }
     if (editing) {
-      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...form } : i));
+      const result = await updateArmor(editing.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...data } : i));
     } else {
-      setItems((prev) => [...prev, { id: crypto.randomUUID(), editionId: edition.id, ...form } as Armor]);
+      const result = await createArmor(edition.id, data);
+      setSubmitting(false);
+      if (result.error) { setError(result.error); return; }
+      if (result.data) setItems((prev) => [...prev, result.data!]);
     }
     setModalOpen(false);
   }
@@ -112,62 +157,62 @@ export function ArmorClient({ edition, initialArmor }: ArmorClientProps) {
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Name</Label>
-            <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
+            <Input value={f.name} onChange={(e) => setStr("name", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Type</Label>
-            <Select value={form.type} onValueChange={(v) => set("type", v as ArmorType)}>
+            <Select value={f.type} onValueChange={(v) => setStr("type", v as ArmorType)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{ARMOR_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="flex flex-col gap-1">
             <Label>Item Level</Label>
-            <Input type="number" value={form.itemLevel} onChange={(e) => set("itemLevel", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.itemLevel} onChange={(e) => setNum("itemLevel", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Price (credits)</Label>
-            <Input type="number" value={form.price} onChange={(e) => set("price", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.price} onChange={(e) => setNum("price", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Bulk</Label>
-            <Input value={form.bulk} onChange={(e) => set("bulk", e.target.value)} />
+            <Input value={f.bulk} onChange={(e) => setStr("bulk", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>EAC Bonus</Label>
-            <Input type="number" value={form.eacBonus} onChange={(e) => set("eacBonus", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.eacBonus} onChange={(e) => setNum("eacBonus", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>KAC Bonus</Label>
-            <Input type="number" value={form.kacBonus} onChange={(e) => set("kacBonus", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.kacBonus} onChange={(e) => setNum("kacBonus", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Max Dex Bonus</Label>
-            <Input type="number" value={form.maxDexBonus ?? ""} onChange={(e) => set("maxDexBonus", e.target.value ? parseInt(e.target.value) : null)} />
+            <Input type="number" value={f.maxDexBonus ?? ""} onChange={(e) => setStr("maxDexBonus", e.target.value ? parseInt(e.target.value) : null)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Armor Check Penalty</Label>
-            <Input type="number" value={form.armorCheckPenalty} onChange={(e) => set("armorCheckPenalty", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.armorCheckPenalty} onChange={(e) => setNum("armorCheckPenalty", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Speed Adjustment</Label>
-            <Input type="number" value={form.speedAdjustment} onChange={(e) => set("speedAdjustment", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.speedAdjustment} onChange={(e) => setNum("speedAdjustment", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Upgrade Slots</Label>
-            <Input type="number" value={form.upgradeSlots} onChange={(e) => set("upgradeSlots", parseInt(e.target.value) || 0)} />
+            <Input type="number" value={n.upgradeSlots} onChange={(e) => setNum("upgradeSlots", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Source Book</Label>
-            <Input value={form.sourceBook} onChange={(e) => set("sourceBook", e.target.value)} />
+            <Input value={f.sourceBook} onChange={(e) => setStr("sourceBook", e.target.value)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>DR (optional)</Label>
-            <Input value={form.dr ?? ""} onChange={(e) => set("dr", e.target.value || null)} />
+            <Input value={f.dr ?? ""} onChange={(e) => setStr("dr", e.target.value || null)} />
           </div>
           <div className="flex flex-col gap-1">
             <Label>Resistances (optional)</Label>
-            <Input value={form.resistances ?? ""} onChange={(e) => set("resistances", e.target.value || null)} />
+            <Input value={f.resistances ?? ""} onChange={(e) => setStr("resistances", e.target.value || null)} />
           </div>
         </div>
       </EntityModal>
