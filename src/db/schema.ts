@@ -609,6 +609,41 @@ export type NewSpaceshipCrew = typeof spaceshipCrew.$inferInsert;
 export type CrewRole = "captain" | "pilot" | "engineer" | "gunner" | "science_officer";
 export type Condition = typeof conditions.$inferSelect;
 export type NewCondition = typeof conditions.$inferInsert;
+
+export const battleStatus = pgEnum("battle_status", ["setup", "active"]);
+export const combatantType = pgEnum("combatant_type", ["pc", "enemy"]);
+
+export const battles = pgTable("battles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  campaignId: uuid("campaign_id").notNull().references(() => campaigns.id, { onDelete: "cascade" }),
+  status: battleStatus("status").notNull().default("setup"),
+  currentRound: integer("current_round").notNull().default(1),
+  currentTurnIndex: integer("current_turn_index").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const battleCombatants = pgTable("battle_combatants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  battleId: uuid("battle_id").notNull().references(() => battles.id, { onDelete: "cascade" }),
+  type: combatantType("type").notNull(),
+  characterId: uuid("character_id").references(() => characters.id, { onDelete: "set null" }),
+  displayName: text("display_name").notNull(),
+  initiativeTotal: integer("initiative_total"),
+  hidden: boolean("hidden").notNull().default(false),
+  defeated: boolean("defeated").notNull().default(false),
+  sortOrder: integer("sort_order"),
+  hpTotal: integer("hp_total"),
+  hpCurrent: integer("hp_current"),
+  eac: integer("eac"),
+  kac: integer("kac"),
+});
+
+export type Battle = typeof battles.$inferSelect;
+export type NewBattle = typeof battles.$inferInsert;
+export type BattleCombatant = typeof battleCombatants.$inferSelect;
+export type NewBattleCombatant = typeof battleCombatants.$inferInsert;
+export type BattleStatus = typeof battleStatus.enumValues[number];
+export type CombatantType = typeof combatantType.enumValues[number];
 export type CharacterCondition = typeof characterConditions.$inferSelect;
 export type SessionNote = typeof sessionNotes.$inferSelect;
 export type NewSessionNote = typeof sessionNotes.$inferInsert;
