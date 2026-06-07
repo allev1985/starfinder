@@ -122,6 +122,21 @@ export async function deleteClassAbility(id: string): Promise<{ error?: string }
 }
 
 // Proficiencies
+export async function getClassShieldProficiency(classId: string): Promise<boolean> {
+  const [row] = await db.select({ shieldProficiency: classes.shieldProficiency }).from(classes).where(eq(classes.id, classId)).limit(1);
+  return row?.shieldProficiency ?? false;
+}
+
+export async function setClassShieldProficiency(classId: string, enabled: boolean): Promise<{ error?: string }> {
+  try {
+    await db.update(classes).set({ shieldProficiency: enabled }).where(eq(classes.id, classId));
+    revalidatePath("/dashboard/admin/data");
+    return {};
+  } catch {
+    return { error: "Failed to update shield proficiency." };
+  }
+}
+
 export async function listClassArmorProficiencies(classId: string): Promise<ArmorType[]> {
   const rows = await db.select({ armorType: classArmorProficiency.armorType }).from(classArmorProficiency).where(eq(classArmorProficiency.classId, classId));
   return rows.map((r) => r.armorType);
@@ -159,3 +174,4 @@ export async function setClassWeaponProficiency(classId: string, weaponCategory:
     return { error: "Failed to update weapon proficiency." };
   }
 }
+

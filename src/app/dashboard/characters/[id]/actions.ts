@@ -36,6 +36,8 @@ import {
   removeCharacterEquipmentForOwner,
   updateCharacterEquipmentQuantityForOwner,
   updateCharacterEquipmentChargesForOwner,
+  wieldShieldForOwner,
+  unwieldShieldForOwner,
   NotOwnerError,
   InvalidJoinCodeError,
   AlreadyInCampaignError,
@@ -514,6 +516,30 @@ export async function updateAmmoChargesAction(characterEquipmentId: string, char
   } catch (err) {
     if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
     return { success: false, error: "Failed to update ammo charges." };
+  }
+}
+
+export async function wieldShieldAction(characterEquipmentId: string, characterId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await wieldShieldForOwner(characterEquipmentId, user.id, characterId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to wield shield." };
+  }
+}
+
+export async function unwieldShieldAction(characterEquipmentId: string, characterId: string): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  try {
+    await unwieldShieldForOwner(characterEquipmentId, user.id, characterId);
+    return { success: true };
+  } catch (err) {
+    if (err instanceof NotOwnerError) return { success: false, error: "Not authorised." };
+    return { success: false, error: "Failed to unwield shield." };
   }
 }
 

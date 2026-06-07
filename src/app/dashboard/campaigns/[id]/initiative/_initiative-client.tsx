@@ -10,7 +10,6 @@ import { useDebouncedSave } from "@/hooks/use-debounced-save";
 import BattleRealtimeSync from "./_battle-realtime-sync";
 import {
   startBattleAction,
-  fetchBattleStateAction,
   submitInitiativeAction,
   setInitiativeTotalAction,
   addEnemyAction,
@@ -416,9 +415,7 @@ export default function InitiativeClient({
   // ── Setup state ─────────────────────────────────────────────────────────
   if (battle.status === "setup") {
     const setupCombatants = [...combatants].sort((a, b) => a.displayName.localeCompare(b.displayName));
-    const allPcsReady = setupCombatants
-      .filter((c) => c.type === "pc")
-      .every((c) => c.initiativeTotal !== null);
+
 
     async function handleSubmitRoll(c: BattleCombatant) {
       const raw = rollInputs[c.id] ?? "";

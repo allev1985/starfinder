@@ -1,4 +1,4 @@
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Feats are listed for the selected edition
 The page at `/dashboard/admin/data/[editionSlug]/feats` SHALL display all feats for the edition. Columns: Name, Combat Feat (yes/no), Shield Prof (yes/no), Prerequisites (truncated), row actions (Edit, Delete).

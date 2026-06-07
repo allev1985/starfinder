@@ -128,6 +128,7 @@ function AddFeatDialog({
           description: feat.description,
           prerequisites: feat.prerequisites,
           isCombatFeat: feat.isCombatFeat,
+          isShieldProficiency: feat.isShieldProficiency,
         });
       }
     });
@@ -152,6 +153,7 @@ function AddFeatDialog({
           description: null,
           prerequisites: null,
           isCombatFeat: false,
+          isShieldProficiency: false,
         });
       }
     });

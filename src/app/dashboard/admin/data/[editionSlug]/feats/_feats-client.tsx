@@ -14,7 +14,7 @@ import { ConfirmDeleteDialog } from "../_components/confirm-delete-dialog";
 import { createFeat, updateFeat, deleteFeat, type FeatFormData } from "@/db/queries/admin-feats";
 import type { Feat, Edition } from "@/db/schema";
 
-const EMPTY_FORM: FeatFormData = { name: "", description: "", prerequisites: null, isCombatFeat: false, sourceBook: "crb" };
+const EMPTY_FORM: FeatFormData = { name: "", description: "", prerequisites: null, isCombatFeat: false, isShieldProficiency: false, sourceBook: "crb" };
 
 interface FeatsClientProps { edition: Edition; initialFeats: Feat[]; }
 
@@ -34,7 +34,7 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
   function openAdd() { setEditing(null); setForm(EMPTY_FORM); setError(null); setModalOpen(true); }
   function openEdit(item: Feat) {
     setEditing(item);
-    setForm({ name: item.name, description: item.description, prerequisites: item.prerequisites ?? null, isCombatFeat: item.isCombatFeat, sourceBook: item.sourceBook });
+    setForm({ name: item.name, description: item.description, prerequisites: item.prerequisites ?? null, isCombatFeat: item.isCombatFeat, isShieldProficiency: item.isShieldProficiency, sourceBook: item.sourceBook });
     setError(null); setModalOpen(true);
   }
 
@@ -74,6 +74,7 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
         columns={[
           { label: "Name", sortKey: "name" },
           { label: "Combat", sortKey: "isCombatFeat" },
+          "Shield Prof",
           "Prerequisites",
           "Actions",
         ]}
@@ -86,6 +87,7 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
           <TableRow key={item.id}>
             <TableCell>{item.name}</TableCell>
             <TableCell>{item.isCombatFeat ? "Yes" : "No"}</TableCell>
+            <TableCell>{item.isShieldProficiency ? "Yes" : "No"}</TableCell>
             <TableCell className="max-w-xs truncate text-sm" style={{ color: "var(--text-2)" }}>{item.prerequisites ?? "—"}</TableCell>
             <TableCell>
               <div className="flex gap-2">
@@ -119,6 +121,10 @@ export function FeatsClient({ edition, initialFeats }: FeatsClientProps) {
           <div className="flex items-center gap-2">
             <Checkbox id="combat-feat" checked={form.isCombatFeat} onCheckedChange={(v) => set("isCombatFeat", !!v)} />
             <Label htmlFor="combat-feat">Combat Feat</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="shield-prof" checked={form.isShieldProficiency} onCheckedChange={(v) => set("isShieldProficiency", !!v)} />
+            <Label htmlFor="shield-prof">Is Shield Proficiency Feat</Label>
           </div>
         </div>
       </EntityModal>

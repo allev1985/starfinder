@@ -1,4 +1,4 @@
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: EAC total is derived and displayed
 The character sheet SHALL display an EAC total equal to `10 + armor.eac_bonus + shieldEacBonus + effectiveDex + eac_misc_mod`, where:

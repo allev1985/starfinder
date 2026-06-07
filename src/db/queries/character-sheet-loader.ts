@@ -20,6 +20,7 @@ import {
   getAllClassAbilityOptions,
   getThemeAbilities,
   getWeaponProficienciesForClass,
+  getClassGrantsShieldProficiency,
 } from "@/db/queries/reference";
 import { getAllWeapons, getCharacterWeapons } from "@/db/queries/weapons";
 import {
@@ -120,6 +121,7 @@ export async function loadCharacterSheetData(
     classChoices,
     characterFeatsList,
     characterNotesList,
+    classGrantsShieldProficiency,
   ] = await Promise.all([
     character.classId
       ? getClassAbilities(character.classId)
@@ -136,6 +138,7 @@ export async function loadCharacterSheetData(
     getCharacterClassChoices(characterId),
     getCharacterFeats(characterId),
     getCharacterNotes(characterId),
+    getClassGrantsShieldProficiency(character.classId ?? null),
   ]);
 
   return {
@@ -163,5 +166,6 @@ export async function loadCharacterSheetData(
     classChoices,
     characterFeatsList,
     characterNotesList,
+    classGrantsShieldProficiency,
   };
 }

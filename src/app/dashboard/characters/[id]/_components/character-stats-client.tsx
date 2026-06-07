@@ -76,6 +76,7 @@ type Props = {
   weaponProficiencies: WeaponCategory[];
   initialChoices: CharacterClassChoice[];
   initialFeats: CharacterFeatWithName[];
+  classGrantsShieldProficiency: boolean;
   hasClass: boolean;
   hasTheme: boolean;
   isOwner: boolean;
@@ -145,6 +146,7 @@ export default function CharacterStatsClient({
   weaponProficiencies,
   initialChoices,
   initialFeats,
+  classGrantsShieldProficiency,
   hasClass,
   hasTheme,
   isOwner,
@@ -213,6 +215,7 @@ export default function CharacterStatsClient({
       initialEquipmentInventory={initialCharacterEquipment}
       initialSkills={initialSkills}
       initialFeats={initialFeats}
+      classGrantsShieldProficiency={classGrantsShieldProficiency}
       initialChoices={initialChoices}
       initialLanguages={initialLanguages}
       initialNotes={initialNotes}

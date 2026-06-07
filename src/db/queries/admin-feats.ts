@@ -10,6 +10,7 @@ export interface FeatFormData {
   description: string;
   prerequisites?: string | null;
   isCombatFeat: boolean;
+  isShieldProficiency: boolean;
   sourceBook: string;
 }
 

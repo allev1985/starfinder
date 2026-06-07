@@ -146,7 +146,7 @@ export default function ClassFeaturesSection({
   allAbilityOptions,
   weaponProficiencies,
 }: Props) {
-  const { characterId, isOwner, level: characterLevel, choices: savedChoices, setChoices } = useCharacter();
+  const { characterId, isOwner, level: characterLevel, choices: savedChoices, setChoices, hasShieldProficiency } = useCharacter();
   const abilityOptions = allAbilityOptions.reduce<Record<string, ClassAbilityOption[]>>((acc, opt) => {
     (acc[opt.poolName] ??= []).push(opt);
     return acc;
@@ -165,7 +165,7 @@ export default function ClassFeaturesSection({
 
   const levels = Object.keys(byLevel).map(Number).sort((a, b) => a - b);
 
-  if (earned.length === 0 && weaponProficiencies.length === 0) return null;
+  if (earned.length === 0 && weaponProficiencies.length === 0 && !hasShieldProficiency) return null;
 
   return (
     <section className="mt-8">
@@ -182,6 +182,15 @@ export default function ClassFeaturesSection({
                 {WEAPON_CATEGORY_LABELS[cat]}
               </Badge>
             ))}
+          </div>
+        </div>
+      )}
+
+      {hasShieldProficiency && (
+        <div className="mb-4">
+          <p className="mb-1.5 text-xs font-medium text-muted-foreground">Shield Proficiencies</p>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="secondary" className="text-xs">Shields</Badge>
           </div>
         </div>
       )}

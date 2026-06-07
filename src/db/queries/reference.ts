@@ -88,6 +88,12 @@ export async function getDroneSkills(): Promise<Skill[]> {
     .orderBy(asc(skills.name));
 }
 
+export async function getClassGrantsShieldProficiency(classId: string | null): Promise<boolean> {
+  if (!classId) return false;
+  const [row] = await db.select({ shieldProficiency: classes.shieldProficiency }).from(classes).where(eq(classes.id, classId)).limit(1);
+  return row?.shieldProficiency ?? false;
+}
+
 export async function getArmorForClass(classId: string | null): Promise<Armor[]> {
   if (!classId) return [];
   const proficiencies = await db

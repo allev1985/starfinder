@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, HealthResolveValues } from "@/db/queries/characters";
-import type { Armor, Weapon, RaceType, CharacterSkill, CharacterNote, CharacterClassChoice, Condition } from "@/db/schema";
+import type { Armor, Equipment, Weapon, RaceType, CharacterSkill, CharacterNote, CharacterClassChoice, Condition } from "@/db/schema";
 
 export type CombatMods = {
   initiativeMiscMod: number;
@@ -31,6 +31,8 @@ type CharacterContextValue = {
   setLevel: (level: number) => void;
   equippedArmor: Armor | null;
   setEquippedArmor: (armor: Armor | null) => void;
+  equippedShield: Equipment | null;
+  hasShieldProficiency: boolean;
   armorInventory: CharacterArmorEntry[];
   setArmorInventory: (inventory: CharacterArmorEntry[]) => void;
   carriedWeapons: Weapon[];
@@ -80,6 +82,7 @@ type ProviderProps = {
   initialEquipmentInventory: CharacterEquipmentEntry[];
   initialSkills: CharacterSkill[];
   initialFeats: CharacterFeatWithName[];
+  classGrantsShieldProficiency: boolean;
   initialChoices: CharacterClassChoice[];
   initialLanguages: string[];
   initialNotes: CharacterNote[];
@@ -104,6 +107,7 @@ export function CharacterProvider({
   initialEquipmentInventory,
   initialSkills,
   initialFeats,
+  classGrantsShieldProficiency,
   initialChoices,
   initialLanguages,
   initialNotes,
@@ -122,6 +126,9 @@ export function CharacterProvider({
   const [equipmentInventory, setEquipmentInventory] = useState(initialEquipmentInventory);
   const [skills, setSkills] = useState<CharacterSkill[]>(initialSkills);
   const [feats, setFeats] = useState<CharacterFeatWithName[]>(initialFeats);
+
+  const equippedShield = equipmentInventory.find((e) => e.equipment.category === "shield" && e.wielded)?.equipment ?? null;
+  const hasShieldProficiency = classGrantsShieldProficiency || feats.some((f) => f.isShieldProficiency);
   const [choices, setChoices] = useState<CharacterClassChoice[]>(initialChoices);
   const [languages, setLanguages] = useState<string[]>(initialLanguages);
   const [notes, setNotes] = useState<CharacterNote[]>(initialNotes);
@@ -137,6 +144,7 @@ export function CharacterProvider({
       scores, setScores,
       level, setLevel,
       equippedArmor, setEquippedArmor,
+      equippedShield, hasShieldProficiency,
       armorInventory, setArmorInventory,
       carriedWeapons, setCarriedWeapons,
       equipmentInventory, setEquipmentInventory,

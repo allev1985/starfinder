@@ -41,6 +41,8 @@ import {
   removeCharacterEquipment,
   updateCharacterEquipmentQuantity,
   updateCharacterEquipmentCharges,
+  wieldCharacterShield,
+  unwieldCharacterShield,
   updateCharacterCredits,
   updateCharacterXpEarned,
   addCharacterLanguage,
@@ -331,6 +333,16 @@ export async function updateCharacterEquipmentQuantityForOwner(characterEquipmen
 export async function updateCharacterEquipmentChargesForOwner(characterEquipmentId: string, userId: string, characterId: string, currentCharges: number | null): Promise<void> {
   if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
   await updateCharacterEquipmentCharges(characterEquipmentId, currentCharges);
+}
+
+export async function wieldShieldForOwner(characterEquipmentId: string, userId: string, characterId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await wieldCharacterShield(characterEquipmentId, characterId);
+}
+
+export async function unwieldShieldForOwner(characterEquipmentId: string, userId: string, characterId: string): Promise<void> {
+  if (!(await isCharacterOwner(characterId, userId))) throw new NotOwnerError();
+  await unwieldCharacterShield(characterEquipmentId);
 }
 
 export async function addCharacterSpellForOwner(

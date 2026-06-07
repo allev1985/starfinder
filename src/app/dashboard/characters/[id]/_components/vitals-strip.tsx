@@ -5,15 +5,22 @@ import { modifier } from "@/lib/ability";
 import { useCharacter } from "./character-context";
 
 export default function VitalsStrip() {
-  const { scores, equippedArmor, combatMods: mods } = useCharacter();
+  const { scores, equippedArmor, equippedShield, hasShieldProficiency, combatMods: mods } = useCharacter();
   const { dexScore } = scores;
   const dexMod = modifier(dexScore);
-  const effectiveDex = equippedArmor?.maxDexBonus != null
-    ? Math.min(dexMod, equippedArmor.maxDexBonus)
-    : dexMod;
 
-  const eacTotal = 10 + (equippedArmor?.eacBonus ?? 0) + effectiveDex + mods.eacMiscMod;
-  const kacTotal = 10 + (equippedArmor?.kacBonus ?? 0) + effectiveDex + mods.kacMiscMod;
+  const armorMaxDex = equippedArmor?.maxDexBonus ?? null;
+  const shieldMaxDex = equippedShield?.maxDexBonus ?? null;
+  const effectiveMaxDex =
+    armorMaxDex != null && shieldMaxDex != null ? Math.min(armorMaxDex, shieldMaxDex)
+    : armorMaxDex ?? shieldMaxDex;
+  const effectiveDex = effectiveMaxDex != null ? Math.min(dexMod, effectiveMaxDex) : dexMod;
+
+  const shieldEacBonus = hasShieldProficiency ? (equippedShield?.eacBonus ?? 0) : 0;
+  const shieldKacBonus = hasShieldProficiency ? (equippedShield?.kacBonus ?? 0) : 0;
+
+  const eacTotal = 10 + (equippedArmor?.eacBonus ?? 0) + shieldEacBonus + effectiveDex + mods.eacMiscMod;
+  const kacTotal = 10 + (equippedArmor?.kacBonus ?? 0) + shieldKacBonus + effectiveDex + mods.kacMiscMod;
   const initiativeTotal = dexMod + mods.initiativeMiscMod;
   const initiativeMod = initiativeTotal >= 0 ? `+${initiativeTotal}` : `${initiativeTotal}`;
 

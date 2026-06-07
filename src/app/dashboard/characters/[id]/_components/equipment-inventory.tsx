@@ -18,10 +18,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction, updateAmmoChargesAction } from "../actions";
+import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction, updateAmmoChargesAction, wieldShieldAction, unwieldShieldAction } from "../actions";
 import type { Equipment, EquipmentCategory } from "@/db/schema";
 import type { CharacterEquipmentEntry } from "@/db/queries/characters";
 import { useCharacter } from "./character-context";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const SYSTEM_LABELS: Record<string, string> = {
   brain: "Brain",
@@ -49,6 +50,90 @@ const AMMO_TYPE_LABELS: Record<string, string> = {
 };
 
 const AUGMENTATION_CATEGORIES: EquipmentCategory[] = ["augmentation_cybernetic", "augmentation_biotech", "personal_upgrade"];
+
+type ShieldCardProps = {
+  entry: CharacterEquipmentEntry;
+  characterId: string;
+  isOwner: boolean;
+  onRemoved: (id: string) => void;
+  onWieldedChange: (id: string, wielded: boolean) => void;
+};
+
+function ShieldCard({ entry, characterId, isOwner, onRemoved, onWieldedChange }: ShieldCardProps) {
+  const [, startTransition] = useTransition();
+  const [removing, setRemoving] = useState(false);
+  const e = entry.equipment;
+
+  function handleRemove() {
+    setRemoving(true);
+    onRemoved(entry.id);
+    startTransition(() => { removeEquipmentAction(entry.id, characterId); });
+  }
+
+  function handleWieldedChange(checked: boolean) {
+    onWieldedChange(entry.id, checked);
+    startTransition(() => {
+      if (checked) {
+        wieldShieldAction(entry.id, characterId);
+      } else {
+        unwieldShieldAction(entry.id, characterId);
+      }
+    });
+  }
+
+  if (removing) return null;
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-4 mb-3">
+          <div className="flex items-start gap-3">
+            {isOwner && (
+              <div className="flex flex-col items-center gap-1 pt-0.5">
+                <Checkbox checked={entry.wielded} onCheckedChange={handleWieldedChange} aria-label="Mark as wielded" />
+                <span className="text-xs text-muted-foreground">Wielded</span>
+              </div>
+            )}
+            {!isOwner && entry.wielded && (
+              <div className="flex flex-col items-center gap-1 pt-0.5">
+                <Checkbox checked disabled aria-label="Currently wielded" />
+                <span className="text-xs text-muted-foreground">Wielded</span>
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-semibold">{e.name}</p>
+              <p className="text-xs text-muted-foreground">Level {e.itemLevel} · {e.price.toLocaleString()} cr</p>
+            </div>
+          </div>
+          {isOwner && (
+            <AlertDialog>
+              <AlertDialogTrigger className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-accent transition-colors">
+                <Trash2 className="h-3.5 w-3.5" />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove shield?</AlertDialogTitle>
+                  <AlertDialogDescription>Remove {e.name} from this character&apos;s inventory?</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRemove}>Remove</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
+        <div className="grid grid-cols-4 gap-x-4 gap-y-2">
+          <StatCell label="EAC" value={`+${e.eacBonus ?? 0}`} />
+          <StatCell label="KAC" value={`+${e.kacBonus ?? 0}`} />
+          <StatCell label="ACP" value={e.acPenalty ?? 0} />
+          <StatCell label="Max DEX" value={e.maxDexBonus != null ? `+${e.maxDexBonus}` : "—"} />
+          <StatCell label="Bulk" value={e.bulk} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
@@ -240,7 +325,7 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
   );
 }
 
-type FilterTab = "all" | "augmentations" | "ammunition";
+type FilterTab = "all" | "shields" | "augmentations" | "ammunition";
 
 type Props = {
   allEquipment: Equipment[];
@@ -255,6 +340,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
 
   const carriedIds = new Set(inventory.map((e) => e.equipmentId));
 
+  const shields = inventory.filter((e) => e.equipment.category === "shield");
   const augmentations = inventory.filter((e) => AUGMENTATION_CATEGORIES.includes(e.equipment.category));
   const ammunition = inventory.filter((e) => e.equipment.category === "ammunition");
 
@@ -270,6 +356,14 @@ export default function EquipmentInventory({ allEquipment }: Props) {
     onInventoryChange(inventory.map((e) => e.id === id ? { ...e, currentCharges } : e));
   }
 
+  function handleWieldedChange(id: string, wielded: boolean) {
+    onInventoryChange(inventory.map((e) =>
+      e.equipment.category === "shield"
+        ? { ...e, wielded: e.id === id ? wielded : false }
+        : e
+    ));
+  }
+
   function handleAdd(item: Equipment) {
     setPickerOpen(false);
     const optimisticId = `optimistic-${item.id}-${++optimisticCounter.current}`;
@@ -278,6 +372,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
       equipmentId: item.id,
       quantity: 1,
       currentCharges: null,
+      wielded: false,
       equipment: item,
     };
     const withOptimistic = [...inventory, optimistic];
@@ -293,7 +388,8 @@ export default function EquipmentInventory({ allEquipment }: Props) {
   }
 
   const pickerItems = allEquipment.filter((e) => {
-    if (e.category !== "ammunition" && carriedIds.has(e.id)) return false;
+    if (e.category !== "ammunition" && e.category !== "shield" && carriedIds.has(e.id)) return false;
+    if (pickerFilter === "shields") return e.category === "shield";
     if (pickerFilter === "augmentations") return AUGMENTATION_CATEGORIES.includes(e.category);
     if (pickerFilter === "ammunition") return e.category === "ammunition";
     return true;
@@ -304,6 +400,24 @@ export default function EquipmentInventory({ allEquipment }: Props) {
       <h3 className="mb-2 block bg-primary px-3 py-0.5 text-xs font-bold uppercase tracking-widest text-primary-foreground">Equipment</h3>
 
       <div className="mb-3">
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Shields</p>
+        {shields.length === 0 ? (
+          <p className="mb-3 text-sm text-muted-foreground">No shields in inventory.</p>
+        ) : (
+          <div className="mb-3 flex flex-col gap-3">
+            {shields.map((entry) => (
+              <ShieldCard
+                key={entry.id}
+                entry={entry}
+                characterId={characterId}
+                isOwner={isOwner}
+                onRemoved={handleRemoved}
+                onWieldedChange={handleWieldedChange}
+              />
+            ))}
+          </div>
+        )}
+
         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Augmentations &amp; Upgrades</p>
         {augmentations.length === 0 ? (
           <p className="mb-3 text-sm text-muted-foreground">No augmentations in inventory.</p>
@@ -354,7 +468,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
               <DialogTitle>Add Equipment</DialogTitle>
             </DialogHeader>
             <div className="flex border-b">
-              {(["all", "augmentations", "ammunition"] as FilterTab[]).map((tab) => (
+              {(["all", "shields", "augmentations", "ammunition"] as FilterTab[]).map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -366,7 +480,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {tab === "all" ? "All" : tab === "augmentations" ? "Augments" : "Ammo"}
+                  {tab === "all" ? "All" : tab === "shields" ? "Shields" : tab === "augmentations" ? "Augments" : "Ammo"}
                 </button>
               ))}
             </div>

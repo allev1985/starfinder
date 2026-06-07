@@ -84,7 +84,7 @@ function BabInput({ value, onChange }: { value: number; onChange: (v: number) =>
 }
 
 export default function CombatStatsSection() {
-  const { characterId, scores, equippedArmor, combatMods: mods, setCombatMods: onModsChange, isOwner } = useCharacter();
+  const { characterId, scores, equippedArmor, equippedShield, hasShieldProficiency, combatMods: mods, setCombatMods: onModsChange, isOwner } = useCharacter();
   const { strScore, dexScore, conScore, wisScore } = scores;
   const equippedArmorDr = equippedArmor?.dr ?? null;
   const equippedArmorResistances = equippedArmor?.resistances ?? null;
@@ -118,13 +118,20 @@ export default function CombatStatsSection() {
 
   const eacArmorBonus = equippedArmor?.eacBonus ?? 0;
   const kacArmorBonus = equippedArmor?.kacBonus ?? 0;
-  const effectiveDex = equippedArmor?.maxDexBonus != null
-    ? Math.min(dexMod, equippedArmor.maxDexBonus)
-    : dexMod;
+
+  const armorMaxDex = equippedArmor?.maxDexBonus ?? null;
+  const shieldMaxDex = equippedShield?.maxDexBonus ?? null;
+  const effectiveMaxDex =
+    armorMaxDex != null && shieldMaxDex != null ? Math.min(armorMaxDex, shieldMaxDex)
+    : armorMaxDex ?? shieldMaxDex;
+  const effectiveDex = effectiveMaxDex != null ? Math.min(dexMod, effectiveMaxDex) : dexMod;
+
+  const shieldEacBonus = hasShieldProficiency ? (equippedShield?.eacBonus ?? 0) : 0;
+  const shieldKacBonus = hasShieldProficiency ? (equippedShield?.kacBonus ?? 0) : 0;
 
   const initiativeTotal = dexMod + miscMod;
-  const eacTotal = 10 + eacArmorBonus + effectiveDex + eacMisc;
-  const kacTotal = 10 + kacArmorBonus + effectiveDex + kacMisc;
+  const eacTotal = 10 + eacArmorBonus + shieldEacBonus + effectiveDex + eacMisc;
+  const kacTotal = 10 + kacArmorBonus + shieldKacBonus + effectiveDex + kacMisc;
   const kacVsCm = 8 + kacTotal;
   const meleeTotal = bab + strMod + meleeMisc;
   const rangedTotal = bab + dexMod + rangedMisc;
@@ -132,44 +139,6 @@ export default function CombatStatsSection() {
   const fortTotal = fortBase + conMod + fortMisc;
   const refTotal = refBase + dexMod + refMisc;
   const willTotal = willBase + wisMod + willMisc;
-
-  function EditableCell({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-    const input = useNumericInput(value, onChange);
-    return isOwner ? (
-      <div className="flex flex-col items-center gap-0.5">
-        <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
-          {label}
-        </span>
-        <Input
-          type="number"
-          value={input.inputValue}
-          onChange={input.handleChange}
-          onBlur={input.handleBlur}
-          className="h-9 w-16 text-center text-sm"
-        />
-      </div>
-    ) : (
-      <Cell label={label}>{formatModifier(value)}</Cell>
-    );
-  }
-
-  function BabInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-    const input = useNumericInput(value, onChange);
-    return (
-      <div className="flex flex-col items-center gap-0.5">
-        <span className="whitespace-nowrap text-[10px] uppercase tracking-wide text-muted-foreground">
-          Edit BAB
-        </span>
-        <Input
-          type="number"
-          value={input.inputValue}
-          onChange={input.handleChange}
-          onBlur={input.handleBlur}
-          className="h-9 w-16 text-center text-sm"
-        />
-      </div>
-    );
-  }
 
   return (
     <>
@@ -183,7 +152,7 @@ export default function CombatStatsSection() {
           <Op>=</Op>
           <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
           <Op>+</Op>
-          <EditableCell label="Misc Mod" value={miscMod} onChange={(v) => { set("initiativeMiscMod", v); scheduleMiscModSave(v); }} />
+          <EditableCell label="Misc Mod" isOwner={isOwner} value={miscMod} onChange={(v) => { set("initiativeMiscMod", v); scheduleMiscModSave(v); }} />
         </div>
       </section>
 
@@ -200,10 +169,11 @@ export default function CombatStatsSection() {
             <Cell label="10">10</Cell>
             <Op>+</Op>
             <Cell label="Armor Bonus">{eacArmorBonus}</Cell>
+            {shieldEacBonus !== 0 && <><Op>+</Op><Cell label="Shield Bonus">{shieldEacBonus}</Cell></>}
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(effectiveDex)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={eacMisc} onChange={(v) => { set("eacMiscMod", v); scheduleEacMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={eacMisc} onChange={(v) => { set("eacMiscMod", v); scheduleEacMiscSave(v); }} />
           </div>
         </div>
         <div className="mb-3">
@@ -214,10 +184,11 @@ export default function CombatStatsSection() {
             <Cell label="10">10</Cell>
             <Op>+</Op>
             <Cell label="Armor Bonus">{kacArmorBonus}</Cell>
+            {shieldKacBonus !== 0 && <><Op>+</Op><Cell label="Shield Bonus">{shieldKacBonus}</Cell></>}
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(effectiveDex)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={kacMisc} onChange={(v) => { set("kacMiscMod", v); scheduleKacMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={kacMisc} onChange={(v) => { set("kacMiscMod", v); scheduleKacMiscSave(v); }} />
           </div>
         </div>
         <div className="flex flex-wrap items-end gap-2">
@@ -249,11 +220,11 @@ export default function CombatStatsSection() {
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(fortTotal)}</Cell>
             <Op>=</Op>
-            <EditableCell label="Base Save" value={fortBase} onChange={(v) => { set("fortBaseSave", v); scheduleFortBaseSave(v); }} />
+            <EditableCell label="Base Save" isOwner={isOwner} value={fortBase} onChange={(v) => { set("fortBaseSave", v); scheduleFortBaseSave(v); }} />
             <Op>+</Op>
             <Cell label="CON Mod">{formatModifier(conMod)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={fortMisc} onChange={(v) => { set("fortMiscMod", v); scheduleFortMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={fortMisc} onChange={(v) => { set("fortMiscMod", v); scheduleFortMiscSave(v); }} />
           </div>
         </div>
         <div className="mb-3">
@@ -261,11 +232,11 @@ export default function CombatStatsSection() {
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(refTotal)}</Cell>
             <Op>=</Op>
-            <EditableCell label="Base Save" value={refBase} onChange={(v) => { set("refBaseSave", v); scheduleRefBaseSave(v); }} />
+            <EditableCell label="Base Save" isOwner={isOwner} value={refBase} onChange={(v) => { set("refBaseSave", v); scheduleRefBaseSave(v); }} />
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={refMisc} onChange={(v) => { set("refMiscMod", v); scheduleRefMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={refMisc} onChange={(v) => { set("refMiscMod", v); scheduleRefMiscSave(v); }} />
           </div>
         </div>
         <div>
@@ -273,11 +244,11 @@ export default function CombatStatsSection() {
           <div className="flex flex-wrap items-end gap-2">
             <Cell label="Total">{formatModifier(willTotal)}</Cell>
             <Op>=</Op>
-            <EditableCell label="Base Save" value={willBase} onChange={(v) => { set("willBaseSave", v); scheduleWillBaseSave(v); }} />
+            <EditableCell label="Base Save" isOwner={isOwner} value={willBase} onChange={(v) => { set("willBaseSave", v); scheduleWillBaseSave(v); }} />
             <Op>+</Op>
             <Cell label="WIS Mod">{formatModifier(wisMod)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={willMisc} onChange={(v) => { set("willMiscMod", v); scheduleWillMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={willMisc} onChange={(v) => { set("willMiscMod", v); scheduleWillMiscSave(v); }} />
           </div>
         </div>
       </section>
@@ -305,7 +276,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="STR Mod">{formatModifier(strMod)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={meleeMisc} onChange={(v) => { set("meleeAttackMiscMod", v); scheduleMeleeMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={meleeMisc} onChange={(v) => { set("meleeAttackMiscMod", v); scheduleMeleeMiscSave(v); }} />
           </div>
         </div>
         <div className="mb-3">
@@ -317,7 +288,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="DEX Mod">{formatModifier(dexMod)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={rangedMisc} onChange={(v) => { set("rangedAttackMiscMod", v); scheduleRangedMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={rangedMisc} onChange={(v) => { set("rangedAttackMiscMod", v); scheduleRangedMiscSave(v); }} />
           </div>
         </div>
         <div>
@@ -329,7 +300,7 @@ export default function CombatStatsSection() {
             <Op>+</Op>
             <Cell label="STR Mod">{formatModifier(strMod)}</Cell>
             <Op>+</Op>
-            <EditableCell label="Misc Mod" value={thrownMisc} onChange={(v) => { set("thrownAttackMiscMod", v); scheduleThrownMiscSave(v); }} />
+            <EditableCell label="Misc Mod" isOwner={isOwner} value={thrownMisc} onChange={(v) => { set("thrownAttackMiscMod", v); scheduleThrownMiscSave(v); }} />
           </div>
         </div>
       </section>

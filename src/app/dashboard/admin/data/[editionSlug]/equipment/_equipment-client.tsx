@@ -14,7 +14,7 @@ import { createEquipment, updateEquipment, deleteEquipment, type EquipmentFormDa
 import type { Equipment, EquipmentCategory, AugmentationSystem } from "@/db/schema";
 
 const EQUIPMENT_CATEGORIES: EquipmentCategory[] = [
-  "augmentation_cybernetic", "augmentation_biotech", "personal_upgrade", "ammunition",
+  "augmentation_cybernetic", "augmentation_biotech", "personal_upgrade", "ammunition", "shield",
 ];
 const AUGMENTATION_SYSTEMS: AugmentationSystem[] = [
   "brain", "eyes", "ears", "throat", "arm", "hand", "lungs", "spinal_column", "feet", "skin",
@@ -23,9 +23,11 @@ const AUGMENTATION_SYSTEMS: AugmentationSystem[] = [
 const EMPTY_FORM: EquipmentFormData = {
   name: "", category: "personal_upgrade", itemLevel: 1, price: 0, bulk: "L",
   system: null, ammoType: null, ammoCapacity: null, bonusHint: null,
+  eacBonus: null, kacBonus: null, acPenalty: null, maxDexBonus: null,
 };
 
 const isAugmentation = (c: EquipmentCategory) => c === "augmentation_cybernetic" || c === "augmentation_biotech";
+const isShield = (c: EquipmentCategory) => c === "shield";
 
 interface EquipmentClientProps { initialEquipment: Equipment[]; }
 
@@ -49,7 +51,7 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
   function openAdd() { setEditing(null); setForm(EMPTY_FORM); setItemLevelStr("1"); setPriceStr("0"); setError(null); setModalOpen(true); }
   function openEdit(item: Equipment) {
     setEditing(item);
-    setForm({ name: item.name, category: item.category, itemLevel: item.itemLevel, price: item.price, bulk: item.bulk, system: item.system ?? null, ammoType: item.ammoType ?? null, ammoCapacity: item.ammoCapacity ?? null, bonusHint: item.bonusHint ?? null });
+    setForm({ name: item.name, category: item.category, itemLevel: item.itemLevel, price: item.price, bulk: item.bulk, system: item.system ?? null, ammoType: item.ammoType ?? null, ammoCapacity: item.ammoCapacity ?? null, bonusHint: item.bonusHint ?? null, eacBonus: item.eacBonus ?? null, kacBonus: item.kacBonus ?? null, acPenalty: item.acPenalty ?? null, maxDexBonus: item.maxDexBonus ?? null });
     setItemLevelStr(String(item.itemLevel));
     setPriceStr(String(item.price));
     setError(null); setModalOpen(true);
@@ -57,13 +59,22 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
 
   async function handleSubmit() {
     if (!form.name.trim()) { setError("Name is required."); return; }
-    const finalForm = { ...form, itemLevel: parseInt(itemLevelStr) || 1, price: parseInt(priceStr) || 0, system: isAugmentation(form.category) ? form.system : null };
+    const finalForm = {
+      ...form,
+      itemLevel: parseInt(itemLevelStr) || 1,
+      price: parseInt(priceStr) || 0,
+      system: isAugmentation(form.category) ? form.system : null,
+      eacBonus: isShield(form.category) ? form.eacBonus : null,
+      kacBonus: isShield(form.category) ? form.kacBonus : null,
+      acPenalty: isShield(form.category) ? form.acPenalty : null,
+      maxDexBonus: isShield(form.category) ? form.maxDexBonus : null,
+    };
     setSubmitting(true);
     if (editing) {
       const result = await updateEquipment(editing.id, finalForm);
       setSubmitting(false);
       if (result.error) { setError(result.error); return; }
-      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...finalForm, system: finalForm.system ?? null } : i));
+      setItems((prev) => prev.map((i) => i.id === editing.id ? { ...i, ...finalForm, system: finalForm.system ?? null, eacBonus: finalForm.eacBonus ?? null, kacBonus: finalForm.kacBonus ?? null, acPenalty: finalForm.acPenalty ?? null, maxDexBonus: finalForm.maxDexBonus ?? null } : i));
     } else {
       const result = await createEquipment(finalForm);
       setSubmitting(false);
@@ -141,6 +152,26 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
                 <SelectContent>{AUGMENTATION_SYSTEMS.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+          )}
+          {isShield(form.category) && (
+            <>
+              <div className="flex flex-col gap-1">
+                <Label>EAC Bonus</Label>
+                <Input type="number" value={form.eacBonus ?? ""} onChange={(e) => set("eacBonus", e.target.value ? parseInt(e.target.value) : null)} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label>KAC Bonus</Label>
+                <Input type="number" value={form.kacBonus ?? ""} onChange={(e) => set("kacBonus", e.target.value ? parseInt(e.target.value) : null)} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label>AC Penalty</Label>
+                <Input type="number" value={form.acPenalty ?? ""} onChange={(e) => set("acPenalty", e.target.value ? parseInt(e.target.value) : null)} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <Label>Max DEX Bonus (optional)</Label>
+                <Input type="number" value={form.maxDexBonus ?? ""} onChange={(e) => set("maxDexBonus", e.target.value ? parseInt(e.target.value) : null)} />
+              </div>
+            </>
           )}
           <div className="flex flex-col gap-1">
             <Label>Item Level</Label>

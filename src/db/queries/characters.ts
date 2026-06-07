@@ -623,12 +623,13 @@ export type CharacterEquipmentEntry = {
   equipmentId: string;
   quantity: number;
   currentCharges: number | null;
+  wielded: boolean;
   equipment: Equipment;
 };
 
 export async function getCharacterEquipment(characterId: string): Promise<CharacterEquipmentEntry[]> {
   const rows = await db
-    .select({ id: characterEquipment.id, equipmentId: characterEquipment.equipmentId, quantity: characterEquipment.quantity, currentCharges: characterEquipment.currentCharges, equipment })
+    .select({ id: characterEquipment.id, equipmentId: characterEquipment.equipmentId, quantity: characterEquipment.quantity, currentCharges: characterEquipment.currentCharges, wielded: characterEquipment.wielded, equipment })
     .from(characterEquipment)
     .innerJoin(equipment, eq(equipment.id, characterEquipment.equipmentId))
     .where(eq(characterEquipment.characterId, characterId))
@@ -642,7 +643,7 @@ export async function addCharacterEquipment(characterId: string, equipmentId: st
     .values({ characterId, equipmentId, quantity: 1 })
     .returning();
   const [entry] = await db
-    .select({ id: characterEquipment.id, equipmentId: characterEquipment.equipmentId, quantity: characterEquipment.quantity, currentCharges: characterEquipment.currentCharges, equipment })
+    .select({ id: characterEquipment.id, equipmentId: characterEquipment.equipmentId, quantity: characterEquipment.quantity, currentCharges: characterEquipment.currentCharges, wielded: characterEquipment.wielded, equipment })
     .from(characterEquipment)
     .innerJoin(equipment, eq(equipment.id, characterEquipment.equipmentId))
     .where(eq(characterEquipment.id, row.id));
@@ -659,6 +660,28 @@ export async function updateCharacterEquipmentQuantity(characterEquipmentId: str
 
 export async function updateCharacterEquipmentCharges(characterEquipmentId: string, currentCharges: number | null): Promise<void> {
   await db.update(characterEquipment).set({ currentCharges }).where(eq(characterEquipment.id, characterEquipmentId));
+}
+
+export async function wieldCharacterShield(characterEquipmentId: string, characterId: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx
+      .update(characterEquipment)
+      .set({ wielded: false })
+      .where(
+        and(
+          eq(characterEquipment.characterId, characterId),
+          eq(characterEquipment.wielded, true)
+        )
+      );
+    await tx
+      .update(characterEquipment)
+      .set({ wielded: true })
+      .where(eq(characterEquipment.id, characterEquipmentId));
+  });
+}
+
+export async function unwieldCharacterShield(characterEquipmentId: string): Promise<void> {
+  await db.update(characterEquipment).set({ wielded: false }).where(eq(characterEquipment.id, characterEquipmentId));
 }
 
 export async function addCharacterWeapon(characterId: string, weaponId: string): Promise<void> {
@@ -699,6 +722,7 @@ export type CharacterFeatWithName = {
   description: string | null;
   prerequisites: string | null;
   isCombatFeat: boolean;
+  isShieldProficiency: boolean;
 };
 
 export async function getCharacterFeats(characterId: string): Promise<CharacterFeatWithName[]> {
@@ -713,6 +737,7 @@ export async function getCharacterFeats(characterId: string): Promise<CharacterF
       description: feats.description,
       prerequisites: feats.prerequisites,
       isCombatFeat: feats.isCombatFeat,
+      isShieldProficiency: feats.isShieldProficiency,
     })
     .from(characterFeats)
     .leftJoin(feats, eq(characterFeats.featId, feats.id))
@@ -725,6 +750,7 @@ export async function getCharacterFeats(characterId: string): Promise<CharacterF
     description: r.description ?? null,
     prerequisites: r.prerequisites ?? null,
     isCombatFeat: r.isCombatFeat ?? false,
+    isShieldProficiency: r.isShieldProficiency ?? false,
   }));
 }
 

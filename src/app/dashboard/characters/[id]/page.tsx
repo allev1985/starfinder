@@ -54,6 +54,7 @@ export default async function CharacterDetailPage({
       classChoices,
       characterFeatsList,
       characterNotesList,
+      classGrantsShieldProficiency,
     },
     activeConditions,
     allConditions,
@@ -146,6 +147,7 @@ export default async function CharacterDetailPage({
         weaponProficiencies={weaponProficiencies}
         initialChoices={classChoices}
         initialFeats={characterFeatsList}
+        classGrantsShieldProficiency={classGrantsShieldProficiency}
         hasClass={!!character.classId}
         hasTheme={!!character.themeId}
         isOwner={isOwner}

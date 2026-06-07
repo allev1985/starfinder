@@ -12,6 +12,7 @@ import {
   listClassAbilities, createClassAbility, updateClassAbility, deleteClassAbility,
   listClassArmorProficiencies, setClassArmorProficiency,
   listClassWeaponProficiencies, setClassWeaponProficiency,
+  getClassShieldProficiency, setClassShieldProficiency,
 } from "@/db/queries/admin-classes";
 import type { Skill, ClassAbility, ArmorType, WeaponCategory } from "@/db/schema";
 
@@ -171,12 +172,18 @@ function AbilitiesTab({ classId, editionId }: { classId: string; editionId: stri
 function ProficienciesTab({ classId }: { classId: string }) {
   const [armorProfs, setArmorProfs] = useState<Set<ArmorType>>(new Set());
   const [weaponProfs, setWeaponProfs] = useState<Set<WeaponCategory>>(new Set());
+  const [shieldProf, setShieldProf] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    Promise.all([listClassArmorProficiencies(classId), listClassWeaponProficiencies(classId)]).then(([armor, weapon]) => {
+    Promise.all([
+      listClassArmorProficiencies(classId),
+      listClassWeaponProficiencies(classId),
+      getClassShieldProficiency(classId),
+    ]).then(([armor, weapon, shield]) => {
       setArmorProfs(new Set(armor));
       setWeaponProfs(new Set(weapon));
+      setShieldProf(shield);
       setLoaded(true);
     });
   }, [classId]);
@@ -189,6 +196,11 @@ function ProficienciesTab({ classId }: { classId: string }) {
   async function toggleWeapon(cat: WeaponCategory, checked: boolean) {
     setWeaponProfs((prev) => { const next = new Set(prev); if (checked) { next.add(cat); } else { next.delete(cat); } return next; });
     await setClassWeaponProficiency(classId, cat, checked);
+  }
+
+  async function toggleShield(checked: boolean) {
+    setShieldProf(checked);
+    await setClassShieldProficiency(classId, checked);
   }
 
   if (!loaded) return <p className="text-sm py-3" style={{ color: "var(--text-2)" }}>Loading…</p>;
@@ -208,6 +220,13 @@ function ProficienciesTab({ classId }: { classId: string }) {
               <Label htmlFor={`armor-${classId}-${type}`} className="cursor-pointer capitalize">{type}</Label>
             </div>
           ))}
+        </div>
+      </div>
+      <div>
+        <p className="text-sm font-semibold mb-2" style={{ color: "var(--text-1)" }}>Shields</p>
+        <div className="flex items-center gap-2">
+          <Checkbox id={`shield-${classId}`} checked={shieldProf} onCheckedChange={(v) => toggleShield(!!v)} />
+          <Label htmlFor={`shield-${classId}`} className="cursor-pointer">Shield Proficiency</Label>
         </div>
       </div>
       <div>

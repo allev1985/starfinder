@@ -1,4 +1,4 @@
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: character_equipment table schema
 The system SHALL have a `character_equipment` table with the following columns:

@@ -11,6 +11,7 @@ export const equipmentCategory = pgEnum("equipment_category", [
   "augmentation_biotech",
   "personal_upgrade",
   "ammunition",
+  "shield",
 ]);
 
 export const augmentationSystem = pgEnum("augmentation_system", [
@@ -133,6 +134,7 @@ export const classes = pgTable("classes", {
   name: text("name").notNull(),
   skillRanksPerLevel: integer("skill_ranks_per_level").notNull().default(0),
   isSpellcaster: boolean("is_spellcaster").notNull().default(false),
+  shieldProficiency: boolean("shield_proficiency").notNull().default(false),
   editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
@@ -361,6 +363,10 @@ export const equipment = pgTable("equipment", {
   ammoCapacity: integer("ammo_capacity"),
   bonusHint: text("bonus_hint"),
   sourceBook: text("source_book").notNull().default("crb"),
+  eacBonus: integer("eac_bonus"),
+  kacBonus: integer("kac_bonus"),
+  acPenalty: integer("ac_penalty"),
+  maxDexBonus: integer("max_dex_bonus"),
 });
 
 export const characterEquipment = pgTable("character_equipment", {
@@ -373,6 +379,7 @@ export const characterEquipment = pgTable("character_equipment", {
     .references(() => equipment.id),
   quantity: integer("quantity").notNull().default(1),
   currentCharges: integer("current_charges"),
+  wielded: boolean("wielded").notNull().default(false),
 });
 
 export const spells = pgTable("spells", {
@@ -459,6 +466,7 @@ export const feats = pgTable("feats", {
   description: text("description").notNull(),
   prerequisites: text("prerequisites"),
   isCombatFeat: boolean("is_combat_feat").notNull().default(false),
+  isShieldProficiency: boolean("is_shield_proficiency").notNull().default(false),
   sourceBook: text("source_book").notNull().default("crb"),
   editionId: uuid("edition_id").notNull().references(() => editions.id),
 });

@@ -56,6 +56,7 @@ export default async function CampaignCharacterPage({
     classChoices,
     characterFeatsList,
     characterNotesList,
+    classGrantsShieldProficiency,
   } = sheetData;
 
   return (
@@ -127,6 +128,7 @@ export default async function CampaignCharacterPage({
         weaponProficiencies={weaponProficiencies}
         initialChoices={classChoices}
         initialFeats={characterFeatsList}
+        classGrantsShieldProficiency={classGrantsShieldProficiency}
         hasClass={!!character.classId}
         hasTheme={!!character.themeId}
         isOwner={ownerFlag}

@@ -356,8 +356,8 @@ export default function SkillsSection({
   allSkills,
   skillRanksPerLevel,
 }: Props) {
-  const { characterId, scores, level, raceType, mechanicLevel, equippedArmor, isOwner, skills: initialSkills, setSkills } = useCharacter();
-  const armorCheckPenalty = equippedArmor?.armorCheckPenalty ?? 0;
+  const { characterId, scores, level, raceType, mechanicLevel, equippedArmor, equippedShield, isOwner, skills: initialSkills, setSkills } = useCharacter();
+  const armorCheckPenalty = (equippedArmor?.armorCheckPenalty ?? 0) + (equippedShield?.acPenalty ?? 0);
   const isDrone = raceType === "drone";
   const droneAllowedSkillIds = isDrone
     ? new Set(allSkills.filter((s) => (DRONE_SKILL_NAMES as readonly string[]).includes(s.name)).map((s) => s.id))

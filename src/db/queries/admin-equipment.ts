@@ -15,6 +15,10 @@ export interface EquipmentFormData {
   ammoType?: string | null;
   ammoCapacity?: number | null;
   bonusHint?: string | null;
+  eacBonus?: number | null;
+  kacBonus?: number | null;
+  acPenalty?: number | null;
+  maxDexBonus?: number | null;
 }
 
 export async function listEquipment(): Promise<Equipment[]> {
