@@ -21,7 +21,7 @@ export default function TopBar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <header
-      className="hidden md:flex sticky top-0 z-50 w-full items-center"
+      className="hidden md:flex fixed top-0 z-50 w-full items-center"
       style={{ height: 54, backgroundColor: "var(--chrome)" }}
     >
       <div className="flex flex-1 items-center gap-6 px-5">

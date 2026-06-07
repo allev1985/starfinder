@@ -28,7 +28,7 @@ export default async function CampaignLayout({
   const isGm = campaign.gmId === user.id;
 
   return (
-    <div className="flex flex-1">
+    <div className="flex flex-1 min-h-0">
       <CampaignContextSetter
         campaignId={id}
         hasSpaceships={spaceships.length > 0}
@@ -41,7 +41,7 @@ export default async function CampaignLayout({
         characters={characters}
         spaceships={spaceships}
       />
-      <div className="flex-1 overflow-auto pb-[68px] md:pb-0">{children}</div>
+      <div className="flex-1 min-h-0 overflow-y-auto pb-[68px] md:pb-0">{children}</div>
     </div>
   );
 }

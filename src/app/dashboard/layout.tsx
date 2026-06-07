@@ -16,10 +16,11 @@ export default async function DashboardLayout({
 
   return (
     <AppBarProvider>
-      <div className="flex min-h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
+      <div className="flex h-screen flex-col" style={{ backgroundColor: "var(--bg)" }}>
         <TopBar isAdmin={admin} />
         <AppBar />
-        <main className="flex flex-1 flex-col pt-[56px] pb-[68px] md:pt-0 md:pb-0">
+        <div className="shrink-0 h-[56px] md:h-[54px]" aria-hidden="true" />
+        <main className="flex flex-1 min-h-0 flex-col overflow-y-auto pb-[68px] md:pb-0">
           {children}
         </main>
         <TabBar />

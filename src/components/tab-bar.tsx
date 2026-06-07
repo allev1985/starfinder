@@ -45,9 +45,8 @@ export default function TabBar() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50"
+      className="grid md:hidden fixed bottom-0 left-0 right-0 z-50"
       style={{
-        display: "grid",
         gridTemplateColumns: `repeat(${tabs.length}, 1fr) 1fr`,
         height: 68,
         paddingBottom: "env(safe-area-inset-bottom)",
