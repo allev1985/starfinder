@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns } from "@/db/queries/characters";
+import { getCharacterWithCampaigns, getCharacterConditions } from "@/db/queries/characters";
 import { loadCharacterSheetData } from "@/db/queries/character-sheet-loader";
+import { listConditions } from "@/db/queries/admin-conditions";
 import CharacterActions from "./_components/character-actions";
 import JoinCampaignForm from "./_components/join-campaign-form";
 import CharacterStatsClient from "./_components/character-stats-client";
@@ -27,32 +28,40 @@ export default async function CharacterDetailPage({
 
   const isOwner = await isCharacterOwner(id, user.id);
 
-  const {
-    descriptions,
-    savedValuesMap,
-    combatStats,
-    characterSkills,
-    allSkills,
-    mechanicPickerOptions,
-    availableArmor,
-    characterArmorInventory,
-    allWeapons,
-    carriedWeapons,
-    allEquipment,
-    characterEquipmentInventory,
-    characterKnownSpells,
-    spellCatalog,
-    spellsKnownLimits,
-    characterSpellSlotRows,
-    spellsPerDay,
-    classFeatureAbilities,
-    classAbilityOptionsList,
-    themeFeatureAbilities,
-    weaponProficiencies,
-    classChoices,
-    characterFeatsList,
-    characterNotesList,
-  } = await loadCharacterSheetData(id, character);
+  const [
+    {
+      descriptions,
+      savedValuesMap,
+      combatStats,
+      characterSkills,
+      allSkills,
+      mechanicPickerOptions,
+      availableArmor,
+      characterArmorInventory,
+      allWeapons,
+      carriedWeapons,
+      allEquipment,
+      characterEquipmentInventory,
+      characterKnownSpells,
+      spellCatalog,
+      spellsKnownLimits,
+      characterSpellSlotRows,
+      spellsPerDay,
+      classFeatureAbilities,
+      classAbilityOptionsList,
+      themeFeatureAbilities,
+      weaponProficiencies,
+      classChoices,
+      characterFeatsList,
+      characterNotesList,
+    },
+    activeConditions,
+    allConditions,
+  ] = await Promise.all([
+    loadCharacterSheetData(id, character),
+    getCharacterConditions(id),
+    listConditions(character.editionId),
+  ]);
 
   return (
     <div className="p-6">
@@ -163,6 +172,8 @@ export default async function CharacterDetailPage({
         initialXpEarned={character.xpEarned}
         initialLanguages={character.languages}
         initialNotes={characterNotesList}
+        initialActiveConditions={activeConditions}
+        allConditions={allConditions}
       />
 
     </div>

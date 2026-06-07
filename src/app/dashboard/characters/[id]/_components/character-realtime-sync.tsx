@@ -3,8 +3,13 @@
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useCharacter } from "./character-context";
+import type { Condition } from "@/db/schema";
 
-export default function CharacterRealtimeSync() {
+interface Props {
+  allConditions: Condition[];
+}
+
+export default function CharacterRealtimeSync({ allConditions }: Props) {
   const {
     characterId,
     setHealthValues,
@@ -13,6 +18,8 @@ export default function CharacterRealtimeSync() {
     setLevel,
     setCredits,
     setXpEarned,
+    activeConditions,
+    setActiveConditions,
   } = useCharacter();
 
   useEffect(() => {
@@ -78,12 +85,41 @@ export default function CharacterRealtimeSync() {
           setXpEarned(row.xp_earned);
         }
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "character_conditions",
+          filter: `character_id=eq.${characterId}`,
+        },
+        (payload) => {
+          const row = payload.new as { condition_id: string };
+          const condition = allConditions.find((c) => c.id === row.condition_id);
+          if (!condition) return;
+          if (activeConditions.some((c) => c.id === condition.id)) return;
+          setActiveConditions([...activeConditions, condition].sort((a, b) => a.name.localeCompare(b.name)));
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "character_conditions",
+          filter: `character_id=eq.${characterId}`,
+        },
+        (payload) => {
+          const row = payload.old as { condition_id: string };
+          setActiveConditions(activeConditions.filter((c) => c.id !== row.condition_id));
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [characterId, setHealthValues, setCombatMods, setScores, setLevel, setCredits, setXpEarned]);
+  }, [characterId, setHealthValues, setCombatMods, setScores, setLevel, setCredits, setXpEarned, allConditions, activeConditions, setActiveConditions]);
 
   return null;
 }

@@ -31,8 +31,9 @@ import VitalsStrip from "./vitals-strip";
 import type { CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, MechanicPickerEntry, HealthResolveValues } from "@/db/queries/characters";
 import type { AbilityScores } from "@/db/queries/characters";
 import type { SkillWithClassFlag } from "@/db/queries/reference";
-import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription, CharacterSpellSlot, CharacterNote } from "@/db/schema";
+import type { Armor, Weapon, Equipment, CharacterSkill, RaceType, ClassAbility, ClassAbilityOption, ThemeAbility, CharacterClassChoice, WeaponCategory, CharacterSpell, Spell, RaceDescription, CharacterSpellSlot, CharacterNote, Condition } from "@/db/schema";
 import type { CombatMods } from "./character-context";
+import ConditionsSection from "./conditions-section";
 
 type CharacterSpellWithSpell = CharacterSpell & { spell: Spell };
 
@@ -101,6 +102,8 @@ type Props = {
   initialXpEarned: number;
   initialLanguages: string[];
   initialNotes: CharacterNote[];
+  initialActiveConditions: Condition[];
+  allConditions: Condition[];
 };
 
 export default function CharacterStatsClient({
@@ -168,6 +171,8 @@ export default function CharacterStatsClient({
   initialXpEarned,
   initialLanguages,
   initialNotes,
+  initialActiveConditions,
+  allConditions,
 }: Props) {
   const initialCombatMods: CombatMods = {
     initiativeMiscMod,
@@ -215,8 +220,9 @@ export default function CharacterStatsClient({
       initialXpEarned={initialXpEarned}
       initialHealthValues={initialHealthValues}
       initialCombatMods={initialCombatMods}
+      initialActiveConditions={initialActiveConditions}
     >
-      <CharacterRealtimeSync />
+      <CharacterRealtimeSync allConditions={allConditions} />
       <CharacterSheetHeader
         characterName={characterName}
         raceName={raceName}
@@ -249,6 +255,7 @@ export default function CharacterStatsClient({
         mechanicName={mechanicName}
         mechanicIntScore={mechanicIntScore}
         pickerOptions={pickerOptions}
+        allConditions={allConditions}
       />
     </CharacterProvider>
   );
@@ -279,6 +286,7 @@ type SheetProps = {
   mechanicName: string | null;
   mechanicIntScore: number | null;
   pickerOptions: MechanicPickerEntry[];
+  allConditions: Condition[];
 };
 
 function PillTabs({
@@ -344,6 +352,7 @@ function CharacterSheet({
   mechanicName,
   mechanicIntScore,
   pickerOptions,
+  allConditions,
 }: SheetProps) {
   const { isOwner, raceType, mechanicLevel, level, skills, carriedWeapons, scores, healthValues, combatMods } = useCharacter();
   const [desktopTab, setDesktopTab] = useState("stats");
@@ -410,6 +419,7 @@ function CharacterSheet({
 
         <AccordionBlock icon={<Heart size={16} />} title={raceType === "drone" ? "Hit Points" : "Health & Resolve"} summary={hpSummary} defaultOpen>
           <HealthResolveSection />
+          <ConditionsSection allConditions={allConditions} />
         </AccordionBlock>
 
         <AccordionBlock icon={<Zap size={16} />} title="Ability Scores" summary={abilitySummary}>
@@ -502,6 +512,7 @@ function CharacterSheet({
             <div>
               <AccordionBlock icon={<Heart size={16} />} title={raceType === "drone" ? "Hit Points" : "Health & Resolve"} summary={hpSummary} defaultOpen>
                 <HealthResolveSection />
+                <ConditionsSection allConditions={allConditions} />
               </AccordionBlock>
               <AccordionBlock icon={<Shield size={16} />} title="Combat Stats" summary={saveSummary} defaultOpen>
                 <CombatStatsSection />

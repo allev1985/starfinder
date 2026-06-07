@@ -62,6 +62,9 @@ import {
   deleteCharacterNote,
   updateCharacterNote,
 } from "@/db/queries/characters";
+import { db } from "@/db";
+import { characterConditions } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
 import type { AbilityScores, HealthResolveValues, SkillEntry, CharacterEquipmentEntry } from "@/db/queries/characters";
 import type { CharacterSkill, CharacterNote } from "@/db/schema";
 import type { Feat } from "@/db/schema";
@@ -762,6 +765,29 @@ export async function removeCharacterNoteAction(
     return { success: true };
   } catch {
     return { success: false, error: "Failed to remove note." };
+  }
+}
+
+export async function toggleConditionAction(
+  characterId: string,
+  conditionId: string,
+  active: boolean
+): Promise<Result> {
+  const user = await getUser();
+  if (!user) return { success: false, error: "Not authenticated." };
+  const owns = await isCharacterOwner(characterId, user.id);
+  if (!owns) return { success: false, error: "Not authorised." };
+  try {
+    if (active) {
+      await db.insert(characterConditions).values({ characterId, conditionId }).onConflictDoNothing();
+    } else {
+      await db.delete(characterConditions).where(
+        and(eq(characterConditions.characterId, characterId), eq(characterConditions.conditionId, conditionId))
+      );
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: "Failed to toggle condition." };
   }
 }
 

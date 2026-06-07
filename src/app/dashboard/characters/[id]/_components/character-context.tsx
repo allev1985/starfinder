@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import type { AbilityScores, CharacterFeatWithName, CharacterArmorEntry, CharacterEquipmentEntry, HealthResolveValues } from "@/db/queries/characters";
-import type { Armor, Weapon, RaceType, CharacterSkill, CharacterNote, CharacterClassChoice } from "@/db/schema";
+import type { Armor, Weapon, RaceType, CharacterSkill, CharacterNote, CharacterClassChoice, Condition } from "@/db/schema";
 
 export type CombatMods = {
   initiativeMiscMod: number;
@@ -55,6 +55,8 @@ type CharacterContextValue = {
   setHealthValues: (values: HealthResolveValues) => void;
   combatMods: CombatMods;
   setCombatMods: (mods: CombatMods) => void;
+  activeConditions: Condition[];
+  setActiveConditions: (conditions: Condition[]) => void;
 };
 
 const CharacterContext = createContext<CharacterContextValue | null>(null);
@@ -85,6 +87,7 @@ type ProviderProps = {
   initialXpEarned: number;
   initialHealthValues: HealthResolveValues;
   initialCombatMods: CombatMods;
+  initialActiveConditions: Condition[];
   children: React.ReactNode;
 };
 
@@ -108,6 +111,7 @@ export function CharacterProvider({
   initialXpEarned,
   initialHealthValues,
   initialCombatMods,
+  initialActiveConditions,
   children,
 }: ProviderProps) {
   const [scores, setScores] = useState<AbilityScores>(initialScores);
@@ -125,6 +129,7 @@ export function CharacterProvider({
   const [xpEarned, setXpEarned] = useState(initialXpEarned);
   const [healthValues, setHealthValues] = useState<HealthResolveValues>(initialHealthValues);
   const [combatMods, setCombatMods] = useState<CombatMods>(initialCombatMods);
+  const [activeConditions, setActiveConditions] = useState<Condition[]>(initialActiveConditions);
 
   return (
     <CharacterContext.Provider value={{
@@ -144,6 +149,7 @@ export function CharacterProvider({
       xpEarned, setXpEarned,
       healthValues, setHealthValues,
       combatMods, setCombatMods,
+      activeConditions, setActiveConditions,
     }}>
       {children}
     </CharacterContext.Provider>

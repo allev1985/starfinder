@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { isCampaignParticipant, isCharacterOwner } from "@/lib/authorization";
-import { getCharacterWithCampaigns } from "@/db/queries/characters";
+import { getCharacterWithCampaigns, getCharacterConditions } from "@/db/queries/characters";
 import { loadCharacterSheetData } from "@/db/queries/character-sheet-loader";
+import { listConditions } from "@/db/queries/admin-conditions";
 import CharacterStatsClient from "@/app/dashboard/characters/[id]/_components/character-stats-client";
 
 export default async function CampaignCharacterPage({
@@ -23,9 +24,11 @@ export default async function CampaignCharacterPage({
     redirect(`/dashboard/campaigns/${id}`);
   }
 
-  const [ownerFlag, sheetData] = await Promise.all([
+  const [ownerFlag, sheetData, activeConditions, allConditions] = await Promise.all([
     isCharacterOwner(characterId, user.id),
     loadCharacterSheetData(characterId, character),
+    getCharacterConditions(characterId),
+    listConditions(character.editionId),
   ]);
 
   const {
@@ -150,6 +153,8 @@ export default async function CampaignCharacterPage({
         initialXpEarned={character.xpEarned}
         initialLanguages={character.languages}
         initialNotes={characterNotesList}
+        initialActiveConditions={activeConditions}
+        allConditions={allConditions}
       />
     </div>
   );

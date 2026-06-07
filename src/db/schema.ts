@@ -495,6 +495,19 @@ export const characterNotes = pgTable("character_notes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const conditions = pgTable("conditions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull(),
+  description: text("description").notNull(),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
+});
+
+export const characterConditions = pgTable("character_conditions", {
+  characterId: uuid("character_id").notNull().references(() => characters.id, { onDelete: "cascade" }),
+  conditionId: uuid("condition_id").notNull().references(() => conditions.id, { onDelete: "cascade" }),
+}, (t) => [primaryKey({ columns: [t.characterId, t.conditionId] })]);
+
 export type Edition = typeof editions.$inferSelect;
 export type NewEdition = typeof editions.$inferInsert;
 export type Weapon = typeof weapons.$inferSelect;
@@ -566,3 +579,6 @@ export type NewSpaceshipNote = typeof spaceshipNotes.$inferInsert;
 export type SpaceshipCrew = typeof spaceshipCrew.$inferSelect;
 export type NewSpaceshipCrew = typeof spaceshipCrew.$inferInsert;
 export type CrewRole = "captain" | "pilot" | "engineer" | "gunner" | "science_officer";
+export type Condition = typeof conditions.$inferSelect;
+export type NewCondition = typeof conditions.$inferInsert;
+export type CharacterCondition = typeof characterConditions.$inferSelect;

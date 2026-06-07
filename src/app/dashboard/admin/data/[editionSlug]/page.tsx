@@ -13,6 +13,7 @@ import {
   Sparkles,
   Star,
   Cpu,
+  Activity,
 } from "lucide-react";
 
 const categories = [
@@ -26,6 +27,7 @@ const categories = [
   { label: "Spells", slug: "spells", icon: Sparkles },
   { label: "Feats", slug: "feats", icon: Star },
   { label: "Chassis", slug: "chassis", icon: Cpu },
+  { label: "Conditions", slug: "conditions", icon: Activity },
 ];
 
 export default async function EditionDataPage({ params }: { params: Promise<{ editionSlug: string }> }) {

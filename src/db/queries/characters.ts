@@ -22,6 +22,8 @@ import {
   feats,
   equipment,
   skills,
+  characterConditions,
+  conditions,
   type NewCharacter,
   type Character,
   type Campaign,
@@ -35,6 +37,7 @@ import {
   type NewCharacterFeat,
   characterNotes,
   type CharacterNote,
+  type Condition,
 } from "@/db/schema";
 
 export async function getCharactersByOwner(ownerId: string): Promise<Character[]> {
@@ -794,4 +797,14 @@ export async function deleteCharacterNote(noteId: string): Promise<void> {
 
 export async function updateCharacterNote(noteId: string, content: string): Promise<void> {
   await db.update(characterNotes).set({ content }).where(eq(characterNotes.id, noteId));
+}
+
+export async function getCharacterConditions(characterId: string): Promise<Condition[]> {
+  const rows = await db
+    .select({ condition: conditions })
+    .from(characterConditions)
+    .innerJoin(conditions, eq(characterConditions.conditionId, conditions.id))
+    .where(eq(characterConditions.characterId, characterId))
+    .orderBy(asc(conditions.name));
+  return rows.map((r) => r.condition);
 }
