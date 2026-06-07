@@ -205,7 +205,7 @@ export default function ArmorInventory({ availableArmor }: Props) {
           </PopoverTrigger>
           <PopoverContent className="w-[340px] p-0">
             <Command>
-              <CommandInput placeholder="Search armor…" className="h-8" />
+              <CommandInput placeholder="Search armor…" className="h-8" autoFocus={false} />
               <CommandList>
                 <CommandEmpty>No armor found.</CommandEmpty>
                 <CommandGroup>

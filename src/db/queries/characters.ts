@@ -10,6 +10,7 @@ import {
   themes,
   chassis,
   armor,
+  editions,
   characterArmor,
   characterDescriptions,
   characterCombatStats,
@@ -160,6 +161,7 @@ export type CharacterWithMeta = Character & {
   mechanicLevel: number | null;
   mechanicIntScore: number | null;
   equippedArmor: Armor | null;
+  editionSlug: string;
 };
 
 const mechanic = db.select().from(characters).as("mechanic");
@@ -179,6 +181,7 @@ export async function getCharacterWithCampaigns(
       themeId: characters.themeId,
       chassisId: characters.chassisId,
       mechanicCharacterId: characters.mechanicCharacterId,
+      editionId: characters.editionId,
       level: characters.level,
       strScore: characters.strScore,
       dexScore: characters.dexScore,
@@ -201,6 +204,7 @@ export async function getCharacterWithCampaigns(
       mechanicLevel: mechanic.level,
       mechanicIntScore: mechanic.intScore,
       armor: armor,
+      editionSlug: editions.slug,
     })
     .from(characters)
     .leftJoin(races, eq(characters.raceId, races.id))
@@ -210,6 +214,7 @@ export async function getCharacterWithCampaigns(
     .leftJoin(mechanic, eq(characters.mechanicCharacterId, mechanic.id))
     .leftJoin(wornArmor, and(eq(wornArmor.characterId, characters.id), eq(wornArmor.worn, true)))
     .leftJoin(armor, eq(armor.id, wornArmor.armorId))
+    .innerJoin(editions, eq(editions.id, characters.editionId))
     .where(eq(characters.id, characterId));
 
   if (!row) return { character: null, campaigns: [] };
@@ -223,6 +228,7 @@ export async function getCharacterWithCampaigns(
     themeId: row.themeId,
     chassisId: row.chassisId,
     mechanicCharacterId: row.mechanicCharacterId,
+    editionId: row.editionId,
     level: row.level,
     strScore: row.strScore,
     dexScore: row.dexScore,
@@ -245,6 +251,7 @@ export async function getCharacterWithCampaigns(
     mechanicLevel: row.mechanicLevel ?? null,
     mechanicIntScore: row.mechanicIntScore ?? null,
     equippedArmor: row.armor ?? null,
+    editionSlug: row.editionSlug,
   };
 
   const joined = await db

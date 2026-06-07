@@ -1,5 +1,11 @@
 import { pgTable, pgEnum, uuid, text, integer, boolean, timestamp, primaryKey, uniqueIndex, type AnyPgColumn } from "drizzle-orm/pg-core";
 
+export const editions = pgTable("editions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+});
+
 export const equipmentCategory = pgEnum("equipment_category", [
   "augmentation_cybernetic",
   "augmentation_biotech",
@@ -49,6 +55,7 @@ export const weapons = pgTable("weapons", {
   special: text("special"),
   ammoType: text("ammo_type"),
   sourceBook: text("source_book").notNull().default("crb"),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const armor = pgTable("armor", {
@@ -67,6 +74,7 @@ export const armor = pgTable("armor", {
   sourceBook: text("source_book").notNull().default("crb"),
   dr: text("dr"),
   resistances: text("resistances"),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const skills = pgTable("skills", {
@@ -76,6 +84,7 @@ export const skills = pgTable("skills", {
   abilityAlts: text("ability_alts").array(),
   trainedOnly: boolean("trained_only").notNull().default(false),
   armorCheckPenalty: boolean("armor_check_penalty").notNull().default(false),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const classSkills = pgTable("class_skills", {
@@ -97,12 +106,14 @@ export const chassis = pgTable("chassis", {
   defaultInt: integer("default_int").notNull().default(10),
   defaultWis: integer("default_wis").notNull().default(10),
   defaultCha: integer("default_cha").notNull().default(10),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const races = pgTable("races", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   type: raceType("type").notNull(),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const spellSchool = pgEnum("spell_school", [
@@ -122,11 +133,13 @@ export const classes = pgTable("classes", {
   name: text("name").notNull(),
   skillRanksPerLevel: integer("skill_ranks_per_level").notNull().default(0),
   isSpellcaster: boolean("is_spellcaster").notNull().default(false),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const themes = pgTable("themes", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const raceDescriptions = pgTable("race_descriptions", {
@@ -134,6 +147,7 @@ export const raceDescriptions = pgTable("race_descriptions", {
   raceType: raceType("race_type").notNull(),
   name: text("name").notNull(),
   sortOrder: integer("sort_order").notNull(),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const campaigns = pgTable("campaigns", {
@@ -141,6 +155,7 @@ export const campaigns = pgTable("campaigns", {
   name: text("name").notNull(),
   dmId: uuid("dm_id").notNull(),
   joinCode: text("join_code").notNull().unique(),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -153,6 +168,7 @@ export const characters = pgTable("characters", {
   themeId: uuid("theme_id").references(() => themes.id),
   chassisId: uuid("chassis_id").references(() => chassis.id),
   mechanicCharacterId: uuid("mechanic_character_id").references((): AnyPgColumn => characters.id),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
   level: integer("level").notNull().default(1),
   strScore: integer("str_score").notNull().default(10),
   dexScore: integer("dex_score").notNull().default(10),
@@ -374,6 +390,7 @@ export const spells = pgTable("spells", {
   damage: text("damage"),
   damageNote: text("damage_note"),
   source: text("source").notNull().default("CRB"),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const spellClass = pgTable("spell_class", {
@@ -413,6 +430,7 @@ export const classAbilities = pgTable("class_abilities", {
   repeatable: boolean("repeatable").notNull().default(false),
   choicePool: text("choice_pool"),
   sourceBook: text("source_book").notNull().default("crb"),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const classAbilityOptions = pgTable("class_ability_options", {
@@ -432,6 +450,7 @@ export const themeAbilities = pgTable("theme_abilities", {
   description: text("description").notNull(),
   level: integer("level").notNull(),
   sourceBook: text("source_book").notNull().default("crb"),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const feats = pgTable("feats", {
@@ -441,6 +460,7 @@ export const feats = pgTable("feats", {
   prerequisites: text("prerequisites"),
   isCombatFeat: boolean("is_combat_feat").notNull().default(false),
   sourceBook: text("source_book").notNull().default("crb"),
+  editionId: uuid("edition_id").notNull().references(() => editions.id),
 });
 
 export const classWeaponProficiency = pgTable("class_weapon_proficiency", {
@@ -475,6 +495,8 @@ export const characterNotes = pgTable("character_notes", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export type Edition = typeof editions.$inferSelect;
+export type NewEdition = typeof editions.$inferInsert;
 export type Weapon = typeof weapons.$inferSelect;
 export type NewWeapon = typeof weapons.$inferInsert;
 export type WeaponCategory = typeof weaponCategory.enumValues[number];

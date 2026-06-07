@@ -367,7 +367,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
               ))}
             </div>
             <Command>
-              <CommandInput placeholder="Search equipment…" className="h-8" />
+              <CommandInput placeholder="Search equipment…" className="h-8" autoFocus={false} />
               <CommandList>
                 <CommandEmpty>No equipment found.</CommandEmpty>
                 <CommandGroup>

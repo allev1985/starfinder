@@ -51,7 +51,7 @@ import {
   type CharacterArmorEntry,
   type CharacterEquipmentEntry,
 } from "@/db/queries/characters";
-import { getRaceById, getChassisById } from "@/db/queries/reference";
+import { getRaceById, getChassisById, getEditionBySlug } from "@/db/queries/reference";
 import { isCharacterOwner } from "@/lib/authorization";
 import {
   addCharacterSpell,
@@ -81,25 +81,24 @@ export async function createCharacterForUser({
   chassisId?: string | null;
   skillUnitSkillId?: string | null;
 }): Promise<Character> {
-  let abilityOverrides: Partial<{
-    strScore: number; dexScore: number; intScore: number; wisScore: number; chaScore: number;
-  }> = {};
+  const [edition, chassisData] = await Promise.all([
+    getEditionBySlug("1e"),
+    chassisId ? getChassisById(chassisId) : Promise.resolve(null),
+  ]);
+  if (!edition) throw new Error("Edition '1e' not found.");
 
-  if (chassisId) {
-    const ch = await getChassisById(chassisId);
-    if (ch) {
-      abilityOverrides = {
-        strScore: ch.defaultStr,
-        dexScore: ch.defaultDex,
-        intScore: ch.defaultInt,
-        wisScore: ch.defaultWis,
-        chaScore: ch.defaultCha,
-      };
-    }
-  }
+  const abilityOverrides: Partial<{
+    strScore: number; dexScore: number; intScore: number; wisScore: number; chaScore: number;
+  }> = chassisData ? {
+    strScore: chassisData.defaultStr,
+    dexScore: chassisData.defaultDex,
+    intScore: chassisData.defaultInt,
+    wisScore: chassisData.defaultWis,
+    chaScore: chassisData.defaultCha,
+  } : {};
 
   return createCharacter(
-    { name, ownerId, raceId, classId, themeId, chassisId: chassisId ?? null, ...abilityOverrides },
+    { name, ownerId, raceId, classId, themeId, chassisId: chassisId ?? null, editionId: edition.id, ...abilityOverrides },
     { skillUnitSkillId: skillUnitSkillId ?? null }
   );
 }

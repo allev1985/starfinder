@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import { getUser } from "@/lib/session";
 import { canViewCharacter, isCharacterOwner } from "@/lib/authorization";
 import { getCharacterWithCampaigns } from "@/db/queries/characters";
@@ -22,6 +22,8 @@ export default async function CharacterDetailPage({
 
   const { character, campaigns } = await getCharacterWithCampaigns(id);
   if (!character) redirect("/dashboard/characters");
+
+  if (character.editionSlug !== "1e") notFound();
 
   const isOwner = await isCharacterOwner(id, user.id);
 

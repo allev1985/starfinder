@@ -18,6 +18,7 @@ import {
   themeAbilities,
   feats,
   equipment,
+  editions,
   type Race,
   type Class,
   type Theme,
@@ -32,7 +33,13 @@ import {
   type ThemeAbility,
   type Feat,
   type WeaponCategory,
+  type Edition,
 } from "@/db/schema";
+
+export async function getEditionBySlug(slug: string): Promise<Edition | null> {
+  const [edition] = await db.select().from(editions).where(eq(editions.slug, slug)).limit(1);
+  return edition ?? null;
+}
 
 export type SkillWithClassFlag = Skill & { isClassSkill: boolean };
 

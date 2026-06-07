@@ -7,6 +7,7 @@ import {
   deleteCampaign,
 } from "@/db/queries/campaigns";
 import { isCampaignDm } from "@/lib/authorization";
+import { getEditionBySlug } from "@/db/queries/reference";
 import type { Campaign } from "@/db/schema";
 
 export type CampaignWithRole = Campaign & { role: "dm" | "player" };
@@ -24,12 +25,16 @@ export async function createCampaignForUser({
   name: string;
   dmId: string;
 }): Promise<Campaign> {
+  const edition = await getEditionBySlug("1e");
+  if (!edition) throw new Error("Edition '1e' not found.");
+
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       return await createCampaign({
         name,
         dmId,
         joinCode: generateJoinCode(),
+        editionId: edition.id,
       });
     } catch (err) {
       const isUniqueViolation =

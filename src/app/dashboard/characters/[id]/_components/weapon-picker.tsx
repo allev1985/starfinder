@@ -52,7 +52,7 @@ export default function WeaponPicker({ allWeapons }: Props) {
       </PopoverTrigger>
       <PopoverContent className="w-[360px] p-0">
         <Command>
-          <CommandInput placeholder="Search weapons…" className="h-8" />
+          <CommandInput placeholder="Search weapons…" className="h-8" autoFocus={false} />
           <CommandList>
             <CommandEmpty>No weapons found.</CommandEmpty>
             <CommandGroup>
