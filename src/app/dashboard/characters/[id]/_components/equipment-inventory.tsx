@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction, updateAmmoChargesAction, wieldShieldAction, unwieldShieldAction } from "../actions";
 import type { Equipment, EquipmentCategory } from "@/db/schema";
 import type { CharacterEquipmentEntry } from "@/db/queries/characters";
@@ -50,6 +51,31 @@ const AMMO_TYPE_LABELS: Record<string, string> = {
 };
 
 const AUGMENTATION_CATEGORIES: EquipmentCategory[] = ["augmentation_cybernetic", "augmentation_biotech", "personal_upgrade"];
+const ITEMS_CATEGORIES: EquipmentCategory[] = ["computer", "magic_item", "trap", "technological", "personal"];
+
+const CATEGORY_LABELS: Record<EquipmentCategory, string> = {
+  augmentation_cybernetic: "Cybernetic",
+  augmentation_biotech: "Biotech",
+  personal_upgrade: "Personal Upgrade",
+  ammunition: "Ammunition",
+  shield: "Shield",
+  computer: "Computer",
+  magic_item: "Magic Item",
+  trap: "Trap",
+  technological: "Technological",
+  personal: "Personal Item",
+};
+
+const PICKER_GROUPS: { label: string; categories: EquipmentCategory[] }[] = [
+  { label: "Shields", categories: ["shield"] },
+  { label: "Augmentations & Upgrades", categories: ["augmentation_cybernetic", "augmentation_biotech", "personal_upgrade"] },
+  { label: "Ammunition", categories: ["ammunition"] },
+  { label: "Computers", categories: ["computer"] },
+  { label: "Technological", categories: ["technological"] },
+  { label: "Magic Items", categories: ["magic_item"] },
+  { label: "Traps", categories: ["trap"] },
+  { label: "Personal Items", categories: ["personal"] },
+];
 
 type ShieldCardProps = {
   entry: CharacterEquipmentEntry;
@@ -208,13 +234,7 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
 
   if (removing) return null;
 
-  const categoryLabel = e.category === "augmentation_cybernetic"
-    ? "Cybernetic"
-    : e.category === "augmentation_biotech"
-    ? "Biotech"
-    : e.category === "personal_upgrade"
-    ? "Personal Upgrade"
-    : "Ammunition";
+  const categoryLabel = CATEGORY_LABELS[e.category] ?? e.category;
 
   return (
     <Card>
@@ -325,7 +345,67 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
   );
 }
 
-type FilterTab = "all" | "shields" | "augmentations" | "ammunition";
+type ItemCardProps = {
+  entry: CharacterEquipmentEntry;
+  characterId: string;
+  isOwner: boolean;
+  onRemoved: (id: string) => void;
+};
+
+function ItemCard({ entry, characterId, isOwner, onRemoved }: ItemCardProps) {
+  const [, startTransition] = useTransition();
+  const [removing, setRemoving] = useState(false);
+  const e = entry.equipment;
+
+  function handleRemove() {
+    setRemoving(true);
+    onRemoved(entry.id);
+    startTransition(() => { removeEquipmentAction(entry.id, characterId); });
+  }
+
+  if (removing) return null;
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">{e.name}</p>
+            <p className="text-xs text-muted-foreground">
+              Level {e.itemLevel} · {CATEGORY_LABELS[e.category] ?? e.category} · {e.price.toLocaleString()} cr
+            </p>
+          </div>
+          {isOwner && (
+            <AlertDialog>
+              <AlertDialogTrigger className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-accent transition-colors">
+                <Trash2 className="h-3.5 w-3.5" />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove item?</AlertDialogTitle>
+                  <AlertDialogDescription>Remove {e.name} from this character&apos;s inventory?</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleRemove}>Remove</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
+        {e.bonusHint && (
+          <div className="mt-2 flex items-start gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+            <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span className="text-xs">{e.bonusHint}</span>
+          </div>
+        )}
+        <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
+          <StatCell label="Bulk" value={e.bulk} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 type Props = {
   allEquipment: Equipment[];
@@ -334,7 +414,7 @@ type Props = {
 export default function EquipmentInventory({ allEquipment }: Props) {
   const { characterId, isOwner, equipmentInventory: inventory, setEquipmentInventory: onInventoryChange } = useCharacter();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerFilter, setPickerFilter] = useState<FilterTab>("all");
+  const [pickerGroup, setPickerGroup] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const optimisticCounter = useRef(0);
 
@@ -343,6 +423,7 @@ export default function EquipmentInventory({ allEquipment }: Props) {
   const shields = inventory.filter((e) => e.equipment.category === "shield");
   const augmentations = inventory.filter((e) => AUGMENTATION_CATEGORIES.includes(e.equipment.category));
   const ammunition = inventory.filter((e) => e.equipment.category === "ammunition");
+  const items = inventory.filter((e) => ITEMS_CATEGORIES.includes(e.equipment.category));
 
   function handleRemoved(id: string) {
     onInventoryChange(inventory.filter((e) => e.id !== id));
@@ -387,13 +468,12 @@ export default function EquipmentInventory({ allEquipment }: Props) {
     });
   }
 
-  const pickerItems = allEquipment.filter((e) => {
-    if (e.category !== "ammunition" && e.category !== "shield" && carriedIds.has(e.id)) return false;
-    if (pickerFilter === "shields") return e.category === "shield";
-    if (pickerFilter === "augmentations") return AUGMENTATION_CATEGORIES.includes(e.category);
-    if (pickerFilter === "ammunition") return e.category === "ammunition";
-    return true;
-  });
+  const availableByCategory = (categories: EquipmentCategory[]) =>
+    allEquipment.filter((e) => {
+      if (!categories.includes(e.category)) return false;
+      if (e.category !== "ammunition" && e.category !== "shield" && carriedIds.has(e.id)) return false;
+      return true;
+    });
 
   return (
     <div>
@@ -455,10 +535,27 @@ export default function EquipmentInventory({ allEquipment }: Props) {
             ))}
           </div>
         )}
+
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Items</p>
+        {items.length === 0 ? (
+          <p className="mb-3 text-sm text-muted-foreground">No items in inventory.</p>
+        ) : (
+          <div className="mb-3 flex flex-col gap-3">
+            {items.map((entry) => (
+              <ItemCard
+                key={entry.id}
+                entry={entry}
+                characterId={characterId}
+                isOwner={isOwner}
+                onRemoved={handleRemoved}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {isOwner && (
-        <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <Dialog open={pickerOpen} onOpenChange={(open) => { setPickerOpen(open); if (!open) setPickerGroup(null); }}>
           <DialogTrigger className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}>
             <Plus className="h-3.5 w-3.5" />
             Add Equipment
@@ -467,35 +564,37 @@ export default function EquipmentInventory({ allEquipment }: Props) {
             <DialogHeader className="px-4 pt-4">
               <DialogTitle>Add Equipment</DialogTitle>
             </DialogHeader>
-            <div className="flex border-b">
-              {(["all", "shields", "augmentations", "ammunition"] as FilterTab[]).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setPickerFilter(tab)}
-                  className={cn(
-                    "flex-1 px-2 py-1.5 text-xs font-medium transition-colors",
-                    pickerFilter === tab
-                      ? "border-b-2 border-primary text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {tab === "all" ? "All" : tab === "shields" ? "Shields" : tab === "augmentations" ? "Augments" : "Ammo"}
-                </button>
-              ))}
+            <div className="px-4 pb-2">
+              <Select value={pickerGroup ?? "all"} onValueChange={(v) => setPickerGroup(v === "all" ? null : v)}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {PICKER_GROUPS.map((group) => (
+                    <SelectItem key={group.label} value={group.label}>{group.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <Command>
               <CommandInput placeholder="Search equipment…" className="h-8" />
               <CommandList>
                 <CommandEmpty>No equipment found.</CommandEmpty>
-                <CommandGroup>
-                  {pickerItems.map((item) => (
-                    <CommandItem key={item.id} value={item.name} onSelect={() => handleAdd(item)}>
-                      <span>{item.name}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">Lv{item.itemLevel}</span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {PICKER_GROUPS.filter((g) => pickerGroup === null || g.label === pickerGroup).map((group) => {
+                  const groupItems = availableByCategory(group.categories);
+                  if (groupItems.length === 0) return null;
+                  return (
+                    <CommandGroup key={group.label} heading={pickerGroup === null ? group.label : undefined}>
+                      {groupItems.map((item) => (
+                        <CommandItem key={item.id} value={item.name} onSelect={() => handleAdd(item)}>
+                          <span>{item.name}</span>
+                          <span className="ml-auto text-xs text-muted-foreground">Lv{item.itemLevel}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  );
+                })}
               </CommandList>
             </Command>
           </DialogContent>

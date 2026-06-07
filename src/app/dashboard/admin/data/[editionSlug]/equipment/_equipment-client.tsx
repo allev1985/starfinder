@@ -15,6 +15,7 @@ import type { Equipment, EquipmentCategory, AugmentationSystem } from "@/db/sche
 
 const EQUIPMENT_CATEGORIES: EquipmentCategory[] = [
   "augmentation_cybernetic", "augmentation_biotech", "personal_upgrade", "ammunition", "shield",
+  "computer", "magic_item", "trap", "technological", "personal",
 ];
 const AUGMENTATION_SYSTEMS: AugmentationSystem[] = [
   "brain", "eyes", "ears", "throat", "arm", "hand", "lungs", "spinal_column", "feet", "skin",

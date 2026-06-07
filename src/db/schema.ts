@@ -12,6 +12,11 @@ export const equipmentCategory = pgEnum("equipment_category", [
   "personal_upgrade",
   "ammunition",
   "shield",
+  "computer",
+  "magic_item",
+  "trap",
+  "technological",
+  "personal",
 ]);
 
 export const augmentationSystem = pgEnum("augmentation_system", [
