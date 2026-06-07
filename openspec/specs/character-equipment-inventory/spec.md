@@ -87,6 +87,40 @@ Equipment items with a non-null `bonus_hint` SHALL display an amber callout on t
 - **WHEN** an ammunition equipment card is rendered
 - **THEN** no bonus hint callout is present
 
+### Requirement: Description popover on equipment cards
+Equipment items with a non-null `description` SHALL display an info icon button on their card. Pressing the button SHALL open a popover showing the description text. Items with a null `description` SHALL show no icon button.
+
+#### Scenario: Equipment card with description shows info button
+- **WHEN** an equipment card is rendered for an item with a description
+- **THEN** an info icon button is visible on the card
+
+#### Scenario: Pressing info button opens description popover
+- **WHEN** the owner presses the info icon button on an equipment card
+- **THEN** a popover appears containing the description text
+
+#### Scenario: Equipment card without description shows no info button
+- **WHEN** an equipment card is rendered for an item with null description
+- **THEN** no info icon button is present on the card
+
+### Requirement: Capacity, usage, and hands stat cells on equipment cards
+Equipment items with non-null `capacity`, `usage`, or `hands` values SHALL display those stats as labelled cells on their card (e.g. "Capacity: 20", "Usage: 2", "Hands: 2"). Items where all three values are null SHALL show no such cells.
+
+#### Scenario: Equipment card with capacity shows capacity cell
+- **WHEN** an equipment card is rendered for an item with a capacity value
+- **THEN** a "Capacity" labelled stat cell is visible on the card
+
+#### Scenario: Equipment card with usage shows usage cell
+- **WHEN** an equipment card is rendered for an item with a usage value
+- **THEN** a "Usage" labelled stat cell is visible on the card
+
+#### Scenario: Equipment card with hands shows hands cell
+- **WHEN** an equipment card is rendered for an item with a hands value
+- **THEN** a "Hands" labelled stat cell is visible on the card
+
+#### Scenario: Equipment card with all three null shows no stat cells
+- **WHEN** an equipment card is rendered for an item where capacity, usage, and hands are all null
+- **THEN** no capacity, usage, or hands cells are present on the card
+
 ### Requirement: Equipment section layout
 The Equipment subsection in the Inventory section SHALL group items into four sub-groups rendered in order:
 1. **Shields** (category `shield`)

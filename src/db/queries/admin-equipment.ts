@@ -19,6 +19,10 @@ export interface EquipmentFormData {
   kacBonus?: number | null;
   acPenalty?: number | null;
   maxDexBonus?: number | null;
+  description?: string | null;
+  capacity?: number | null;
+  usage?: number | null;
+  hands?: number | null;
 }
 
 export async function listEquipment(): Promise<Equipment[]> {

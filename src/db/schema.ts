@@ -372,6 +372,10 @@ export const equipment = pgTable("equipment", {
   kacBonus: integer("kac_bonus"),
   acPenalty: integer("ac_penalty"),
   maxDexBonus: integer("max_dex_bonus"),
+  description: text("description"),
+  capacity: integer("capacity"),
+  usage: integer("usage"),
+  hands: integer("hands"),
 });
 
 export const characterEquipment = pgTable("character_equipment", {

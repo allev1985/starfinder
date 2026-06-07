@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addEquipmentAction, removeEquipmentAction, updateEquipmentQuantityAction, updateAmmoChargesAction, wieldShieldAction, unwieldShieldAction } from "../actions";
 import type { Equipment, EquipmentCategory } from "@/db/schema";
@@ -127,7 +129,7 @@ function ShieldCard({ entry, characterId, isOwner, onRemoved, onWieldedChange }:
               </div>
             )}
             <div>
-              <p className="text-sm font-semibold">{e.name}</p>
+              <ItemName name={e.name} description={e.description ?? null} />
               <p className="text-xs text-muted-foreground">Level {e.itemLevel} · {e.price.toLocaleString()} cr</p>
             </div>
           </div>
@@ -155,6 +157,7 @@ function ShieldCard({ entry, characterId, isOwner, onRemoved, onWieldedChange }:
           <StatCell label="ACP" value={e.acPenalty ?? 0} />
           <StatCell label="Max DEX" value={e.maxDexBonus != null ? `+${e.maxDexBonus}` : "—"} />
           <StatCell label="Bulk" value={e.bulk} />
+          {e.hands != null && <StatCell label="Hands" value={e.hands} />}
         </div>
       </CardContent>
     </Card>
@@ -167,6 +170,22 @@ function StatCell({ label, value }: { label: string; value: string | number }) {
       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
       <span className="text-sm font-medium">{value}</span>
     </div>
+  );
+}
+
+function ItemName({ name, description }: { name: string; description: string | null }) {
+  if (!description) return <p className="text-sm font-semibold">{name}</p>;
+  return (
+    <Popover>
+      <PopoverTrigger className="flex items-center gap-1 text-left">
+        <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        <span className="text-sm font-semibold">{name}</span>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="w-72">
+        <p className="text-sm font-medium mb-1">{name}</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">{description}</p>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -241,7 +260,7 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4 mb-2">
           <div>
-            <p className="text-sm font-semibold">{e.name}</p>
+            <ItemName name={e.name} description={e.description ?? null} />
             <p className="text-xs text-muted-foreground">
               Level {e.itemLevel} · {categoryLabel}
               {e.system ? ` · ${SYSTEM_LABELS[e.system] ?? e.system}` : ""}
@@ -279,6 +298,9 @@ function EquipmentCard({ entry, characterId, isOwner, onRemoved, onQuantityChang
 
         <div className="flex flex-wrap gap-x-6 gap-y-1">
           <StatCell label="Bulk" value={e.bulk} />
+          {e.capacity != null && <StatCell label="Capacity" value={e.capacity} />}
+          {e.usage != null && <StatCell label="Usage" value={e.usage} />}
+          {e.hands != null && <StatCell label="Hands" value={e.hands} />}
           {isAmmo && e.ammoType && (
             <StatCell label="Type" value={AMMO_TYPE_LABELS[e.ammoType] ?? e.ammoType} />
           )}
@@ -370,7 +392,7 @@ function ItemCard({ entry, characterId, isOwner, onRemoved }: ItemCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold">{e.name}</p>
+            <ItemName name={e.name} description={e.description ?? null} />
             <p className="text-xs text-muted-foreground">
               Level {e.itemLevel} · {CATEGORY_LABELS[e.category] ?? e.category} · {e.price.toLocaleString()} cr
             </p>
@@ -401,6 +423,9 @@ function ItemCard({ entry, characterId, isOwner, onRemoved }: ItemCardProps) {
         )}
         <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
           <StatCell label="Bulk" value={e.bulk} />
+          {e.capacity != null && <StatCell label="Capacity" value={e.capacity} />}
+          {e.usage != null && <StatCell label="Usage" value={e.usage} />}
+          {e.hands != null && <StatCell label="Hands" value={e.hands} />}
         </div>
       </CardContent>
     </Card>

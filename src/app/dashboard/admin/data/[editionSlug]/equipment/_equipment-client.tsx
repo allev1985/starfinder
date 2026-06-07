@@ -6,6 +6,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable } from "../_components/data-table";
 import { EntityModal } from "../_components/entity-modal";
@@ -25,6 +26,7 @@ const EMPTY_FORM: EquipmentFormData = {
   name: "", category: "personal_upgrade", itemLevel: 1, price: 0, bulk: "L",
   system: null, ammoType: null, ammoCapacity: null, bonusHint: null,
   eacBonus: null, kacBonus: null, acPenalty: null, maxDexBonus: null,
+  description: null, capacity: null, usage: null, hands: null,
 };
 
 const isAugmentation = (c: EquipmentCategory) => c === "augmentation_cybernetic" || c === "augmentation_biotech";
@@ -52,7 +54,7 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
   function openAdd() { setEditing(null); setForm(EMPTY_FORM); setItemLevelStr("1"); setPriceStr("0"); setError(null); setModalOpen(true); }
   function openEdit(item: Equipment) {
     setEditing(item);
-    setForm({ name: item.name, category: item.category, itemLevel: item.itemLevel, price: item.price, bulk: item.bulk, system: item.system ?? null, ammoType: item.ammoType ?? null, ammoCapacity: item.ammoCapacity ?? null, bonusHint: item.bonusHint ?? null, eacBonus: item.eacBonus ?? null, kacBonus: item.kacBonus ?? null, acPenalty: item.acPenalty ?? null, maxDexBonus: item.maxDexBonus ?? null });
+    setForm({ name: item.name, category: item.category, itemLevel: item.itemLevel, price: item.price, bulk: item.bulk, system: item.system ?? null, ammoType: item.ammoType ?? null, ammoCapacity: item.ammoCapacity ?? null, bonusHint: item.bonusHint ?? null, eacBonus: item.eacBonus ?? null, kacBonus: item.kacBonus ?? null, acPenalty: item.acPenalty ?? null, maxDexBonus: item.maxDexBonus ?? null, description: item.description ?? null, capacity: item.capacity ?? null, usage: item.usage ?? null, hands: item.hands ?? null });
     setItemLevelStr(String(item.itemLevel));
     setPriceStr(String(item.price));
     setError(null); setModalOpen(true);
@@ -197,6 +199,22 @@ export function EquipmentClient({ initialEquipment }: EquipmentClientProps) {
           <div className="col-span-2 flex flex-col gap-1">
             <Label>Bonus Hint (optional)</Label>
             <Input value={form.bonusHint ?? ""} onChange={(e) => set("bonusHint", e.target.value || null)} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Capacity (optional)</Label>
+            <Input type="number" value={form.capacity ?? ""} onChange={(e) => set("capacity", e.target.value ? parseInt(e.target.value) : null)} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Usage (optional)</Label>
+            <Input type="number" value={form.usage ?? ""} onChange={(e) => set("usage", e.target.value ? parseInt(e.target.value) : null)} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label>Hands (optional)</Label>
+            <Input type="number" value={form.hands ?? ""} onChange={(e) => set("hands", e.target.value ? parseInt(e.target.value) : null)} />
+          </div>
+          <div className="col-span-2 flex flex-col gap-1">
+            <Label>Description (optional)</Label>
+            <Textarea value={form.description ?? ""} onChange={(e) => set("description", e.target.value || null)} rows={4} />
           </div>
         </div>
       </EntityModal>
