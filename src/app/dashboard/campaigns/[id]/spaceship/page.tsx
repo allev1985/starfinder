@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
-import { getSpaceshipsByCampaign, getCampaignWithCharacters } from "@/db/queries/campaigns";
+import { getSpaceshipsByCampaign } from "@/db/queries/campaigns";
 import CreateSpaceshipForm from "./_create-form";
 
 export default async function SpaceshipRootPage({
@@ -17,19 +17,12 @@ export default async function SpaceshipRootPage({
     redirect(`/dashboard/campaigns/${id}/spaceship/${ships[0].id}`);
   }
 
-  const { campaign } = await getCampaignWithCharacters(id);
-  const isGm = campaign?.gmId === user.id;
-
   return (
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Spaceships</h1>
       </div>
-      {isGm ? (
-        <CreateSpaceshipForm campaignId={id} />
-      ) : (
-        <p className="text-muted-foreground text-sm">No ships have been added to this campaign yet.</p>
-      )}
+      <CreateSpaceshipForm campaignId={id} />
     </div>
   );
 }

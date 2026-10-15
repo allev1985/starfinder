@@ -123,9 +123,20 @@ export default async function CampaignDetailPage({
       </div>
 
       {/* Starships */}
-      {spaceships.length > 0 && (
-        <div className="mb-6">
-          <SectionLabel>Starship</SectionLabel>
+      <div className="mb-6">
+        <SectionLabel>Starship</SectionLabel>
+        {spaceships.length === 0 ? (
+          <div className="flex items-center justify-between">
+            <p style={{ fontSize: 13, color: "var(--text-3)" }}>No starship yet.</p>
+            <Link
+              href={`/dashboard/campaigns/${id}/spaceship/new`}
+              className="hover:underline"
+              style={{ fontSize: 13, color: "var(--accent-text)" }}
+            >
+              + Add ship
+            </Link>
+          </div>
+        ) : (
           <div className="flex flex-col gap-2">
             {spaceships.map((ship) => (
               <Link
@@ -156,8 +167,8 @@ export default async function CampaignDetailPage({
               </Link>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Encounter */}
       <div className="mb-6">

@@ -131,12 +131,10 @@ export default function CampaignSidebar({
             />
           ))
         )}
-        {isGm && (
-          <NavItem
-            href={`/dashboard/campaigns/${campaignId}/spaceship/new`}
-            label="+ Add ship"
-          />
-        )}
+        <NavItem
+          href={`/dashboard/campaigns/${campaignId}/spaceship/new`}
+          label="+ Add ship"
+        />
 
         <SectionLabel>Notes</SectionLabel>
         <NavItem

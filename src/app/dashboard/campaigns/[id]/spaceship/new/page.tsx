@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/session";
-import { getCampaignWithCharacters } from "@/db/queries/campaigns";
 import CreateSpaceshipForm from "../_create-form";
 
 export default async function NewSpaceshipPage({
@@ -11,10 +10,6 @@ export default async function NewSpaceshipPage({
   const { id } = await params;
   const user = await getUser();
   if (!user) redirect("/");
-
-  const { campaign } = await getCampaignWithCharacters(id);
-  const isGm = campaign?.gmId === user.id;
-  if (!isGm) redirect(`/dashboard/campaigns/${id}/spaceship`);
 
   return (
     <div className="p-6">
